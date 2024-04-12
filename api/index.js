@@ -21,7 +21,7 @@ mongoose.connect(process.env.MONGO_URI, { dbName: 'GWData' })
 
 const PORT = process.env.PORT || 8080;
 const transporter = nodemailer.createTransport({
-  service: 'outlook', // Replace with your preferred service
+  service: 'outlook', 
   auth: {
     user: process.env.EMAIL_USERNAME,
     pass: process.env.EMAIL_PASSWORD
@@ -171,7 +171,7 @@ app.delete('/deleteData/:category/:fileName', async (req, res) => {
   }
 
   try {
-    const regex = new RegExp('^' + fileName + '$', 'i'); // 'i' makes it case-insensitive
+    const regex = new RegExp('^' + fileName + '$', 'i');
     const deletedDocument = await Model.findOneAndDelete({ FileName: regex });
     if (!deletedDocument) {
       return res.status(404).send({ error: 'File not found' });
@@ -184,7 +184,7 @@ app.delete('/deleteData/:category/:fileName', async (req, res) => {
 });
 app.post('/setExpiry/:category/:fileName', async (req, res) => {
   const { category, fileName } = req.params;
-  const { newExpiryDate } = req.body;  // New expiry date from the frontend
+  const { newExpiryDate } = req.body;  
 
   if (!newExpiryDate) {
     return res.status(400).send({ error: 'New expiry date is required.' });

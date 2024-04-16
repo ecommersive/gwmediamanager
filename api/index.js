@@ -15,6 +15,7 @@ const path = require('path');
 app.use(express.json());
 app.use(cors());
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+console.clear()
 console.log('process.env.MONGO_URI = ', process.env.MONGO_URI);
 mongoose.connect(process.env.MONGO_URI, { dbName: 'GWData' })
   .then(() => console.log('Connected to MongoDB successfully'))

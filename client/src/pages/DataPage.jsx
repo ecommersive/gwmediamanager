@@ -44,7 +44,6 @@ const DataPage = () => {
 
     const adminStatus = localStorage.getItem('isAdmin') === 'true';
     setIsAdmin(adminStatus);
-
     try {
       const response = await fetch(url);
       if (!response.ok) {

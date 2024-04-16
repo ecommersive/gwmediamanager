@@ -13,6 +13,7 @@ const cron = require('node-cron');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const verifyToken = require('./middleware/authmiddleware');
 
 app.use(express.json());
 app.use(cors());
@@ -109,22 +110,39 @@ app.post('/uploadPlaylist', async (req, res) => {
   }
 });
 
-app.post('/admin/register', async (req, res) => {
-  const { username, password } = req.body;
+
+app.post('/register', async (req, res) => {
+  const { username, password, isAdmin } = req.body;
+
+  // Validate input
   if (!username || !password) {
-    return res.status(400).json({ message: 'Username and password are required' });
+      return res.status(400).json({ message: 'Username and password are required' });
+  }
+  if (typeof isAdmin !== 'boolean') {
+      return res.status(400).json({ message: 'Invalid user role specified' });
   }
 
-  const existingUser = await User.findOne({ username });
-  if (existingUser) {
-    return res.status(400).json({ message: 'Username already exists' });
-  }
+  try {
+      const existingUser = await User.findOne({ username });
+      if (existingUser) {
+          return res.status(400).json({ message: 'Username already exists' });
+      }
 
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
-  const newUser = new User({ username, password: hashedPassword, isAdmin: true });
-  await newUser.save();
-  res.status(201).json({ message: 'Admin user created successfully', userId: newUser._id });
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+
+      const newUser = new User({
+          username,
+          password: hashedPassword,
+          isAdmin: isAdmin  // isAdmin is a boolean that should be passed in the request
+      });
+
+      await newUser.save();
+      res.status(201).json({ message: 'User registered successfully', userId: newUser._id, role: isAdmin ? 'Admin' : 'User' });
+  } catch (error) {
+      console.error('Error registering user:', error);
+      res.status(500).json({ message: 'Error registering user', error: error.message });
+  }
 });
 app.post('/uploadAds', async (req, res) => {
   const { FileName, PhotoUrl, Type, Tag, Run_Time, Content, videoUrl, Expiry } = req.body;
@@ -246,22 +264,35 @@ app.post('/setExpiry/:category/:fileName', async (req, res) => {
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {
-    return res.status(400).send('Username and password are required');
+      return res.status(400).send('Username and password are required');
   }
 
-  const user = await User.findOne({ username });
-  if (!user) {
-    return res.status(401).send('Username does not exist, please try again!');
-  }
+  try {
+      const user = await User.findOne({ username });
+      if (!user) {
+          return res.status(401).send('Username does not exist, please try again!');
+      }
 
-  const validPassword = await bcrypt.compare(password, user.password);
-  if (!validPassword) {
-    return res.status(401).send('Incorrect password, please try again!');
-  }
+      const validPassword = await bcrypt.compare(password, user.password);
+      if (!validPassword) {
+          return res.status(401).send('Incorrect password, please try again!');
+      }
 
-  const token = jwt.sign({ userId: user._id, isAdmin: user.isAdmin }, process.env.JWT_SECRET, { expiresIn: '1h' });
-  res.json({ token, message: 'Login successful', isAdmin: user.isAdmin });
+      // Sign the JWT with user ID and admin status
+      const token = jwt.sign(
+          { userId: user._id, isAdmin: user.isAdmin },
+          process.env.JWT_SECRET,
+          { expiresIn: '1h' }  // Token expires in 1 hour
+      );
+
+      res.json({ token, message: 'Login successful', isAdmin: user.isAdmin });
+  } catch (err) {
+      console.error('Login error:', err);
+      res.status(500).send('Internal Server Error');
+  }
 });
+
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

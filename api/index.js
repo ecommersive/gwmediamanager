@@ -301,7 +301,7 @@ const modelMap = {
   Archived: Archived
 };
 
-cron.schedule('* * * * *', async () => {
+cron.schedule('0 0 * * *', async () => {
   console.log('Daily check for expiring items started.');
   notifyExpiringItemsAcrossModels(modelMap);
 });

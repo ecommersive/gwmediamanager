@@ -20,13 +20,6 @@ mongoose.connect(process.env.MONGO_URI, { dbName: 'GWData' })
   .catch(err => console.error('Could not connect to MongoDB:', err));
 
 const PORT = process.env.PORT || 8080;
-const transporter = nodemailer.createTransport({
-  service: 'outlook', 
-  auth: {
-    user: process.env.EMAIL_USERNAME,
-    pass: process.env.EMAIL_PASSWORD
-  }
-});
 app.get('/', (req, res) => {
     res.send("Backend has started");
 });
@@ -276,8 +269,16 @@ async function notifyExpiringItemsAcrossModels(modelMap) {
 
   if (allExpiringItems.length > 0) {
     const itemListHtml = allExpiringItems.join('<br>');  // Changed from '<br><br>' to '<br>'
+    // List of email recipients
+    const recipients = [
+      'tom@commersive.ca',
+      'remi@commersive.ca',
+      'richard@commersive.ca'
+    ];
     const msg = {
-      to: 'rzhou1997@gmail.com',
+      personalizations: [{
+        to: recipients.map(email => ({ email }))
+      }],
       from: process.env.EMAIL_USERNAME,
       subject: `Expiration Notice ${formattedDate}`,
       html: `<strong>The following items are set to expire soon:</strong><br>${itemListHtml}<br>Any deletions or altering of this data must be with a administrator's account.`

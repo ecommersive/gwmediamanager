@@ -10,6 +10,7 @@ const Ads = require('./models/Ads');
 const Archived = require('./models/Archived');
 const sgMail = require('@sendgrid/mail')
 const cron = require('node-cron');
+const path = require('path');
 
 app.use(express.json());
 app.use(cors());
@@ -21,43 +22,46 @@ mongoose.connect(process.env.MONGO_URI, { dbName: 'GWData' })
 
 const PORT = process.env.PORT || 8080;
 const transporter = nodemailer.createTransport({
-  service: 'outlook', 
+  service: 'outlook',
   auth: {
     user: process.env.EMAIL_USERNAME,
     pass: process.env.EMAIL_PASSWORD
   }
 });
-app.get('/', (req, res) => {
-    res.send("Backend has started");
+// set the build folder to be served by the express server
+app.use(express.static(path.join(__dirname, '../client/build')));
+
+app.get(['/', '/home'], (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/build/index.html'));
 });
 
 app.get('/playlists', async (req, res) => {
   try {
-      const playlists = await Playlist.find({});
-      res.json(playlists);
+    const playlists = await Playlist.find({});
+    res.json(playlists);
   } catch (err) {
-      console.error('Error fetching playlists:', err);
-      res.status(500).send('Internal Server Error');
+    console.error('Error fetching playlists:', err);
+    res.status(500).send('Internal Server Error');
   }
 });
 
 app.get('/ads', async (req, res) => {
   try {
-      const ads = await Ads.find({});
-      res.json(ads);
+    const ads = await Ads.find({});
+    res.json(ads);
   } catch (err) {
-      console.error('Error fetching playlists:', err);
-      res.status(500).send('Internal Server Error');
+    console.error('Error fetching playlists:', err);
+    res.status(500).send('Internal Server Error');
   }
 });
 
 app.get('/archived', async (req, res) => {
   try {
-      const archived = await Archived.find({});
-      res.json(archived);
+    const archived = await Archived.find({});
+    res.json(archived);
   } catch (err) {
-      console.error('Error fetching playlists:', err);
-      res.status(500).send('Internal Server Error');
+    console.error('Error fetching playlists:', err);
+    res.status(500).send('Internal Server Error');
   }
 });
 
@@ -65,92 +69,92 @@ app.post('/uploadPlaylist', async (req, res) => {
   const { FileName, PhotoUrl, Type, Tag, Run_Time, Content, videoUrl, Expiry } = req.body;
 
   let errors = {};
-    if (!FileName) {
-      errors.FileName = 'File name is required';
-    }
-    if (!PhotoUrl) {
-      errors.PhotoUrl = 'Photo URL is required';
-    }
-    if (!Type) {
-      errors.Type = 'Type is required';
-    }
-    if (!Run_Time) {
-      errors.Run_Time = 'Run Time is required';
-    }
-    if (!Content) {
-      errors.Content = 'Content is required';
-    }
-    if (!videoUrl) {
-      errors.videoUrl = 'Video URL is required';
-    }
+  if (!FileName) {
+    errors.FileName = 'File name is required';
+  }
+  if (!PhotoUrl) {
+    errors.PhotoUrl = 'Photo URL is required';
+  }
+  if (!Type) {
+    errors.Type = 'Type is required';
+  }
+  if (!Run_Time) {
+    errors.Run_Time = 'Run Time is required';
+  }
+  if (!Content) {
+    errors.Content = 'Content is required';
+  }
+  if (!videoUrl) {
+    errors.videoUrl = 'Video URL is required';
+  }
 
-    if (Object.keys(errors).length > 0) {
-      return res.status(400).json(errors);
-    }
+  if (Object.keys(errors).length > 0) {
+    return res.status(400).json(errors);
+  }
 
   const newPlaylistItem = new Playlist({
-      FileName,
-      PhotoUrl,
-      Type,
-      Tag,
-      Run_Time,
-      Content,
-      videoUrl,
-      Expiry
+    FileName,
+    PhotoUrl,
+    Type,
+    Tag,
+    Run_Time,
+    Content,
+    videoUrl,
+    Expiry
   });
 
   try {
-      const savedItem = await newPlaylistItem.save();
-      res.status(201).json(savedItem);
+    const savedItem = await newPlaylistItem.save();
+    res.status(201).json(savedItem);
   } catch (err) {
-      console.error('Error saving new playlist item:', err);
-      res.status(500).send('Internal Server Error');
+    console.error('Error saving new playlist item:', err);
+    res.status(500).send('Internal Server Error');
   }
 });
 app.post('/uploadAds', async (req, res) => {
   const { FileName, PhotoUrl, Type, Tag, Run_Time, Content, videoUrl, Expiry } = req.body;
 
   let errors = {};
-    if (!FileName) {
-      errors.FileName = 'File name is required';
-    }
-    if (!PhotoUrl) {
-      errors.PhotoUrl = 'Photo URL is required';
-    }
-    if (!Type) {
-      errors.Type = 'Type is required';
-    }
-    if (!Run_Time) {
-      errors.Run_Time = 'Run Time is required';
-    }
-    if (!Content) {
-      errors.Content = 'Content is required';
-    }
-    if (!videoUrl) {
-      errors.videoUrl = 'Video URL is required';
-    }
+  if (!FileName) {
+    errors.FileName = 'File name is required';
+  }
+  if (!PhotoUrl) {
+    errors.PhotoUrl = 'Photo URL is required';
+  }
+  if (!Type) {
+    errors.Type = 'Type is required';
+  }
+  if (!Run_Time) {
+    errors.Run_Time = 'Run Time is required';
+  }
+  if (!Content) {
+    errors.Content = 'Content is required';
+  }
+  if (!videoUrl) {
+    errors.videoUrl = 'Video URL is required';
+  }
 
-    if (Object.keys(errors).length > 0) {
-      return res.status(400).json(errors);
-    }
+  if (Object.keys(errors).length > 0) {
+    return res.status(400).json(errors);
+  }
 
   const newAdsItem = new Ads({
-      FileName,
-      PhotoUrl,
-      Type,
-      Tag,
-      Run_Time,
-      Content,
-      videoUrl,
-      Expiry
+    FileName,
+    PhotoUrl,
+    Type,
+    Tag,
+    Run_Time,
+    Content,
+    videoUrl,
+    Expiry
   });
 
   try {
-      const savedItem = await newAdsItem.save();
-      res.status(201).json(savedItem);
+    const savedItem = await newAdsItem.save();
+    res.status(201).json(savedItem);
   } catch (err) {
-      console.error('Error saving new playlist item:', err);
-      res.status(500).send('Internal Server Error');
+    console.error('Error saving new playlist item:', err);
+    res.status(500).send('Internal Server Error');
   }
 });
 
@@ -184,7 +188,7 @@ app.delete('/deleteData/:category/:fileName', async (req, res) => {
 });
 app.post('/setExpiry/:category/:fileName', async (req, res) => {
   const { category, fileName } = req.params;
-  const { newExpiryDate } = req.body;  
+  const { newExpiryDate } = req.body;
 
   if (!newExpiryDate) {
     return res.status(400).send({ error: 'New expiry date is required.' });
@@ -205,7 +209,7 @@ app.post('/setExpiry/:category/:fileName', async (req, res) => {
     const regex = new RegExp('^' + fileName + '$', 'i'); // 'i' makes it case-insensitive
     const updatedDocument = await Model.findOneAndUpdate(
       { FileName: regex },
-      { $set: { Expiry: new Date(newExpiryDate) }},
+      { $set: { Expiry: new Date(newExpiryDate) } },
       { new: true }
     );
 
@@ -228,25 +232,25 @@ app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
-      return res.status(400).send('Username and password are required');
+    return res.status(400).send('Username and password are required');
   }
 
   try {
-      const user = await User.findOne({ username });
-      if (!user) {
-        return res.status(401).send('Username does not exists, please try again!');
-      }
-      if (user.password !== password) {
-        return res.status(401).send('Incorrect password, please try again!');
-      }
-      res.json({ message: 'Login successful', isAdmin: user.isAdmin });
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(401).send('Username does not exists, please try again!');
+    }
+    if (user.password !== password) {
+      return res.status(401).send('Incorrect password, please try again!');
+    }
+    res.json({ message: 'Login successful', isAdmin: user.isAdmin });
   } catch (err) {
-      console.error('Login error:', err);
-      res.status(500).send('Internal Server Error');
+    console.error('Login error:', err);
+    res.status(500).send('Internal Server Error');
   }
 });
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
 
 async function notifyExpiringItemsAcrossModels(modelMap) {
@@ -320,9 +324,9 @@ cron.schedule('0 0 * * *', async () => {
         }
       });
       for (let item of expiringItems) {
-        const ArchivedItem = new Archived(item.toObject()); 
-        await ArchivedItem.save(); 
-        await model.findByIdAndDelete(item._id); 
+        const ArchivedItem = new Archived(item.toObject());
+        await ArchivedItem.save();
+        await model.findByIdAndDelete(item._id);
       }
       if (expiringItems.length > 0) {
         console.log(`${expiringItems.length} ${modelName} item(s) moved to the Archived collection.`);

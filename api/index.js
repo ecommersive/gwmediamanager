@@ -11,6 +11,8 @@ const Archived = require('./models/Archived');
 const sgMail = require('@sendgrid/mail')
 const cron = require('node-cron');
 const path = require('path');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 
 app.use(express.json());
 app.use(cors());
@@ -27,6 +29,8 @@ app.use(express.static(path.join(__dirname, '../client/build')));
 app.get(['/', '/home'], (req, res) => {
   res.sendFile(path.join(__dirname, '../client/build/index.html'));
 });
+
+
 
 app.get('/playlists', async (req, res) => {
   try {
@@ -103,6 +107,24 @@ app.post('/uploadPlaylist', async (req, res) => {
     console.error('Error saving new playlist item:', err);
     res.status(500).send('Internal Server Error');
   }
+});
+
+app.post('/admin/register', async (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ message: 'Username and password are required' });
+  }
+
+  const existingUser = await User.findOne({ username });
+  if (existingUser) {
+    return res.status(400).json({ message: 'Username already exists' });
+  }
+
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
+  const newUser = new User({ username, password: hashedPassword, isAdmin: true });
+  await newUser.save();
+  res.status(201).json({ message: 'Admin user created successfully', userId: newUser._id });
 });
 app.post('/uploadAds', async (req, res) => {
   const { FileName, PhotoUrl, Type, Tag, Run_Time, Content, videoUrl, Expiry } = req.body;
@@ -223,24 +245,22 @@ app.post('/setExpiry/:category/:fileName', async (req, res) => {
 
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
-
   if (!username || !password) {
     return res.status(400).send('Username and password are required');
   }
 
-  try {
-    const user = await User.findOne({ username });
-    if (!user) {
-      return res.status(401).send('Username does not exists, please try again!');
-    }
-    if (user.password !== password) {
-      return res.status(401).send('Incorrect password, please try again!');
-    }
-    res.json({ message: 'Login successful', isAdmin: user.isAdmin });
-  } catch (err) {
-    console.error('Login error:', err);
-    res.status(500).send('Internal Server Error');
+  const user = await User.findOne({ username });
+  if (!user) {
+    return res.status(401).send('Username does not exist, please try again!');
   }
+
+  const validPassword = await bcrypt.compare(password, user.password);
+  if (!validPassword) {
+    return res.status(401).send('Incorrect password, please try again!');
+  }
+
+  const token = jwt.sign({ userId: user._id, isAdmin: user.isAdmin }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  res.json({ token, message: 'Login successful', isAdmin: user.isAdmin });
 });
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
@@ -341,41 +361,3 @@ cron.schedule('0 0 * * *', async () => {
   await archiveExpiringItems(Playlist, 'playlist');
   await archiveExpiringItems(Ads, 'ads');
 });
-// cron.schedule('0 0 * * *', async () => {
-//   console.log('Running check for items expiring within 3 to 7 days.');
-//   const dateIn3Days = new Date();
-//   dateIn3Days.setDate(dateIn3Days.getDate() + 3);
-//   dateIn3Days.setHours(0, 0, 0, 0);
-//   const dateIn7Days = new Date();
-//   dateIn7Days.setDate(dateIn7Days.getDate() + 7);
-//   dateIn7Days.setHours(23, 59, 59, 999);
-//   async function notifyExpiringItems(model, modelName) {
-//     const expiringItems = await model.find({
-//       Expiry: {
-//         $gte: dateIn3Days,
-//         $lte: dateIn7Days
-//       }
-//     });
-//     expiringItems.forEach(async (item) => {
-//       const mailOptions = {
-//         from: process.env.EMAIL_USERNAME,
-//         to: 'rzhou1997@gmail.com',
-//         subject: 'Expiration Notice Test Reminder',
-//         text: `Your ${modelName} item '${item.FileName}' is set to expire at ${item.Expiry.toDateString()}. Please reply to this email if you would like to extend the expiration date or if it should be deleted.`
-//       };
-//       try {
-//         await transporter.sendMail(mailOptions);
-//         console.log(`Email sent to notify about expiring ${modelName} item: ${item.FileName}`);
-//       } catch (error) {
-//         console.error('Failed to send email:', error);
-//       }
-//     });
-//     if (expiringItems.length > 0) {
-//       console.log(`${expiringItems.length} ${modelName} item(s) notification sent.`);
-//     } else {
-//       console.log(`No ${modelName} items expiring within 3 to 7 days.`);
-//     }
-//   }
-//   await notifyExpiringItems(Playlist, 'playlist');
-//   await notifyExpiringItems(Ads, 'ads');
-// });

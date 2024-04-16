@@ -10,8 +10,10 @@ const HomePage = () => {
   
     const handleSignIn = async (event) => {
       event.preventDefault(); // Prevent form submission
+      let baseUrl = process.env.REACT_APP_API_URL
+      console.log("login = ", );
       try {
-        const response = await fetch('http://localhost:8080/login', {
+        const response = await fetch(`${baseUrl}/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

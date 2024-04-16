@@ -25,7 +25,8 @@ const DataPage = () => {
   const navigate = useNavigate();
 
   const fetchData = useCallback(async () => {
-    let url = 'http://localhost:8080/';
+    let baseUrl = process.env.REACT_APP_API_URL
+    let url = `${baseUrl}/`;
     switch (currentData) {
       case 'Playlist':
         url += 'playlists';
@@ -76,8 +77,10 @@ const DataPage = () => {
     const endpoint = selectedCategory === 'Playlist' ? 'uploadPlaylist' : 'uploadAds';
     console.log('formdata = ', formData);
 
+    let baseUrl = process.env.REACT_APP_API_URL
+    console.log('handle submit url = ',baseUrl);
     try {
-      const response = await fetch(`http://localhost:8080/${endpoint}`, {
+      const response = await fetch(`${baseUrl}/${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -106,9 +109,10 @@ const DataPage = () => {
 
     // Ensure the fileName is URL-encoded to handle special characters
     const encodedFileName = encodeURIComponent(fileName);
-
+    let baseUrl = process.env.REACT_APP_API_URL
+    console.log("Handle Delete = ", baseUrl);
     try {
-        const response = await fetch(`http://localhost:8080/deleteData/${selectedCategory.toLowerCase()}/${encodedFileName}`, {
+        const response = await fetch(`${baseUrl}/deleteData/${selectedCategory.toLowerCase()}/${encodedFileName}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -136,9 +140,10 @@ const DataPage = () => {
     // Ensure the fileName is URL-encoded to handle special characters
     const encodedFileName = encodeURIComponent(fileName);
     const newExpiryDate = expiry; // This should be in a 'YYYY-MM-DD' format
-
+    let baseUrl = process.env.REACT_APP_API_URL
+    console.log("Handle Expiry = ", baseUrl);
     try {
-        const response = await fetch(`http://localhost:8080/setExpiry/${selectedCategory.toLowerCase()}/${encodedFileName}`, {
+        const response = await fetch(`${baseUrl}/setExpiry/${selectedCategory.toLowerCase()}/${encodedFileName}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

@@ -28,7 +28,6 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASSWORD
   }
 });
-// set the build folder to be served by the express server
 app.use(express.static(path.join(__dirname, '../client/build')));
 
 app.get(['/', '/home'], (req, res) => {

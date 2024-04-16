@@ -21,8 +21,10 @@ mongoose.connect(process.env.MONGO_URI, { dbName: 'GWData' })
   .catch(err => console.error('Could not connect to MongoDB:', err));
 
 const PORT = process.env.PORT || 8080;
-app.get('/', (req, res) => {
-    res.send("Backend has started");
+app.use(express.static(path.join(__dirname, '../client/build')));
+
+app.get(['/', '/home'], (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/build/index.html'));
 });
 
 app.get('/playlists', async (req, res) => {

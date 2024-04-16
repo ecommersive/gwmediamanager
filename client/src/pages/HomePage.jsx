@@ -23,7 +23,8 @@ const HomePage = () => {
 
         if (response.ok) {
           const data = await response.json();
-          sessionStorage.setItem('isAdmin', data.isAdmin);
+          localStorage.setItem('token', data.token);  // Store the JWT token in localStorage
+          localStorage.setItem('isAdmin', data.isAdmin);
           navigate('/home');
         } else {
           // Handle errors, e.g., show message for wrong credentials

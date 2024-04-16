@@ -42,7 +42,7 @@ const DataPage = () => {
         return;
     }
 
-    const adminStatus = sessionStorage.getItem('isAdmin') === 'true';
+    const adminStatus = localStorage.getItem('isAdmin') === 'true';
     setIsAdmin(adminStatus);
 
     try {
@@ -240,9 +240,12 @@ const DataPage = () => {
   };
 
   const handleLogout = () => {
-    sessionStorage.removeItem('isAdmin');
+    localStorage.removeItem('token');
+    localStorage.removeItem('isAdmin');
     navigate('/');
   }
+  
+
 
   return (
     <main className="table">

@@ -291,6 +291,10 @@ app.post('/login', async (req, res) => {
   }
 });
 
+app.get('/verifyToken', verifyToken, (req, res) => {
+  res.status(200).send(req.user);
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

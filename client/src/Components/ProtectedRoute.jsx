@@ -4,6 +4,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 function useAuth() {
     const token = localStorage.getItem('token');
     const isAuthenticated = token ? true : false;
+    // send endpoint to server to verify token
     return { isAuthenticated };
 }
 

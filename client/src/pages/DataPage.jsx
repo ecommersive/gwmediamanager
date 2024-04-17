@@ -2,12 +2,11 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Modal from '../Components/Modal';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../styles/datapage.css';
-
+import axios from 'axios';
 const DataPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [showExpiryForm, setShowExpiryForm] = useState(false);
-
   const [data, setData] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [currentData, setCurrentData] = useState('Playlist');
@@ -24,6 +23,7 @@ const DataPage = () => {
   const [errorMessage, setErrorMessage] = useState({});
   const navigate = useNavigate();
   const location = useLocation();
+  const token = localStorage.getItem('token');
 
 
   const fetchData = useCallback(async () => {
@@ -75,95 +75,83 @@ const DataPage = () => {
       videoUrl: videoUrl,
       Expiry: expiry,
     };
-
-    const endpoint = selectedCategory === 'Playlist' ? 'uploadPlaylist' : 'uploadAds';
-    console.log('formdata = ', formData);
-
-    let baseUrl = process.env.REACT_APP_API_URL
-    console.log('handle submit url = ',baseUrl);
+  
+    const endpoint = selectedCategory === "Playlist" ? "uploadPlaylist" : "uploadAds";
+    let baseUrl = process.env.REACT_APP_API_URL;
+    console.log("Handle Submit = ", baseUrl);
     try {
-      const response = await fetch(`${baseUrl}/${endpoint}`, {
-        method: 'POST',
+      const response = await axios.post(`${baseUrl}/${endpoint}`, formData, {
         headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json' 
+        }
       });
-
-      if (response.ok) {
-        const result = await response.json();
+  
+      if (response.status === 201) {   
         setShowAddForm(false);
         fetchData();
-        console.log(`${selectedCategory} item added:`, result);
+        console.log(`${selectedCategory} item added:`, response.data);
         setErrorMessage({});
       } else {
-        const error = await response.json();
-        setErrorMessage(error);
-        console.error(`Failed to add ${selectedCategory} item`);
+        throw new Error(`Failed to add ${selectedCategory} item`);
       }
     } catch (error) {
-      console.error(`Error submitting ${selectedCategory} item:`, error);
+      console.error(`Error submitting ${selectedCategory} item:`, error.response ? error.response.data : error);
+      setErrorMessage({ Upload: 'Failed to add data. Please try again.' });
     }
   };
 
   const handleDeleteSubmit = async (event) => {
-    event.preventDefault(); // Prevent the default form submit behavior
-
-    // Ensure the fileName is URL-encoded to handle special characters
+    event.preventDefault();
     const encodedFileName = encodeURIComponent(fileName);
-    let baseUrl = process.env.REACT_APP_API_URL
+    let baseUrl = process.env.REACT_APP_API_URL;
     console.log("Handle Delete = ", baseUrl);
     try {
-        const response = await fetch(`${baseUrl}/deleteData/${selectedCategory.toLowerCase()}/${encodedFileName}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        });
-
-        if (response.ok) {
-            console.log('Deletion successful');
-            fetchData(); // Refresh the data list after deletion
-            setShowDeleteForm(false); // Close the delete form modal
-        } else {
-            const error = await response.json();
-            console.error('Failed to delete the data:', error.message || 'Unknown error');
-            setErrorMessage({ Delete: 'Failed to delete data. Please try again.' });
+      const response = await axios.delete(`${baseUrl}/deleteData/${selectedCategory.toLowerCase()}/${encodedFileName}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}` 
         }
+      });
+  
+      if (response.status === 200) {
+        console.log('Deletion successful');
+        fetchData(); 
+        setShowDeleteForm(false); 
+      } else {
+        throw new Error(`Failed to delete ${selectedCategory} item`);
+      }
     } catch (error) {
-        console.error('Error submitting delete:', error);
-        setErrorMessage({ Delete: 'Failed to delete data. Please try again.' });
+      console.error(`Error submitting delete:`, error.response ? error.response.data : error);
+      setErrorMessage({ Delete: 'Failed to delete data. Please try again.' });
     }
   };
 
   const handleExtendExpiry = async (event) => {
-    event.preventDefault(); 
-
+    event.preventDefault();
     const encodedFileName = encodeURIComponent(fileName);
-    const newExpiryDate = expiry; 
-    let baseUrl = process.env.REACT_APP_API_URL
-    console.log("Handle Expiry = ", baseUrl);
+    let baseUrl = process.env.REACT_APP_API_URL;
+    console.log("Handle Set Expiry = ", baseUrl);
     try {
-        const response = await fetch(`${baseUrl}/setExpiry/${selectedCategory.toLowerCase()}/${encodedFileName}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ newExpiryDate }) 
-        });
-
-        if (response.ok) {
-            console.log('Expiry date update successful');
-            fetchData(); 
-            setShowExpiryForm(false); 
-        } else {
-            const error = await response.json();
-            console.error('Failed to set the new expiry date:', error.message || 'Unknown error');
-            setErrorMessage({ SetExpiry: 'Failed to set new expiry date. Please try again.' });
+      const response = await axios.post(`${baseUrl}/setExpiry/${selectedCategory.toLowerCase()}/${encodedFileName}`, {
+        newExpiryDate: expiry
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
         }
+      });
+
+      if (response.status === 200) {
+        console.log('Expiry date set successfully');
+        fetchData(); // Refresh the data list after setting expiry
+        setShowExpiryForm(false); // Close the set expiry form modal
+      } else {
+        throw new Error(`Failed to set expiry date for ${selectedCategory} item`);
+      }
     } catch (error) {
-        console.error('Error submitting new expiry date:', error);
-        setErrorMessage({ SetExpiry: 'Failed to set new expiry date. Please try again.' });
+      console.error(`Error submitting set expiry for ${selectedCategory} item:`, error.response ? error.response.data : error);
+      setErrorMessage({ SetExpiry: 'Failed to set expiry date. Please try again.' });
     }
   };
   const handleFileNameChange = (event) => {

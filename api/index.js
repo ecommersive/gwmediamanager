@@ -13,7 +13,7 @@ const cron = require('node-cron');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const verifyToken = require('./middleware/authmiddleware');
+const {verifyToken} = require('./middleware/authmiddleware');
 
 app.use(express.json());
 app.use(cors());
@@ -32,7 +32,7 @@ app.get(['/', '/home'], (req, res) => {
 
 
 
-app.get('/playlists', async (req, res) => {
+app.get('/playlists' , async (req, res) => {
   try {
     const playlists = await Playlist.find({});
     res.json(playlists);
@@ -62,7 +62,7 @@ app.get('/archived', async (req, res) => {
   }
 });
 
-app.post('/uploadPlaylist', async (req, res) => {
+app.post('/uploadPlaylist',verifyToken, async (req, res) => {
   const { FileName, PhotoUrl, Type, Tag, Run_Time, Content, videoUrl, Expiry } = req.body;
 
   let errors = {};
@@ -143,7 +143,7 @@ app.post('/register', async (req, res) => {
       res.status(500).json({ message: 'Error registering user', error: error.message });
   }
 });
-app.post('/uploadAds', async (req, res) => {
+app.post('/uploadAds', verifyToken, async (req, res) => {
   const { FileName, PhotoUrl, Type, Tag, Run_Time, Content, videoUrl, Expiry } = req.body;
 
   let errors = {};
@@ -191,7 +191,7 @@ app.post('/uploadAds', async (req, res) => {
 });
 
 
-app.delete('/deleteData/:category/:fileName', async (req, res) => {
+app.delete('/deleteData/:category/:fileName', verifyToken, async (req, res) => {
   const { category, fileName } = req.params;
 
   const categoryModelMap = {
@@ -218,7 +218,7 @@ app.delete('/deleteData/:category/:fileName', async (req, res) => {
     res.status(500).send({ error: 'Internal Server Error' });
   }
 });
-app.post('/setExpiry/:category/:fileName', async (req, res) => {
+app.post('/setExpiry/:category/:fileName', verifyToken, async (req, res) => {
   const { category, fileName } = req.params;
   const { newExpiryDate } = req.body;
 

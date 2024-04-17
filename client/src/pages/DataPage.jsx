@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Modal from '../Components/Modal';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import '../styles/datapage.css';
 
 const DataPage = () => {
@@ -23,6 +23,8 @@ const DataPage = () => {
   const [selectedCategory, setSelectedCategory] = useState('Playlist'); // Default to 'Playlist'
   const [errorMessage, setErrorMessage] = useState({});
   const navigate = useNavigate();
+  const location = useLocation();
+
 
   const fetchData = useCallback(async () => {
     let baseUrl = process.env.REACT_APP_API_URL
@@ -60,6 +62,7 @@ const DataPage = () => {
     fetchData();
   }, [fetchData]);
 
+  
   const handleSubmit = async (event) => {
     event.preventDefault();
     const formData = {
@@ -134,11 +137,10 @@ const DataPage = () => {
   };
 
   const handleExtendExpiry = async (event) => {
-    event.preventDefault(); // Prevent the default form submit behavior
+    event.preventDefault(); 
 
-    // Ensure the fileName is URL-encoded to handle special characters
     const encodedFileName = encodeURIComponent(fileName);
-    const newExpiryDate = expiry; // This should be in a 'YYYY-MM-DD' format
+    const newExpiryDate = expiry; 
     let baseUrl = process.env.REACT_APP_API_URL
     console.log("Handle Expiry = ", baseUrl);
     try {
@@ -147,13 +149,13 @@ const DataPage = () => {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ newExpiryDate }) // Pass the new expiry date directly
+            body: JSON.stringify({ newExpiryDate }) 
         });
 
         if (response.ok) {
             console.log('Expiry date update successful');
-            fetchData(); // Refresh the data list after updating the expiry
-            setShowExpiryForm(false); // Close the expiry form modal
+            fetchData(); 
+            setShowExpiryForm(false); 
         } else {
             const error = await response.json();
             console.error('Failed to set the new expiry date:', error.message || 'Unknown error');
@@ -244,6 +246,21 @@ const DataPage = () => {
     navigate('/');
   }
   
+  useEffect(() => {
+    const handleUnload = () => {
+      if (location.pathname !== '/') {
+        console.log('User is navigating away from DataPage.');
+        localStorage.removeItem('token');
+        localStorage.removeItem('isAdmin');
+      }
+    };
+
+    window.addEventListener('beforeunload', handleUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleUnload);
+    };
+  }, [location]);
 
 
   return (

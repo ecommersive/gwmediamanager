@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Modal from '../Components/Modal';
+import VideoViewer from '../Components/Videoviewer';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../styles/datapage.css';
 import axios from 'axios';
@@ -24,7 +25,15 @@ const DataPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const token = localStorage.getItem('token');
+  const [modalVidoeOpen, setModalVideoOpen] = useState(false);
+  const [currentVideoUrl, setCurrentVideoUrl] = useState('');
 
+
+  const handleVideoClick = (videoUrl) => {
+    // const embedUrl = videoUrl.replace("shorts", "embed");
+    setCurrentVideoUrl(videoUrl);
+    setModalVideoOpen(true);
+  };
 
   const fetchData = useCallback(async () => {
     let baseUrl = process.env.REACT_APP_API_URL
@@ -144,8 +153,8 @@ const DataPage = () => {
 
       if (response.status === 200) {
         console.log('Expiry date set successfully');
-        fetchData(); // Refresh the data list after setting expiry
-        setShowExpiryForm(false); // Close the set expiry form modal
+        fetchData(); 
+        setShowExpiryForm(false); 
       } else {
         throw new Error(`Failed to set expiry date for ${selectedCategory} item`);
       }
@@ -302,7 +311,7 @@ const DataPage = () => {
                 <td>{item.Tag}</td>
                 <td>{item.Run_Time}</td>
                 <td>{item.Content}</td>
-                <td><a href={item.videoUrl} target="_blank" rel="noopener noreferrer">View</a></td>
+                <td><button onClick={() => handleVideoClick(item.videoUrl)}>View</button></td>
                 <td>{item.Expiry}</td>
               </tr>
             )) : (
@@ -313,6 +322,9 @@ const DataPage = () => {
           </tbody>
         </table>
       </section>
+      <Modal style={{ height: '100%'}} isOpen={modalVidoeOpen} onClose={() => setModalVideoOpen(false)}>
+          <VideoViewer videoUrl={currentVideoUrl} />
+      </Modal>
       <Modal isOpen={showAddForm} onClose={handleToggleAddForm}>
         <form onSubmit={handleSubmit}>
           <h2>Add New Data</h2>

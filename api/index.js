@@ -32,7 +32,18 @@ app.get(['/', '/home'], (req, res) => {
 });
 
 
+const checkFileExistence = async (fileName) => {
+  const regex = new RegExp('^' + fileName + '$', 'i');  // Case insensitive search
+  const playlistExists = await Playlist.findOne({ FileName: regex });
+  const adsExists = await Ads.findOne({ FileName: regex });
+  const archivedExists = await Archived.findOne({ FileName: regex });
 
+  let foundIn = [];
+  if (playlistExists) foundIn.push('Playlist');
+  if (adsExists) foundIn.push('Ads');
+  if (archivedExists) foundIn.push('Archived');
+  return foundIn;
+};
 app.get('/playlists' , async (req, res) => {
   try {
     const playlists = await Playlist.find({});
@@ -88,6 +99,11 @@ app.post('/uploadPlaylist',verifyToken, async (req, res) => {
 
   if (Object.keys(errors).length > 0) {
     return res.status(400).json(errors);
+  }
+
+  const foundIn = await checkFileExistence(FileName);
+  if (foundIn.length > 0) {
+    return res.status(400).json({ message: `File name already exists in ${foundIn.join(', ')}.` });
   }
 
   const newPlaylistItem = new Playlist({
@@ -170,6 +186,11 @@ app.post('/uploadAds', verifyToken, async (req, res) => {
 
   if (Object.keys(errors).length > 0) {
     return res.status(400).json(errors);
+  }
+
+  const foundIn = await checkFileExistence(FileName);
+  if (foundIn.length > 0) {
+    return res.status(400).json({ message: `File name already exists in ${foundIn.join(', ')}.` });
   }
 
   const newAdsItem = new Ads({
@@ -275,7 +296,6 @@ app.get('/notes/:category/:filename', verifyToken, async (req, res) => {
     if (!document) {
       return res.status(404).json({ error: 'File not found' });
     }
-    console.log(document.notes); // Check what is actually being returned
     res.json(document.notes || []);
   } catch (error) {
     console.error(`Failed to fetch notes for file: ${filename} in category: ${category}`, error);
@@ -321,6 +341,43 @@ app.get('/verifyToken', verifyToken, (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+});
+
+
+//notes
+// POST route to add a note to an item in a specific category
+app.post('/notes/add/:category/:fileName', verifyToken, async (req, res) => {
+  const { category, fileName } = req.params;
+  const { text, addedOn } = req.body; // These are expected to be provided in the request body
+
+  // Map the category to the corresponding model
+  const categoryModelMap = {
+    playlist: Playlist,
+    ads: Ads,
+    archived: Archived
+  };
+
+  const Model = categoryModelMap[category.toLowerCase()];
+  if (!Model) {
+    return res.status(404).json({ error: 'Category not found' });
+  }
+
+  try {
+    const result = await Model.findOneAndUpdate(
+      { FileName: new RegExp(`^${fileName}$`, 'i') }, // Case insensitive match
+      { $push: { notes: { text, addedOn: new Date(addedOn) } } }, // Add the note
+      { new: true, runValidators: true }
+    );
+
+    if (!result) {
+      return res.status(404).json({ message: 'File not found' });
+    }
+
+    res.status(200).json({ message: 'Note added successfully', data: result });
+  } catch (error) {
+    console.error('Failed to add note:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: error });
+  }
 });
 
 async function notifyExpiringItemsAcrossModels(modelMap) {

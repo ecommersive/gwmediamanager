@@ -33,6 +33,11 @@ const DataPage = () => {
   const [notes, setNotes] = useState('');  // New state for notes
 
 
+  //note modals
+  const [showAddNoteModal, setShowAddNoteModal] = useState(false);
+  const [newNote, setNewNote] = useState('');
+
+
   const handleVideoClick = (videoUrl) => {
     setCurrentVideoUrl(videoUrl);
     setModalVideoOpen(true);
@@ -63,8 +68,8 @@ const DataPage = () => {
       });
       
       if (response.status === 200) {
-        console.log('Notes fetched:', response.data);  // Ensure this logs an array
         setNotes(response.data);
+        setFileName(fileName);
         setNotesModal(true);
       } else {
         throw new Error('Failed to fetch notes');
@@ -127,7 +132,10 @@ const DataPage = () => {
       Content: content,
       videoUrl: videoUrl,
       Expiry: expiry,
-      notes: notesArray
+      notes: [{
+        text: notes,
+        addedOn: new Date()  // Optionally set the date here or let the server set it
+      }]
     };
   
     const endpoint = selectedCategory === "Playlist" ? "uploadPlaylist" : "uploadAds";
@@ -211,11 +219,6 @@ const DataPage = () => {
   const handleFileNameChange = (event) => {
     setFileName(event.target.value);
   };
-
-  const handleNotes = (event) => {
-    setNotes(event.target.value.split(',').map(note => note.trim()));
-  }
-
   const handlePhotoUrlChange = (event) => {
     setPhotoUrl(event.target.value);
   };
@@ -249,6 +252,9 @@ const DataPage = () => {
   };
 
 
+  const handleNotesChange = (event) => {
+    setNotes(event.target.value);
+  };
 
   const filteredData = useMemo(() => {
     return data.filter(item =>
@@ -308,6 +314,38 @@ const DataPage = () => {
     };
   }, [location]);
 
+  
+  const handleAddNoteSubmit = async (event, fileName) => {
+    event.preventDefault();
+    const noteToAdd = {
+      text: newNote,
+      addedOn: new Date()
+    };
+    
+    let baseUrl = process.env.REACT_APP_API_URL;
+    try {
+      const encodedFileName = encodeURIComponent(fileName);
+      const response = await axios.post(`${baseUrl}/notes/add/${selectedCategory.toLowerCase()}/${encodedFileName}`, noteToAdd, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+  
+      if (response.status === 200) {
+        console.log('Note added successfully');
+        setShowAddNoteModal(false);
+        setNewNote('');
+        fetchData();
+      } else {
+        throw new Error('Failed to add note');
+      }
+    } catch (error) {
+      console.error('Error adding note:', error);
+      setErrorMessage({ NoteAdd: 'Failed to add note. Please try again.' });
+    }
+  };
+  
 
   return (
     <main className="table">
@@ -349,6 +387,7 @@ const DataPage = () => {
               <th>Video Url</th>
               <th>Expiry</th>
               {isAdmin && <th>Notes</th>}
+              {isAdmin && <th>Alter Notes</th>}
             </tr>
           </thead>
           <tbody>
@@ -363,7 +402,16 @@ const DataPage = () => {
                 <td>{item.Content}</td>
                 <td><button onClick={() => handleVideoClick(item.videoUrl)}>View</button></td>
                 <td>{item.Expiry}</td>
-                {isAdmin && <td><button onClick={() => handleNotesOpen(selectedCategory, item.FileName, setNotes)}>View</button></td>}
+                {isAdmin && <td><button onClick={() => handleNotesOpen(selectedCategory, item.FileName, setNotes(item.notes))}>View</button></td>}
+                {isAdmin && 
+                <td>
+                  <button onClick={() => { setShowAddNoteModal(true); setFileName(item.FileName); setNotes(item.notes) }}>Add Notes</button>
+                  <br />
+                  <button>Update Notes</button>
+                  <br />
+                  <button>Delete Notes</button>
+                </td>
+                }
               </tr>
             )) : (
               <tr>
@@ -382,7 +430,11 @@ const DataPage = () => {
         {fileName && <p>Filename: {fileName}</p>}
         {Array.isArray(notes) && notes.length > 0 ? (
           <ul>
-            {notes.map((note, index) => <li key={index}>{note}</li>)}
+            {notes.map((note, index) => (
+              <li key={index}>
+                {note.text} - <small>Added on {new Date(note.addedOn).toLocaleDateString()}</small>
+              </li>
+            ))}
           </ul>
         ) : (
           <p>No notes found for this file.</p>
@@ -456,7 +508,7 @@ const DataPage = () => {
               type="text"
               name="notes"
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              onChange={handleNotesChange}
             />
           </label>
           <br />
@@ -513,6 +565,35 @@ const DataPage = () => {
           <button type="submit">Delete Data</button>
         </form>
       </Modal>
+      <Modal isOpen={showAddNoteModal} onClose={() => setShowAddNoteModal(false)}>
+        <form onSubmit={(e) => handleAddNoteSubmit(e, fileName)}>
+          <h2>Add Note</h2>
+          <p>Filename: {fileName}</p>
+          <br />
+          {Array.isArray(notes) && notes.length > 0 ? (
+            <ul>
+              {notes.map((note, index) => (
+                <li key={index}>
+                  {note.text} - <small>Added on {new Date(note.addedOn).toLocaleDateString()}</small>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No notes found for this file.</p>
+          )}
+          <br />
+          <textarea
+            value={newNote}
+            onChange={(e) => setNewNote(e.target.value)}
+            placeholder="Enter note here..."
+            style={{ width: '100%', height: '100px', resize: 'none' }}
+          />
+          <br />
+          <br />
+          <button type="submit">Submit Note</button>
+        </form>
+      </Modal>
+
     </main>
   );
 }

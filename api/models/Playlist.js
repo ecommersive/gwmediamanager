@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const playlistSchema = new mongoose.Schema({
   FileName: {
     type: String,
-    required: true
+    required: true,
+    unique: true
   },
   PhotoUrl: {
     type: String,
@@ -28,7 +29,10 @@ const playlistSchema = new mongoose.Schema({
     required: true
   },
   Expiry: Date,
-  notes: [String]  
+  notes: [{
+    text: { type: String },
+    addedOn: { type: Date, default: Date.now } // Automatically set the date when note is added
+  }]
 }, {
   collection: 'Playlist'
 });

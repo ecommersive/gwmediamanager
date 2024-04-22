@@ -1,9 +1,11 @@
 const mongoose = require('mongoose');
 
+
 const adsSchema = new mongoose.Schema({
   FileName: {
     type: String,
-    required: true
+    required: true,
+    unique: true
   },
   PhotoUrl: {
     type: String,
@@ -28,7 +30,10 @@ const adsSchema = new mongoose.Schema({
     required: true
   },
   Expiry: Date,
-  notes: [String]  
+  notes: [{
+    text: { type: String },
+    addedOn: { type: Date, default: Date.now } // Automatically set the date when note is added
+  }]
 }, {
   collection: 'Ads'
 });

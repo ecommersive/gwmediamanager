@@ -28,7 +28,10 @@ const ArchivedSchema = new mongoose.Schema({
     required: true
   },
   Expiry: Date,
-  notes: [String]  
+  notes: [{
+    text: { type: String },
+    addedOn: { type: Date, default: Date.now } 
+  }]
 }, {
   collection: 'Archived'
 });

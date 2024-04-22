@@ -7,8 +7,8 @@ const VideoViewer = ({ videoUrl }) => {
         src={videoUrl}
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         controls
+        autoPlay
         controlsList="nodownload"
-        oncontextmenu="return false;"
         style={{ width: '100%', height: '500px' }}
       ></video>
     </>

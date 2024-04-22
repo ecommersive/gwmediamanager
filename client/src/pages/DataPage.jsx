@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Modal from '../Components/Modal';
 import VideoViewer from '../Components/Videoviewer';
-import 'youtube-video-js';
 import { v4 as uuidv4 } from 'uuid'; // For generating unique keys
 
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -32,30 +31,17 @@ const DataPage = () => {
   const [modalVidoeOpen, setModalVideoOpen] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState('');
 
-
   const handleVideoClick = (videoUrl) => {
-    const embedUrl = videoUrl.replace("shorts", "embed");
-    setCurrentVideoUrl(embedUrl);
+    setCurrentVideoUrl(videoUrl);
     setModalVideoOpen(true);
     setVideoKey(uuidv4());
-    console.log('embedUrl', embedUrl);
+    console.log('embedUrl', videoUrl);
   };
   const closeModal = useCallback(() => {
     setModalVideoOpen(false);
-    setTimeout(() => {
-      setCurrentVideoUrl(''); 
-    }, 300);
-  }, []);
+    
+  });
 
-  useEffect(() => {
-    return () => {
-      const videoElement = document.querySelector('youtube-video');
-      if (videoElement) {
-        videoElement.pause(); 
-        videoElement.src = '';
-      }
-    };
-  }, []);
 
   const fetchData = useCallback(async () => {
     let baseUrl = process.env.REACT_APP_API_URL
@@ -346,14 +332,7 @@ const DataPage = () => {
       </section>
       
       <Modal style={{ height: '100%'}} isOpen={modalVidoeOpen} onClose={closeModal}>
-        <youtube-video
-          key={videoKey}
-          width="560"
-          height="360"
-          src={currentVideoUrl}
-          autoplay
-          controls
-        ></youtube-video>
+        <VideoViewer videoUrl={currentVideoUrl} key={videoKey} />
       </Modal>
       <Modal isOpen={showAddForm} onClose={handleToggleAddForm}>
         <form onSubmit={handleSubmit}>

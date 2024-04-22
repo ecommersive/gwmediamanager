@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Modal from '../Components/Modal';
 import VideoViewer from '../Components/Videoviewer';
-import { v4 as uuidv4 } from 'uuid'; // For generating unique keys
-
+import { v4 as uuidv4 } from 'uuid'; 
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../styles/datapage.css';
 import axios from 'axios';
 const DataPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [notesModal, setNotesModal] = useState(false);
   const [videoKey, setVideoKey] = useState(uuidv4());
   const [showAddForm, setShowAddForm] = useState(false);
   const [showExpiryForm, setShowExpiryForm] = useState(false);
@@ -30,6 +30,8 @@ const DataPage = () => {
   const token = localStorage.getItem('token');
   const [modalVidoeOpen, setModalVideoOpen] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState('');
+  const [notes, setNotes] = useState('');  // New state for notes
+
 
   const handleVideoClick = (videoUrl) => {
     setCurrentVideoUrl(videoUrl);
@@ -41,6 +43,39 @@ const DataPage = () => {
     setModalVideoOpen(false);
     
   });
+
+  const closeNotesModal = useCallback(() => {
+    setNotesModal(false);
+  })
+  
+  const handleNotesOpen = async (category, fileName) => {
+    let baseUrl = process.env.REACT_APP_API_URL;
+    if (!fileName || !category) {
+      console.error('The filename or category is undefined.');
+      setErrorMessage({ Notes: 'The filename or category is undefined.' });
+      return;
+    }
+    
+    try {
+      const encodedFileName = encodeURIComponent(fileName);
+      const response = await axios.get(`${baseUrl}/notes/${category.toLowerCase()}/${encodedFileName}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (response.status === 200) {
+        console.log('Notes fetched:', response.data);  // Ensure this logs an array
+        setNotes(response.data);
+        setNotesModal(true);
+      } else {
+        throw new Error('Failed to fetch notes');
+      }
+    } catch (error) {
+      console.error('Error fetching notes:', error);
+      setErrorMessage({ Notes: 'Failed to retrieve notes. Please try again.' });
+    }
+  };
+  
+  
 
 
   const fetchData = useCallback(async () => {
@@ -82,6 +117,7 @@ const DataPage = () => {
   
   const handleSubmit = async (event) => {
     event.preventDefault();
+    const notesArray = notes.split(',').map(note => note.trim());
     const formData = {
       FileName: fileName,
       PhotoUrl: photoUrl,
@@ -91,6 +127,7 @@ const DataPage = () => {
       Content: content,
       videoUrl: videoUrl,
       Expiry: expiry,
+      notes: notesArray
     };
   
     const endpoint = selectedCategory === "Playlist" ? "uploadPlaylist" : "uploadAds";
@@ -174,6 +211,10 @@ const DataPage = () => {
   const handleFileNameChange = (event) => {
     setFileName(event.target.value);
   };
+
+  const handleNotes = (event) => {
+    setNotes(event.target.value.split(',').map(note => note.trim()));
+  }
 
   const handlePhotoUrlChange = (event) => {
     setPhotoUrl(event.target.value);
@@ -307,6 +348,7 @@ const DataPage = () => {
               <th>Content</th>
               <th>Video Url</th>
               <th>Expiry</th>
+              {isAdmin && <th>Notes</th>}
             </tr>
           </thead>
           <tbody>
@@ -321,6 +363,7 @@ const DataPage = () => {
                 <td>{item.Content}</td>
                 <td><button onClick={() => handleVideoClick(item.videoUrl)}>View</button></td>
                 <td>{item.Expiry}</td>
+                {isAdmin && <td><button onClick={() => handleNotesOpen(selectedCategory, item.FileName, setNotes)}>View</button></td>}
               </tr>
             )) : (
               <tr>
@@ -334,6 +377,18 @@ const DataPage = () => {
       <Modal style={{ height: '100%'}} isOpen={modalVidoeOpen} onClose={closeModal}>
         <VideoViewer videoUrl={currentVideoUrl} key={videoKey} />
       </Modal>
+      <Modal isOpen={notesModal} onClose={closeNotesModal}>
+        <h2>Notes</h2>
+        {fileName && <p>Filename: {fileName}</p>}
+        {Array.isArray(notes) && notes.length > 0 ? (
+          <ul>
+            {notes.map((note, index) => <li key={index}>{note}</li>)}
+          </ul>
+        ) : (
+          <p>No notes found for this file.</p>
+        )}
+      </Modal>
+
       <Modal isOpen={showAddForm} onClose={handleToggleAddForm}>
         <form onSubmit={handleSubmit}>
           <h2>Add New Data</h2>
@@ -392,6 +447,17 @@ const DataPage = () => {
           <label>
             Expiry Date:
             <input type="date" name="expiryDate" value={expiry} onChange={handleExpiryChange} />
+          </label>
+          
+          <br />
+          <label>
+            Notes:
+            <input
+              type="text"
+              name="notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+            />
           </label>
           <br />
           <br />

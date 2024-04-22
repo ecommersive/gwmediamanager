@@ -14,6 +14,7 @@ const path = require('path');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const {verifyToken} = require('./middleware/authmiddleware');
+const { log } = require('console');
 
 app.use(express.json());
 app.use(cors());
@@ -63,7 +64,7 @@ app.get('/archived', async (req, res) => {
 });
 
 app.post('/uploadPlaylist',verifyToken, async (req, res) => {
-  const { FileName, PhotoUrl, Type, Tag, Run_Time, Content, videoUrl, Expiry } = req.body;
+  const { FileName, PhotoUrl, Type, Tag, Run_Time, Content, videoUrl, Expiry, notes } = req.body;
 
   let errors = {};
   if (!FileName) {
@@ -97,7 +98,8 @@ app.post('/uploadPlaylist',verifyToken, async (req, res) => {
     Run_Time,
     Content,
     videoUrl,
-    Expiry
+    Expiry,
+    notes
   });
 
   try {
@@ -144,7 +146,7 @@ app.post('/register', async (req, res) => {
   }
 });
 app.post('/uploadAds', verifyToken, async (req, res) => {
-  const { FileName, PhotoUrl, Type, Tag, Run_Time, Content, videoUrl, Expiry } = req.body;
+  const { FileName, PhotoUrl, Type, Tag, Run_Time, Content, videoUrl, Expiry, notes } = req.body;
 
   let errors = {};
   if (!FileName) {
@@ -178,7 +180,8 @@ app.post('/uploadAds', verifyToken, async (req, res) => {
     Run_Time,
     Content,
     videoUrl,
-    Expiry
+    Expiry,
+    notes
   });
 
   try {
@@ -257,6 +260,26 @@ app.post('/setExpiry/:category/:fileName', verifyToken, async (req, res) => {
   } catch (error) {
     console.error(`Error setting expiry date for file in ${category}:`, error);
     res.status(500).send({ error: 'Internal Server Error' });
+  }
+});
+app.get('/notes/:category/:filename', verifyToken, async (req, res) => {
+  const { category, filename } = req.params;
+  const Model = { 'playlist': Playlist, 'ads': Ads, 'archived': Archived }[category.toLowerCase()];
+  
+  if (!Model) {
+    return res.status(404).json({ error: 'Category not found' });
+  }
+
+  try {
+    const document = await Model.findOne({ FileName: new RegExp(`^${filename}$`, 'i') });
+    if (!document) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+    console.log(document.notes); // Check what is actually being returned
+    res.json(document.notes || []);
+  } catch (error) {
+    console.error(`Failed to fetch notes for file: ${filename} in category: ${category}`, error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 

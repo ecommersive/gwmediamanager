@@ -27,7 +27,8 @@ const adsSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  Expiry: Date 
+  Expiry: Date,
+  notes: [String]  
 }, {
   collection: 'Ads'
 });

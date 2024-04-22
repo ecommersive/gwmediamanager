@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Modal from '../Components/Modal';
 import VideoViewer from '../Components/Videoviewer';
+import 'youtube-video-js';
+import { v4 as uuidv4 } from 'uuid'; // For generating unique keys
+
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../styles/datapage.css';
 import axios from 'axios';
 const DataPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [videoKey, setVideoKey] = useState(uuidv4());
   const [showAddForm, setShowAddForm] = useState(false);
   const [showExpiryForm, setShowExpiryForm] = useState(false);
   const [data, setData] = useState([]);
@@ -30,10 +34,28 @@ const DataPage = () => {
 
 
   const handleVideoClick = (videoUrl) => {
-    // const embedUrl = videoUrl.replace("shorts", "embed");
-    setCurrentVideoUrl(videoUrl);
+    const embedUrl = videoUrl.replace("shorts", "embed");
+    setCurrentVideoUrl(embedUrl);
     setModalVideoOpen(true);
+    setVideoKey(uuidv4());
+    console.log('embedUrl', embedUrl);
   };
+  const closeModal = useCallback(() => {
+    setModalVideoOpen(false);
+    setTimeout(() => {
+      setCurrentVideoUrl(''); 
+    }, 300);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      const videoElement = document.querySelector('youtube-video');
+      if (videoElement) {
+        videoElement.pause(); 
+        videoElement.src = '';
+      }
+    };
+  }, []);
 
   const fetchData = useCallback(async () => {
     let baseUrl = process.env.REACT_APP_API_URL
@@ -322,8 +344,16 @@ const DataPage = () => {
           </tbody>
         </table>
       </section>
-      <Modal style={{ height: '100%'}} isOpen={modalVidoeOpen} onClose={() => setModalVideoOpen(false)}>
-          <VideoViewer videoUrl={currentVideoUrl} />
+      
+      <Modal style={{ height: '100%'}} isOpen={modalVidoeOpen} onClose={closeModal}>
+        <youtube-video
+          key={videoKey}
+          width="560"
+          height="360"
+          src={currentVideoUrl}
+          autoplay
+          controls
+        ></youtube-video>
       </Modal>
       <Modal isOpen={showAddForm} onClose={handleToggleAddForm}>
         <form onSubmit={handleSubmit}>

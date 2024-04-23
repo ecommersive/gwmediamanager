@@ -39,6 +39,7 @@ const DataPage = () => {
   const [showUpdateNoteModal, setShowUpdateNoteModal] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [editingNoteText, setEditingNoteText] = useState(''); 
+  const [showDeleteNoteModal, setShowDeleteNoteModal] = useState(false);
 
 
   const handleVideoClick = (videoUrl) => {
@@ -366,7 +367,34 @@ const DataPage = () => {
       setErrorMessage({ NoteUpdate: 'Failed to update note. Please try again.' });
     }
   };
+
+  const handleDeleteNote = async (noteIndex, fileName) => {
+    const baseUrl = process.env.REACT_APP_API_URL;
+    const encodedFileName = encodeURIComponent(fileName);
+    const category = selectedCategory.toLowerCase();
+    const url = `${baseUrl}/notes/delete/${category}/${encodedFileName}/${noteIndex}`;
   
+    try {
+      const response = await axios.delete(url, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      });
+  
+      if (response.status === 200) {
+        console.log('Note deleted successfully');
+        setNotes(notes.filter((_, index) => index !== noteIndex)); // Filter out the deleted note
+        fetchData(); // Reload data or manually adjust the state to reflect changes
+      } else {
+        throw new Error('Failed to delete the note');
+      }
+    } catch (error) {
+      console.error('Error deleting note:', error.response ? error.response.data : error);
+    }
+  };
+  
+
   
 
   return (
@@ -431,7 +459,7 @@ const DataPage = () => {
                   <br />
                   <button onClick={() => { setShowUpdateNoteModal(true); setFileName(item.FileName); setNotes(item.notes)}}>Update Notes</button>
                   <br />
-                  <button>Delete Notes</button>
+                  <button onClick={() => { setShowDeleteNoteModal(true); setFileName(item.FileName); setNotes(item.notes)}}>Delete Notes</button>
                 </td>
                 }
               </tr>
@@ -652,7 +680,28 @@ const DataPage = () => {
         <br />
         <button onClick={() => setShowUpdateNoteModal(false)}>Close</button>
       </Modal>
-
+      <Modal isOpen={showDeleteNoteModal} onClose={() => setShowDeleteNoteModal(false)}>
+        <h2>Delete Note</h2>
+        <br />
+        <p>Filename: {fileName}</p>
+        <br />
+        <p>Notes:</p>
+        <ul>
+          {Array.isArray(notes) && notes.length > 0 ? (
+            notes.map((note, index) => (
+              <li key={index}>
+                {note.text} - <small>Added on {new Date(note.addedOn).toLocaleDateString()}</small>
+                <button onClick={() => handleDeleteNote(index, fileName)}>Delete</button>
+              </li>
+            ))
+          ) : (
+            <p>No notes found for this file.</p>
+          )}
+        </ul>
+        <br />
+        <br />
+        <button onClick={() => setShowDeleteNoteModal(false)}>Close</button>
+      </Modal>
     </main>
   );
 }

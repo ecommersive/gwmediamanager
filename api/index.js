@@ -427,6 +427,43 @@ app.put('/notes/update/:category/:fileName', verifyToken, async (req, res) => {
 });
 
 
+app.delete('/notes/delete/:category/:fileName/:noteIndex', verifyToken, async (req, res) => {
+  const { category, fileName, noteIndex } = req.params;
+  const index = parseInt(noteIndex, 10); // Convert noteIndex from string to integer
+
+  const categoryModelMap = {
+    playlist: Playlist,
+    ads: Ads,
+    archived: Archived
+  };
+
+  const Model = categoryModelMap[category.toLowerCase()];
+  if (!Model) {
+    return res.status(404).json({ error: 'Category not found' });
+  }
+
+  try {
+    const document = await Model.findOne({ FileName: new RegExp(`^${fileName}$`, 'i') });
+    if (!document) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+
+    if (index >= 0 && index < document.notes.length) {
+      document.notes.splice(index, 1);
+      await document.save();
+      res.status(200).json({ message: 'Note deleted successfully', data: document.notes });
+    } else {
+      return res.status(404).json({ error: 'Note index out of range' });
+    }
+  } catch (error) {
+    console.error('Failed to delete note:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: error });
+  }
+});
+
+
+
+
 async function notifyExpiringItemsAcrossModels(modelMap) {
   const currentDate = new Date();
   const formattedDate = currentDate.toISOString().split('T')[0];

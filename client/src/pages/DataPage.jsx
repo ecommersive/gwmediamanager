@@ -470,7 +470,7 @@ const DataPage = () => {
               </tr>
             )) : (
               <tr>
-                <td colSpan="9" style={{ textAlign: 'center' }}>No data found</td>
+                <td colSpan="12" style={{ textAlign: 'center' }}>No data found</td>
               </tr>
             )}
           </tbody>

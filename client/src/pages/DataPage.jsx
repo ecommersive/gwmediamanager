@@ -104,16 +104,19 @@ const DataPage = () => {
       Run_Time: runTime,
       Content: content,
       videoUrl: videoUrl,
-      Expiry: expiry,
-      notes: [{
-        text: notes,
-        addedOn: new Date()  
-      }]
+      Expiry: expiry
     };
+  
+    if (notes.length > 0) {
+      formData.notes = notes.map(noteText => ({
+        text: noteText,
+        addedOn: new Date()  
+      }));
+    }
   
     const endpoint = selectedCategory === "Playlist" ? "uploadPlaylist" : "uploadAds";
     let baseUrl = process.env.REACT_APP_API_URL;
-    console.log("Handle Submit = ", baseUrl);
+  
     try {
       const response = await axios.post(`${baseUrl}/${endpoint}`, formData, {
         headers: {
@@ -122,7 +125,7 @@ const DataPage = () => {
         }
       });
   
-      if (response.status === 201) {   
+      if (response.status === 201) {
         setShowAddForm(false);
         fetchData();
         console.log(`${selectedCategory} item added:`, response.data);
@@ -135,6 +138,8 @@ const DataPage = () => {
       setErrorMessage({ Upload: 'Failed to add data. Please try again.' });
     }
   };
+  
+  
 
   const handleDeleteSubmit = async (event) => {
     event.preventDefault();
@@ -430,10 +435,10 @@ const DataPage = () => {
               <th>#</th>
               <th>Photo</th>
               <th>File Name</th>
-              <th>Type</th>
+              <th>File Type</th>
               <th>Tag</th>
               <th>Run Time</th>
-              <th>Content</th>
+              <th>Type</th>
               <th>Video Url</th>
               <th>Expiry</th>
               {isAdmin && <th>Notes</th>}
@@ -509,7 +514,7 @@ const DataPage = () => {
           </label>
           <br />
           <label>
-            Type:
+            File Type:
             <select name="type" value={type} onChange={handleTypeChange}>
               <option value="Video">Video</option>
               <option value="PNG">PNG</option>
@@ -535,7 +540,7 @@ const DataPage = () => {
           </label>
           <br />
           <label>
-            Content:
+            Type:
             <input type="text" name="content" value={content} onChange={handleContentChange} />
             {errorMessage.Content && <div style={{ color: 'red' }}>{errorMessage.Content}</div>}
           </label>
@@ -551,16 +556,6 @@ const DataPage = () => {
             <input type="date" name="expiryDate" value={expiry} onChange={handleExpiryChange} />
           </label>
           
-          <br />
-          <label>
-            Notes:
-            <input
-              type="text"
-              name="notes"
-              value={notes}
-              onChange={handleNotesChange}
-            />
-          </label>
           <br />
           <br />
           <button type="submit">Add Data</button>

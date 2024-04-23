@@ -30,12 +30,15 @@ const DataPage = () => {
   const token = localStorage.getItem('token');
   const [modalVidoeOpen, setModalVideoOpen] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState('');
-  const [notes, setNotes] = useState('');  // New state for notes
 
+
+  //notes
+  const [notes, setNotes] = useState('');  
   const [showAddNoteModal, setShowAddNoteModal] = useState(false);
   const [newNote, setNewNote] = useState('');
   const [showUpdateNoteModal, setShowUpdateNoteModal] = useState(false);
-
+  const [editingNoteId, setEditingNoteId] = useState(null);
+  const [editingNoteText, setEditingNoteText] = useState(''); 
 
 
   const handleVideoClick = (videoUrl) => {
@@ -92,7 +95,6 @@ const DataPage = () => {
   
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const notesArray = notes.split(',').map(note => note.trim());
     const formData = {
       FileName: fileName,
       PhotoUrl: photoUrl,
@@ -321,6 +323,50 @@ const DataPage = () => {
       setErrorMessage({ NoteAdd: 'Failed to add note. Please try again.' });
     }
   };
+  const handleEditNote = (noteId, text) => {
+    setEditingNoteId(noteId);
+    setEditingNoteText(text);
+  };
+  
+  const handleUpdateNoteText = (event) => {
+    setEditingNoteText(event.target.value);
+  };
+  const handleDoneEditNote = async (noteIndex) => {
+    if (editingNoteId === null || editingNoteText.trim() === '') {
+      alert('You must provide updated note text.');
+      return;
+    }
+  
+    const baseUrl = process.env.REACT_APP_API_URL;
+    try {
+      const encodedFileName = encodeURIComponent(fileName);
+      const response = await axios.put(`${baseUrl}/notes/update/${selectedCategory.toLowerCase()}/${encodedFileName}`, {
+        noteIndex,
+        updatedText: editingNoteText
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+  
+      if (response.status === 200) {
+        console.log('Note updated successfully');
+        const updatedNotes = [...notes];
+        updatedNotes[noteIndex] = { ...updatedNotes[noteIndex], text: editingNoteText, addedOn: new Date() };
+        setNotes(updatedNotes);
+        setEditingNoteId(null);
+        setEditingNoteText('');
+        fetchData();
+      } else {
+        throw new Error('Failed to update note');
+      }
+    } catch (error) {
+      console.error('Error updating note:', error.response ? error.response.data : error);
+      setErrorMessage({ NoteUpdate: 'Failed to update note. Please try again.' });
+    }
+  };
+  
   
 
   return (
@@ -572,26 +618,41 @@ const DataPage = () => {
         </form>
       </Modal>
       <Modal isOpen={showUpdateNoteModal} onClose={() => setShowUpdateNoteModal(false)}>
-          <h2>Update Note</h2>
-          <br />
-          <p>Filename: {fileName}</p>
-          <br />
-          <p>Notes:</p>
+        <h2>Update Note</h2>
+        <br />
+        <p>Filename: {fileName}</p>
+        <br />
+        <p>Notes:</p>
+        <ul>
           {Array.isArray(notes) && notes.length > 0 ? (
-            <ul>
-              {notes.map((note, index) => (
-                <li key={index}>
-                  {note.text} - <small>Added on {new Date(note.addedOn).toLocaleDateString()}</small>
-                </li>
-              ))}
-            </ul>
+            notes.map((note, index) => (
+              <li key={index}>
+                {editingNoteId === index ? (
+                  <>
+                    <input
+                      type="text"
+                      value={editingNoteText}
+                      onChange={handleUpdateNoteText}
+                    />
+                    <button onClick={() => handleDoneEditNote(index)}>Done</button>
+                  </>
+                ) : (
+                  <>
+                    {note.text} - <small>Added on {new Date(note.addedOn).toLocaleDateString()}</small>
+                    <button onClick={() => handleEditNote(index, note.text)}>Edit</button>
+                  </>
+                )}
+              </li>
+            ))
           ) : (
             <p>No notes found for this file.</p>
           )}
-          <br />
-          <br />
-          <button type="submit">Update Notes</button>
+        </ul>
+        <br />
+        <br />
+        <button onClick={() => setShowUpdateNoteModal(false)}>Close</button>
       </Modal>
+
     </main>
   );
 }

@@ -380,6 +380,53 @@ app.post('/notes/add/:category/:fileName', verifyToken, async (req, res) => {
   }
 });
 
+// PUT route to update a note based on its index for an item in a specific category
+app.put('/notes/update/:category/:fileName', verifyToken, async (req, res) => {
+  const { category, fileName } = req.params;
+  const { noteIndex, updatedText } = req.body; // Expect the index and new text of the note to be in the request body
+
+  // Map the category to the corresponding model
+  const categoryModelMap = {
+    playlist: Playlist,
+    ads: Ads,
+    archived: Archived
+  };
+
+  const Model = categoryModelMap[category.toLowerCase()];
+  if (!Model) {
+    return res.status(404).json({ error: 'Category not found' });
+  }
+
+  if (noteIndex === undefined || updatedText === undefined) {
+    return res.status(400).json({ error: 'Note index and updated text are required' });
+  }
+
+  try {
+    const document = await Model.findOne({ FileName: new RegExp(`^${fileName}$`, 'i') });
+    if (!document) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+
+    // Check if the note exists at the provided index
+    if (noteIndex < 0 || noteIndex >= document.notes.length) {
+      return res.status(404).json({ error: 'Note not found at the provided index' });
+    }
+
+    // Update the text of the note at the given index
+    document.notes[noteIndex].text = updatedText;
+    document.notes[noteIndex].addedOn = new Date(); // Optionally update the timestamp
+
+    // Save the document with the updated note
+    await document.save();
+
+    res.status(200).json({ message: 'Note updated successfully', data: document.notes[noteIndex] });
+  } catch (error) {
+    console.error('Failed to update note:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: error });
+  }
+});
+
+
 async function notifyExpiringItemsAcrossModels(modelMap) {
   const currentDate = new Date();
   const formattedDate = currentDate.toISOString().split('T')[0];

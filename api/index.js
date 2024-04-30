@@ -14,12 +14,19 @@ const path = require('path');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const {verifyToken} = require('./middleware/authmiddleware');
-const { log } = require('console');
 
 app.use(express.json());
 app.use(cors());
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 console.clear()
+
+const transporter = nodemailer.createTransport({
+  service: 'outlook', 
+  auth: {
+    user: process.env.EMAIL_USERNAME_TEST,
+    pass: process.env.EMAIL_PASSWORD
+  }
+});
 mongoose.connect(process.env.MONGO_URI, { dbName: 'GWData' })
   .then(() => console.log('Connected to MongoDB successfully'))
   .catch(err => console.error('Could not connect to MongoDB:', err));
@@ -320,11 +327,10 @@ app.post('/login', async (req, res) => {
           return res.status(401).send('Incorrect password, please try again!');
       }
 
-      // Sign the JWT with user ID and admin status
       const token = jwt.sign(
           { userId: user._id, isAdmin: user.isAdmin },
           process.env.JWT_SECRET,
-          { expiresIn: '1h' }  // Token expires in 1 hour
+          { expiresIn: '1h' }  
       );
 
       res.json({ token, message: 'Login successful', isAdmin: user.isAdmin });
@@ -344,13 +350,11 @@ app.listen(PORT, () => {
 });
 
 
-//notes
-// POST route to add a note to an item in a specific category
+
 app.post('/notes/add/:category/:fileName', verifyToken, async (req, res) => {
   const { category, fileName } = req.params;
-  const { text, addedOn } = req.body; // These are expected to be provided in the request body
+  const { text, addedOn } = req.body; 
 
-  // Map the category to the corresponding model
   const categoryModelMap = {
     playlist: Playlist,
     ads: Ads,
@@ -364,8 +368,8 @@ app.post('/notes/add/:category/:fileName', verifyToken, async (req, res) => {
 
   try {
     const result = await Model.findOneAndUpdate(
-      { FileName: new RegExp(`^${fileName}$`, 'i') }, // Case insensitive match
-      { $push: { notes: { text, addedOn: new Date(addedOn) } } }, // Add the note
+      { FileName: new RegExp(`^${fileName}$`, 'i') }, 
+      { $push: { notes: { text, addedOn: new Date(addedOn) } } }, 
       { new: true, runValidators: true }
     );
 
@@ -380,12 +384,10 @@ app.post('/notes/add/:category/:fileName', verifyToken, async (req, res) => {
   }
 });
 
-// PUT route to update a note based on its index for an item in a specific category
 app.put('/notes/update/:category/:fileName', verifyToken, async (req, res) => {
   const { category, fileName } = req.params;
-  const { noteIndex, updatedText } = req.body; // Expect the index and new text of the note to be in the request body
+  const { noteIndex, updatedText } = req.body; 
 
-  // Map the category to the corresponding model
   const categoryModelMap = {
     playlist: Playlist,
     ads: Ads,
@@ -407,16 +409,13 @@ app.put('/notes/update/:category/:fileName', verifyToken, async (req, res) => {
       return res.status(404).json({ error: 'File not found' });
     }
 
-    // Check if the note exists at the provided index
     if (noteIndex < 0 || noteIndex >= document.notes.length) {
       return res.status(404).json({ error: 'Note not found at the provided index' });
     }
 
-    // Update the text of the note at the given index
     document.notes[noteIndex].text = updatedText;
-    document.notes[noteIndex].addedOn = new Date(); // Optionally update the timestamp
+    document.notes[noteIndex].addedOn = new Date(); 
 
-    // Save the document with the updated note
     await document.save();
 
     res.status(200).json({ message: 'Note updated successfully', data: document.notes[noteIndex] });
@@ -429,7 +428,7 @@ app.put('/notes/update/:category/:fileName', verifyToken, async (req, res) => {
 
 app.delete('/notes/delete/:category/:fileName/:noteIndex', verifyToken, async (req, res) => {
   const { category, fileName, noteIndex } = req.params;
-  const index = parseInt(noteIndex, 10); // Convert noteIndex from string to integer
+  const index = parseInt(noteIndex, 10); 
 
   const categoryModelMap = {
     playlist: Playlist,
@@ -559,3 +558,147 @@ cron.schedule('0 0 * * *', async () => {
   await archiveExpiringItems(Playlist, 'playlist');
   await archiveExpiringItems(Ads, 'ads');
 });
+
+
+// const checkDataChanges = async () => {
+//   // Check for new uploads for the day 
+//   const newUploadPlaylists = await Playlist.find({ createdAt: { $gte: new Date().setHours(0, 0, 0, 0) } });
+//   const newUploadAds = await Ads.find({ createdAt: { $gte: new Date().setHours(0, 0, 0, 0) } });
+
+//   // Check for deletions 
+//   const deletedPlaylistItems = await Playlist.find({ deletedAt: { $gte: new Date().setHours(0, 0, 0, 0) } });
+//   const deletedAdsItems = await Ads.find({ deletedAt: { $gte: new Date().setHours(0, 0, 0, 0) } });
+//   const deletedArchivedItems = await Archived.find({ deletedAt: { $gte: new Date().setHours(0, 0, 0, 0) } });
+//   // Check for extended expiry
+//   const extendedExpiryPlaylistItems = await Playlist.find({ Expiry: { $gte: new Date().setHours(0, 0, 0, 0) } });
+//   const extendedExpiryAdsItems = await Ads.find({ Expiry: { $gte: new Date().setHours(0, 0, 0, 0) } });
+//   const extendedExpiryArchivedItems = await Archived.find({ Expiry: { $gte: new Date().setHours(0, 0, 0, 0) } });
+//   // Check for note changes
+//   const updatedPlaylistNotes = await Playlist.find({ 'notes.updatedAt': { $gte: new Date().setHours(0, 0, 0, 0) } });
+//   const updatedAdsNotes = await Ads.find({ 'notes.updatedAt': { $gte: new Date().setHours(0, 0, 0, 0) } });
+//   const updatedArchivedNotes = await Archived.find({ 'notes.updatedAt': { $gte: new Date().setHours(0, 0, 0, 0) } });
+  
+
+//   let emailContent = '';
+ 
+//   if (newUploadPlaylists.length > 0 || newUploadAds.length > 0) {
+//     emailContent += 'New Uploads:\n';
+//     if (newUploadPlaylists.length > 0) {
+//       newUploadPlaylists.forEach(upload => {
+//         emailContent += `- ${upload.FileName} has been added to the playlist on ${upload.createdAt}\n`;
+//       });
+//     }
+//     if (newUploadAds.length > 0) {
+//       newUploadAds.forEach(upload => {
+//         emailContent += `- ${upload.FileName} has been added to the ads on ${upload.createdAt}\n`;
+//       });
+//     }
+//     emailContent += '\n';
+//   }
+
+//   if (deletedPlaylistItems.length > 0) {
+//     emailContent += 'Deleted Items:\n';
+//     deletedPlaylistItems.forEach(item => {
+//       emailContent += `- ${item.FileName} has been deleted from the playlist on ${item.deletedAt}\n`;
+//     });
+//     deletedAdsItems.forEach(item => {
+//       emailContent += `- ${item.FileName} has been deleted from the ads on ${item.deletedAt}\n`;
+//     });
+//     deletedArchivedItems.forEach(item => {
+//       emailContent += `- ${item.FileName} has been deleted from the archived on ${item.deletedAt}\n`;
+//     });
+//     emailContent += '\n';
+//   }
+
+//   if (extendedExpiryPlaylistItems.length > 0 || extendedExpiryAdsItems.length > 0 || extendedExpiryArchivedItems.length > 0) {
+//     emailContent += 'Extended Expiry Items:\n';
+//     if(extendedExpiryPlaylistItems.length > 0){
+//       extendedExpiryPlaylistItems.forEach(item => {
+//         emailContent += `- ${item.FileName} from playlists has had its expiry date extended to ${item.Expiry}\n`;
+//       });
+//     }
+//     if(extendedExpiryAdsItems.length > 0){
+//       extendedExpiryAdsItems.forEach(item => {
+//         emailContent += `- ${item.FileName} from ads has had its expiry date extended to ${item.Expiry}\n`;
+//       });
+//     }
+//     if(extendedExpiryArchivedItems.length > 0){
+//       extendedExpiryArchivedItems.forEach(item => {
+//         emailContent += `- ${item.FileName} from archived has had its expiry date extended to ${item.Expiry}\n`;
+//       });
+//     }
+//     emailContent += '\n';
+//   }
+
+//   if (updatedPlaylistNotes.length > 0) {
+//     emailContent += 'Updated Notes:\n';
+//     updatedPlaylistNotes.forEach(item => {
+//       item.notes.forEach(note => {
+//         if (note.updatedAt >= new Date().setHours(0, 0, 0, 0)) {
+//           if (note.addedOn === note.updatedAt) {
+//             emailContent += `- ${item.FileName} - Note: ${note.text} (Added)\n`;
+//           } else if (note.text === '') {
+//             emailContent += `- ${item.FileName} - Note: ${note.text} (Deleted)\n`;
+//           } else {
+//             emailContent += `- ${item.FileName} - Note: ${note.text} (Updated)\n`;
+//           }
+//         }
+//       });
+//     });
+//     emailContent += '\n';
+//   }else if(updatedAdsNotes.length > 0){
+//     updatedAdsNotes.forEach(item => {
+//       item.notes.forEach(note => {
+//         if (note.updatedAt >= new Date().setHours(0, 0, 0, 0)) {
+//           if (note.addedOn === note.updatedAt) {
+//             emailContent += `- ${item.FileName} - Note: ${note.text} (Added)\n`;
+//           } else if (note.text === '') {
+//             emailContent += `- ${item.FileName} - Note: ${note.text} (Deleted)\n`;
+//           } else {
+//             emailContent += `- ${item.FileName} - Note: ${note.text} (Updated)\n`;
+//           }
+//         }
+//       });
+//     });
+//     emailContent += '\n';
+//   }else if(updatedArchivedNotes.length > 0){
+//     updatedArchivedNotes.forEach(item => {
+//       item.notes.forEach(note => {
+//         if (note.updatedAt >= new Date().setHours(0, 0, 0, 0)) {
+//           if (note.addedOn === note.updatedAt) {
+//             emailContent += `- ${item.FileName} - Note: ${note.text} (Added)\n`;
+//           } else if (note.text === '') {
+//             emailContent += `- ${item.FileName} - Note: ${note.text} (Deleted)\n`;
+//           } else {
+//             emailContent += `- ${item.FileName} - Note: ${note.text} (Updated)\n`;
+//           }
+//         }
+//       });
+//     });
+//     emailContent += '\n';
+//   }
+
+//   const msg = {
+//     to: 'rzhou1997@gmail.com',
+//     from: process.env.EMAIL_USERNAME_TEST,
+//     subject: 'Data Changes Notification',
+//     text: emailContent
+//   };
+
+//   try {
+//     await transporter.sendMail(msg);
+//     console.log('Data changes notification email sent successfully.');
+//   } catch (error) {
+//     console.error('Failed to send data changes notification email:', error);
+//   }
+// };
+
+//need to make it every 5 minutes for testing purposes
+// cron.schedule('0 0 * * *', async () => {
+//  console.log('Checking for data changes and sending email notification.');
+//  await checkDataChanges();
+// });
+// cron.schedule('0 23 * * *', async () => {
+//   console.log('Checking for data changes and sending email notification.');
+//   await checkDataChanges();
+// });

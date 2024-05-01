@@ -70,10 +70,17 @@ const DataPage = () => {
       case 'Archived':
         url += 'archived';
         break;
+      case 'Playlist Schedule':
+        url += 'playlistSchedule';
+        break;
+      case 'Ads Schedule':
+        url += 'adsSchedule';
+        break;
       default:
         console.error('Unexpected data type');
         return;
     }
+    console.log('currentData = ', currentData);
 
     const adminStatus = localStorage.getItem('isAdmin') === 'true';
     setIsAdmin(adminStatus);
@@ -411,6 +418,8 @@ const DataPage = () => {
           <option value="Playlist">Playlist</option>
           <option value="Ads">Ads</option>
           <option value="Archived">Archived</option>
+          <option value="Playlist Schedule">Playlist Schedule</option>
+          <option value="Ads Schedule">Ads Schedule</option>
         </select>
       </div>
         <div className="header-controls">
@@ -422,33 +431,64 @@ const DataPage = () => {
               onChange={e => setSearchTerm(e.target.value)}
             />
           </div>
-          {isAdmin && (<button onClick={handleToggleAddForm} className="add-button">Add Data</button>)}
-          {isAdmin && (<button onClick={handleExpiryForm} className="add-button">Extend Expiry Data</button>)}
-          {isAdmin && (<button onClick={handleToggleDeleteForm} className="add-button">Delete Data</button>)}
+          { 
+            currentData === 'Playlist' || currentData === 'Ads' || currentData === 'Archived' ? 
+              (
+                <>
+                  {
+                  isAdmin && (
+                    <>
+                      <button onClick={handleToggleAddForm} className="add-button">Add Data</button>
+                      <button onClick={handleExpiryForm} className="add-button">Extend Expiry Data</button>
+                      <button onClick={handleToggleDeleteForm} className="add-button">Delete Data</button>
+                    </>
+                  )}
+                </>
+              )
+              : 
+              (
+                <>
+                  {isAdmin && (
+                    <>
+                      <button className="add-button">Remove Item</button>
+                      <button className="add-button">Add Item</button>
+                    </>
+                  )}
+                </>
+              )
+          }
           <button onClick={handleLogout} className="add-button">Logout</button>
         </div>
       </section>
       <section className="table_body">
         <table>
           <thead>
-            <tr>
-              <th>#</th>
-              <th>Photo</th>
-              <th>File Name</th>
-              <th>File Type</th>
-              <th>Tag</th>
-              <th>Run Time</th>
-              <th>Type</th>
-              <th>Video Url</th>
-              <th>Expiry</th>
-              {isAdmin && <th>Notes</th>}
-              {isAdmin && <th>Alter Notes</th>}
+            {
+              currentData === 'Playlist Schedule' || currentData === 'Ads Schedule' ?
+                <tr>
+                  <th>Folder</th>
+                  <th>Starting Time</th>
+                  <th>Ending Time</th>
+                  <th>other times {currentData === 'Playlist Schedule' ? 'set of playlist' : currentData === 'Ads Schedule' ? 'set of ads' : 'Other Times Being Played At'} being played at</th>
+                </tr>
+              :
+                <tr>
+                <th>Photo</th>
+                <th>File Name</th>
+                <th>File Type</th>
+                <th>Tag</th>
+                <th>Run Time</th>
+                <th>Type</th>
+                <th>Video Url</th>
+                <th>Expiry</th>
+                {isAdmin && <th>Notes</th>}
+                {isAdmin && <th>Alter Notes</th>}
             </tr>
+            }
           </thead>
           <tbody>
             {filteredData.length > 0 ? filteredData.map((item, index) => (
               <tr key={index} style={{ backgroundColor: index % 2 === 0 ? 'transparent' : '#f0f0f0' }}>
-                <td>{index + 1}</td>
                 <td><img src={item.PhotoUrl} alt="Data" style={{ width: '50px', height: '50px' }} /></td>
                 <td>{item.FileName}</td>
                 <td>{item.Type}</td>

@@ -8,6 +8,8 @@ const User = require('./models/Users');
 const Playlist = require('./models/Playlist');
 const Ads = require('./models/Ads');
 const Archived = require('./models/Archived');
+const AdsSchedule = require('./models/AdsSchedule');
+const PlaylistSchedule = require('./models/PlaylistSchedule');
 const sgMail = require('@sendgrid/mail')
 const cron = require('node-cron');
 const path = require('path');
@@ -67,6 +69,106 @@ app.get('/ads', async (req, res) => {
     res.json(ads);
   } catch (err) {
     console.error('Error fetching playlists:', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+//create endpoint to get adsSchedule
+app.get('/adsSchedule', async (req, res) => {
+  try {
+    const adsSchedule = await AdsSchedule.find({});
+    res.json(adsSchedule);
+  } catch (err) {
+    console.error('Error fetching adsSchedule:', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+//create endpoint to get playlistSchedule
+app.get('/playlistSchedule', async (req, res) => {
+  try {
+    const playlistSchedule = await PlaylistSchedule.find({});
+    res.json(playlistSchedule);
+  } catch (err) {
+    console.error('Error fetching playlistSchedule:', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+app.post('/createPlaylistSchedule', async (req, res) => {
+  const folder = `Playlist ${await PlaylistSchedule.countDocuments() + 1}`;
+  const { items, startTime, endTime, otherTimes } = req.body;
+
+  let errors = {};
+  if (!folder) {
+    errors.folder = 'Folder is required';
+  }
+  if (!items) {
+    errors.items = 'Items are required';
+  }
+  if (!startTime) {
+    errors.startTime = 'Start Time is required';
+  }
+  if (!endTime) {
+    errors.endTime = 'End Time is required';
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return res.status(400).json(errors);
+  }
+
+  const newPlaylistSchedule = new PlaylistSchedule({
+    folder,
+    items,
+    startTime,
+    endTime,
+    otherTimes
+  });
+
+  try {
+    const savedItem = await newPlaylistSchedule.save();
+    res.status(201).json(savedItem);
+  } catch (err) {
+    console.error('Error saving new playlist item:', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+app.post('/createAdsSchedule', async (req, res) => {
+  const folder = `Ads ${await AdsSchedule.countDocuments() + 1}`;
+  const { items, startTime, endTime, otherTimes } = req.body;
+
+  let errors = {};
+  if (!folder) {
+    errors.folder = 'Folder is required';
+  }
+  if (!items) {
+    errors.items = 'Items are required';
+  }
+  if (!startTime) {
+    errors.startTime = 'Start Time is required';
+  }
+  if (!endTime) {
+    errors.endTime = 'End Time is required';
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return res.status(400).json(errors);
+  }
+
+  const newAdsSchedule = new AdsSchedule({
+    folder,
+    items,
+    startTime,
+    endTime,
+    otherTimes
+  });
+
+  try {
+    const savedItem = await newAdsSchedule.save();
+    res.status(201).json(savedItem);
+  } catch (err) {
+    console.error('Error saving new ads item:', err);
     res.status(500).send('Internal Server Error');
   }
 });

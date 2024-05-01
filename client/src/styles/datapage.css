@@ -201,3 +201,15 @@ tbody tr.hide td{
     font-size: 16px;
 }
 
+
+.date-inputs{
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.time-inputs{
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}

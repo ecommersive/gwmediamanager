@@ -12,6 +12,14 @@ const playlistScheduleSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Ads' 
     }],
+    startDate: {
+        type: Date,
+        required: true
+    },
+    endDate: {
+        type: Date,
+        required: true
+    },
     startTime: {
         type: String,
         required: true

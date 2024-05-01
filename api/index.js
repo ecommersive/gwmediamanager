@@ -97,7 +97,7 @@ app.get('/playlistSchedule', async (req, res) => {
 
 app.post('/createPlaylistSchedule', async (req, res) => {
   const folder = `Playlist ${await PlaylistSchedule.countDocuments() + 1}`;
-  const { items, startTime, endTime, otherTimes } = req.body;
+  const { items, startTime, endTime, startDate, endDate, otherTimes } = req.body;
 
   let errors = {};
   if (!folder) {
@@ -112,6 +112,12 @@ app.post('/createPlaylistSchedule', async (req, res) => {
   if (!endTime) {
     errors.endTime = 'End Time is required';
   }
+  if (!startDate) {
+    errors.startDate = 'Start Date is required';
+  }
+  if (!endDate) {
+    errors.endDate = 'End Date is required';
+  }
 
   if (Object.keys(errors).length > 0) {
     return res.status(400).json(errors);
@@ -122,6 +128,8 @@ app.post('/createPlaylistSchedule', async (req, res) => {
     items,
     startTime,
     endTime,
+    startDate,
+    endDate,
     otherTimes
   });
 
@@ -136,7 +144,8 @@ app.post('/createPlaylistSchedule', async (req, res) => {
 
 app.post('/createAdsSchedule', async (req, res) => {
   const folder = `Ads ${await AdsSchedule.countDocuments() + 1}`;
-  const { items, startTime, endTime, otherTimes } = req.body;
+
+  const { items, startTime, endTime, startDate, endDate, otherTimes } = req.body;
 
   let errors = {};
   if (!folder) {
@@ -151,6 +160,13 @@ app.post('/createAdsSchedule', async (req, res) => {
   if (!endTime) {
     errors.endTime = 'End Time is required';
   }
+  if (!startDate) {
+    errors.startDate = 'Start Date is required';
+  }
+  
+  if (!endDate) {
+    errors.endDate = 'End Date is required';
+  }
 
   if (Object.keys(errors).length > 0) {
     return res.status(400).json(errors);
@@ -161,6 +177,8 @@ app.post('/createAdsSchedule', async (req, res) => {
     items,
     startTime,
     endTime,
+    startDate,
+    endDate,
     otherTimes
   });
 

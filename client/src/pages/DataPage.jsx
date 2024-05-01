@@ -36,6 +36,8 @@ const DataPage = () => {
   const [showCreateAdsSetForm, setShowCreateAdsSetForm] = useState(false);
   const [modalSearchTerm, setModalSearchTerm] = useState('');
   const [modalData, setModalData] = useState([]);
+  const [item, setItem] = useState([]);
+  
 
 
 
@@ -447,7 +449,36 @@ const DataPage = () => {
   };
 
 
+  //function will call api to add to submit to a set modal
+  const handleSubmitSetModal = (event) => {
+    event.preventDefault();
 
+    console.log('button has been clicked for handle submit set modal');
+
+  }
+
+  //function will add to playlist set
+  //fix this function to be able to add to playlist set without refreshing
+  useEffect(() => {
+    console.log('item updated:', item);
+    // Perform any necessary updates here, such as adding the first element to the playlist set
+  }, [item]);
+  function handleAddToPlaylistSet(event, fileName) {
+    event.preventDefault();
+    console.log('button has been clicked for handle add to playlist set');
+    // Append the filename to the item state
+    setItem(prevItem => [...prevItem, fileName]);
+    console.log('item', item);
+  }
+
+  //function will add to ads set
+  const handleAddToAdsSet = (event) => {
+    event.preventDefault();
+    console.log('button has been clicked for handle add to ads set');
+  }
+  let startDate;
+  let endDate;
+  let startTime;
 
   return (
     <main className="table">
@@ -486,16 +517,20 @@ const DataPage = () => {
                 </>
               )
               :
-              (
-                <>
-                  {isAdmin && (
+              currentData === 'Playlist Schedule' ? (
+                (
+                  <>
+                    {isAdmin && (<button className="action-button" onClick={handleCreatePlaylistSet}>Create playlist set</button>)}
+                  </>
+                )
+              ) :
+                currentData === 'Ads Schedule' ? (
+                  (
                     <>
-                      <button className="action-button" onClick={handleCreatePlaylistSet}>Create playlist set</button>
-                      <button className="action-button" onClick={handleCreateAdsSet}>Create ads set</button>
+                      {isAdmin && (<button className="action-button" onClick={handleCreateAdsSet}>Create ads set</button>)}
                     </>
-                  )}
-                </>
-              )
+                  )
+                ) : null
           }
           <button className="action-button" onClick={handleLogout} >Logout</button>
         </div>
@@ -507,6 +542,8 @@ const DataPage = () => {
               currentData === 'Playlist Schedule' || currentData === 'Ads Schedule' ?
                 <tr>
                   <th>Folder</th>
+                  <th>Starting Date</th>
+                  <th>Ending Date</th>
                   <th>Starting Time</th>
                   <th>Ending Time</th>
                   <th>other times {currentData === 'Playlist Schedule' ? 'set of playlist' : currentData === 'Ads Schedule' ? 'set of ads' : 'Other Times Being Played At'} being played at</th>
@@ -777,7 +814,7 @@ const DataPage = () => {
         <br />
         <button onClick={() => setShowDeleteNoteModal(false)}>Close</button>
       </Modal>
-      <Modal isOpen={showCreatePlaylistSetForm} onClose={() => { setShowCreatePlaylistSetForm(false); setModalSearchTerm(''); }}>
+      <Modal isOpen={showCreatePlaylistSetForm} onClose={() => { setShowCreatePlaylistSetForm(false); setModalSearchTerm(''); setItem([]);}}>
         <form>
           <h2>Create Playlist Set</h2>
           <br />
@@ -796,6 +833,7 @@ const DataPage = () => {
               modalFilteredData.map((item, index) => (
                 <div key={index}>
                   <span>{item.FileName}</span>
+                  <button onClick={(event) => handleAddToPlaylistSet(event, item.FileName)}>Add</button>
                 </div>
               ))
             ) : (
@@ -804,10 +842,50 @@ const DataPage = () => {
           ) : (
             <p>No data found. Please search for data.</p>
           )}
-          <button onClick={() => { setShowCreatePlaylistSetForm(false); setModalSearchTerm(''); }}>Close</button>
+          <br />
+
+
+          
+
+          <div className="date-inputs">
+            <label>
+              Start Date:
+              <input type="date" name="startDate" onChange={(event) => {
+                startDate = new Date(event.target.value);
+                const endDateInput = document.querySelector('input[name="endDate"]');
+                endDateInput.min = startDate.toISOString().split('T')[0];
+              }} />
+            </label>
+            <label>
+              End Date:
+              <input type="date" name="endDate" min={startDate ? startDate.toISOString().split('T')[0] : ''} />
+            </label>
+          </div>
+
+          <br />
+          <div className="time-inputs">
+            <label>
+              Start Time:
+              <input type="time" name="startTime" onChange={(event) => {
+                startTime = new Date(startDate.toISOString().split('T')[0] + ' ' + event.target.value);
+                const endTimeInput = document.querySelector('input[name="endTime"]');
+                if (startDate.toISOString().split('T')[0] === endDate.toISOString().split('T')[0]) {
+                  endTimeInput.min = startTime.toTimeString().slice(0, 5);
+                }
+              }} />
+            </label>
+            <label>
+              End Time:
+              <input type="time" name="endTime" min={startTime && startDate.toISOString().split('T')[0] === endDate.toISOString().split('T')[0] ? startTime.toTimeString().slice(0, 5) : ''} />
+            </label>
+          </div>
+          <br />
+          <button type="submit" onClick={handleSubmitSetModal}>Submit</button>
+          <br />
+          <button onClick={() => { setShowCreatePlaylistSetForm(false); setModalSearchTerm(''); setItem([]);}}>Close</button>
         </form>
       </Modal>
-      <Modal isOpen={showCreateAdsSetForm} onClose={() => { setShowCreateAdsSetForm(false); setModalSearchTerm(''); }}>
+      <Modal isOpen={showCreateAdsSetForm} onClose={() => { setShowCreateAdsSetForm(false); setModalSearchTerm(''); setItem([]);}}>
         <form>
           <h2>Create Ads Set</h2>
           <br />
@@ -826,6 +904,9 @@ const DataPage = () => {
               modalFilteredData.map((item, index) => (
                 <div key={index}>
                   <span>{item.FileName}</span>
+                  <button onClick={handleAddToAdsSet}>Add</button>
+
+
                 </div>
               ))
             ) : (
@@ -834,7 +915,42 @@ const DataPage = () => {
           ) : (
             <p>No data found. Please search for data.</p>
           )}
-          <button onClick={() => { setShowCreateAdsSetForm(false); setModalSearchTerm(''); }}>Close</button>        </form>
+          <br />
+          <div className="date-inputs">
+            <label>
+              Start Date:
+              <input type="date" name="startDate" onChange={(event) => {
+                startDate = new Date(event.target.value);
+                const endDateInput = document.querySelector('input[name="endDate"]');
+                endDateInput.min = startDate.toISOString().split('T')[0];
+              }} />
+            </label>
+            <label>
+              End Date:
+              <input type="date" name="endDate" min={startDate ? startDate.toISOString().split('T')[0] : ''} />
+            </label>
+          </div>
+
+          <br />
+          <div className="time-inputs">
+            <label>
+              Start Time:
+              <input type="time" name="startTime" onChange={(event) => {
+                startTime = new Date(startDate.toISOString().split('T')[0] + ' ' + event.target.value);
+                const endTimeInput = document.querySelector('input[name="endTime"]');
+                if (startDate.toISOString().split('T')[0] === endDate.toISOString().split('T')[0]) {
+                  endTimeInput.min = startTime.toTimeString().slice(0, 5);
+                }
+              }} />
+            </label>
+            <label>
+              End Time:
+              <input type="time" name="endTime" min={startTime && startDate.toISOString().split('T')[0] === endDate.toISOString().split('T')[0] ? startTime.toTimeString().slice(0, 5) : ''} />
+            </label>
+          </div>
+          <br />
+          <button onClick={() => { setShowCreateAdsSetForm(false); setModalSearchTerm(''); setItem([]);}}>Close</button>
+        </form>
       </Modal>
     </main>
   );

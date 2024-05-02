@@ -1,16 +1,20 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Modal from '../Components/Modal';
+
 import VideoViewer from '../Components/Videoviewer';
 import { v4 as uuidv4 } from 'uuid';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../styles/datapage.css';
 import axios from 'axios';
 const DataPage = () => {
+  const [mode, setMode] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [catData, setCatData] = useState('');
+
+
   const [searchTerm, setSearchTerm] = useState('');
   const [notesModal, setNotesModal] = useState(false);
   const [videoKey, setVideoKey] = useState(uuidv4());
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [showExpiryForm, setShowExpiryForm] = useState(false);
   const [data, setData] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [currentData, setCurrentData] = useState('Playlist');
@@ -28,19 +32,12 @@ const DataPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const token = localStorage.getItem('token');
-  const [modalVidoeOpen, setModalVideoOpen] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState('');
-
   //set of playlist and ads states
-  const [showCreatePlaylistSetForm, setShowCreatePlaylistSetForm] = useState(false);
-  const [showCreateAdsSetForm, setShowCreateAdsSetForm] = useState(false);
+  const [showCreateMode, setShowCreateMode] = useState(false);
   const [modalSearchTerm, setModalSearchTerm] = useState('');
   const [modalData, setModalData] = useState([]);
   const [item, setItem] = useState([]);
-  
-
-
-
   //notes
   const [notes, setNotes] = useState('');
   const [showAddNoteModal, setShowAddNoteModal] = useState(false);
@@ -53,14 +50,19 @@ const DataPage = () => {
 
   const handleVideoClick = (videoUrl) => {
     setCurrentVideoUrl(videoUrl);
-    setModalVideoOpen(true);
+    setShowModal(true);
     setVideoKey(uuidv4());
     console.log('embedUrl', videoUrl);
   };
-  const closeModal = useCallback(() => {
-    setModalVideoOpen(false);
 
-  });
+
+  const handleModal = () =>{
+    setShowModal(!showModal);
+  }
+  const ModalClose = () => {
+    setShowModal(false);
+  }
+
 
   const closeNotesModal = useCallback(() => {
     setNotesModal(false);
@@ -112,46 +114,73 @@ const DataPage = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const formData = {
-      FileName: fileName,
-      PhotoUrl: photoUrl,
-      Type: type,
-      Tag: tag,
-      Run_Time: runTime,
-      Content: content,
-      videoUrl: videoUrl,
-      Expiry: expiry
-    };
+    if(catData === 'addData'){
+      const formData = {
+        FileName: fileName,
+        PhotoUrl: photoUrl,
+        Type: type,
+        Tag: tag,
+        Run_Time: runTime,
+        Content: content,
+        videoUrl: videoUrl,
+        Expiry: expiry
+      };
 
-    if (notes.length > 0) {
-      formData.notes = notes.map(noteText => ({
-        text: noteText,
-        addedOn: new Date()
-      }));
-    }
-
-    const endpoint = selectedCategory === "Playlist" ? "uploadPlaylist" : "uploadAds";
-    let baseUrl = process.env.REACT_APP_API_URL;
-
-    try {
-      const response = await axios.post(`${baseUrl}/${endpoint}`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.status === 201) {
-        setShowAddForm(false);
-        fetchData();
-        console.log(`${selectedCategory} item added:`, response.data);
-        setErrorMessage({});
-      } else {
-        throw new Error(`Failed to add ${selectedCategory} item`);
+      if (notes.length > 0) {
+        formData.notes = notes.map(noteText => ({
+          text: noteText,
+          addedOn: new Date()
+        }));
       }
-    } catch (error) {
-      console.error(`Error submitting ${selectedCategory} item:`, error.response ? error.response.data : error);
-      setErrorMessage({ Upload: 'Failed to add data. Please try again.' });
+
+      const endpoint = selectedCategory === "Playlist" ? "uploadPlaylist" : "uploadAds";
+      let baseUrl = process.env.REACT_APP_API_URL;
+
+      try {
+        const response = await axios.post(`${baseUrl}/${endpoint}`, formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.status === 201) {
+          setShowModal(false);
+          fetchData();
+          console.log(`${selectedCategory} item added:`, response.data);
+          setErrorMessage({});
+        } else {
+          throw new Error(`Failed to add ${selectedCategory} item`);
+        }
+      } catch (error) {
+        console.error(`Error submitting ${selectedCategory} item:`, error.response ? error.response.data : error);
+        setErrorMessage({ Upload: 'Failed to add data. Please try again.' });
+      }
+    }else if(catData === 'ExtendExpiry'){
+      const encodedFileName = encodeURIComponent(fileName);
+      let baseUrl = process.env.REACT_APP_API_URL;
+      console.log("Handle Set Expiry = ", baseUrl);
+      try {
+        const response = await axios.post(`${baseUrl}/setExpiry/${selectedCategory.toLowerCase()}/${encodedFileName}`, {
+          newExpiryDate: expiry
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        if (response.status === 200) {
+          console.log('Expiry date set successfully');
+          fetchData();
+          setShowModal(false);
+        } else {
+          throw new Error(`Failed to set expiry date for ${selectedCategory} item`);
+        }
+      } catch (error) {
+        console.error(`Error submitting set expiry for ${selectedCategory} item:`, error.response ? error.response.data : error);
+        setErrorMessage({ SetExpiry: 'Failed to set expiry date. Please try again.' });
+      }
     }
   };
 
@@ -183,33 +212,6 @@ const DataPage = () => {
     }
   };
 
-  const handleExtendExpiry = async (event) => {
-    event.preventDefault();
-    const encodedFileName = encodeURIComponent(fileName);
-    let baseUrl = process.env.REACT_APP_API_URL;
-    console.log("Handle Set Expiry = ", baseUrl);
-    try {
-      const response = await axios.post(`${baseUrl}/setExpiry/${selectedCategory.toLowerCase()}/${encodedFileName}`, {
-        newExpiryDate: expiry
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      if (response.status === 200) {
-        console.log('Expiry date set successfully');
-        fetchData();
-        setShowExpiryForm(false);
-      } else {
-        throw new Error(`Failed to set expiry date for ${selectedCategory} item`);
-      }
-    } catch (error) {
-      console.error(`Error submitting set expiry for ${selectedCategory} item:`, error.response ? error.response.data : error);
-      setErrorMessage({ SetExpiry: 'Failed to set expiry date. Please try again.' });
-    }
-  };
   const handleFileNameChange = (event) => {
     setFileName(event.target.value);
   };
@@ -303,25 +305,15 @@ const DataPage = () => {
     setCurrentData(e.target.value);
     setSelectedCategory(e.target.value);
   };
-  const handleToggleAddForm = () => {
-    setShowAddForm(!showAddForm);
-  };
-
-  const handleExpiryForm = () => {
-    setShowExpiryForm(!showExpiryForm);
-  };
 
   const handleToggleDeleteForm = () => {
     setShowDeleteForm(!showDeleteForm);
   };
 
-  const handleCreatePlaylistSet = () => {
-    setShowCreatePlaylistSetForm(!showCreatePlaylistSetForm);
+  const handleCreateSet = () => {
+    setShowCreateMode(!showCreateMode);
   };
 
-  const handleCreateAdsSet = () => {
-    setShowCreateAdsSetForm(!showCreateAdsSetForm);
-  };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -344,10 +336,6 @@ const DataPage = () => {
       window.removeEventListener('beforeunload', handleUnload);
     };
   }, [location]);
-
-
-
-
 
   const handleAddNoteSubmit = async (event, fileName) => {
     event.preventDefault();
@@ -438,8 +426,8 @@ const DataPage = () => {
 
       if (response.status === 200) {
         console.log('Note deleted successfully');
-        setNotes(notes.filter((_, index) => index !== noteIndex)); // Filter out the deleted note
-        fetchData(); // Reload data or manually adjust the state to reflect changes
+        setNotes(notes.filter((_, index) => index !== noteIndex)); 
+        fetchData(); 
       } else {
         throw new Error('Failed to delete the note');
       }
@@ -449,11 +437,13 @@ const DataPage = () => {
   };
 
 
-  //function will call api to add to submit to a set modal
   const handleSubmitSetModal = (event) => {
     event.preventDefault();
-
-    console.log('button has been clicked for handle submit set modal');
+    if(currentData === 'Playlist Schedule'){
+      console.log('playlist schedule has been created');
+    }else if(currentData === 'Ads Schedule'){
+      console.log('ads schedule has been created');
+    }
 
   }
 
@@ -465,23 +455,12 @@ const DataPage = () => {
 
 
   
-  function handleAddToPlaylistSet(event, fileName) {
+  function handleAddToSet(event, fileName) {
     event.preventDefault();
-    if (!itemExists(fileName)) {
+    
       setItem(prevItem => [...prevItem, { FileName: fileName }]);
       console.log('item', item);
-    }
   }
-
-  //function will add to ads set
-  const handleAddToAdsSet = (event, fileName) => {
-    event.preventDefault();
-    if (!itemExists(fileName)) {
-      setItem(prevItem => [...prevItem, { FileName: fileName }]);
-      console.log('item', item);
-    }
-  }
-
 
   const itemExists = (fileName) => {
     return item.some(item => item.FileName === fileName);
@@ -520,28 +499,22 @@ const DataPage = () => {
                   {
                     isAdmin && (
                       <>
-                        <button className="action-button" onClick={handleToggleAddForm} >Add Data</button>
-                        <button className="action-button" onClick={handleExpiryForm} >Extend Expiry Data</button>
+
+                        <button className="action-button" onClick={() => { handleModal(); setMode('configureData'); setCatData('addData')}} >Add Data</button>
+                        <button className="action-button" onClick={() => { handleModal(); setMode('configureData'); setCatData('ExtendExpiry')}} >Extend Expiry Data</button>
                         <button className="action-button" onClick={handleToggleDeleteForm} >Delete Data</button>
                       </>
                     )}
                 </>
               )
               :
-              currentData === 'Playlist Schedule' ? (
+              currentData === 'Playlist Schedule' || currentData === 'Ads Schedule' && (
                 (
                   <>
-                    {isAdmin && (<button className="action-button" onClick={handleCreatePlaylistSet}>Create playlist set</button>)}
+                    {isAdmin && (<button className="action-button" onClick={handleCreateSet}>{currentData === 'Playlist Schedule' ? 'Create playlist set' : 'Create ads set'}</button>)}
                   </>
                 )
-              ) :
-                currentData === 'Ads Schedule' ? (
-                  (
-                    <>
-                      {isAdmin && (<button className="action-button" onClick={handleCreateAdsSet}>Create ads set</button>)}
-                    </>
-                  )
-                ) : null
+              ) 
           }
           <button className="action-button" onClick={handleLogout} >Logout</button>
         </div>
@@ -583,7 +556,7 @@ const DataPage = () => {
                 <td>{item.Tag}</td>
                 <td>{item.Run_Time}</td>
                 <td>{item.Content}</td>
-                <td><button onClick={() => handleVideoClick(item.videoUrl)}>View</button></td>
+                <td><button onClick={() => {handleVideoClick(item.videoUrl); setMode('viewvideo')}}>View</button></td>
                 <td>{item.Expiry}</td>
                 {isAdmin && <td><button onClick={() => { setNotesModal(true); setFileName(item.FileName); setNotes(item.notes); }}>View</button></td>}
                 {isAdmin &&
@@ -604,118 +577,120 @@ const DataPage = () => {
           </tbody>
         </table>
       </section>
+      <Modal style={mode === 'viewvideo' ? { height: '100%' } : {}} isOpen={showModal} onClose={ModalClose}>
+        {mode === 'viewvideo' && <VideoViewer videoUrl={currentVideoUrl} key={videoKey} />}
+        {mode === 'configureData' &&
+          <>
+          <form onSubmit={handleSubmit}>
+            <h2>
+              {
+                catData === 'addData' ? 
+                'Add New Data': 
+                catData === 'ExtendExpiry' ? 
+                'Extend Expiry Date' : ''
+              }
+            </h2>
+            {
+              <>
+                {(catData === 'addData' || catData === 'ExtendExpiry') && (
+                  <>
+                    <label>
+                      Category:
+                      <select value={selectedCategory} onChange={handleSelectedCategoryChange}>
+                        <option value="Playlist">Playlist</option>
+                        <option value="Ads">Ads</option>
+                        {catData === 'ExtendExpiry' && <option value="Archived">Archived</option>}
+                      </select>
+                    </label>
+                    <br />
+                  </>
+                )}
+              </>
+            }
+            {
+              (catData === 'addData' || catData === 'ExtendExpiry') && (
+                <>
+                  <label>
+                    File Name:
+                    <input type="text" name="fileName" value={fileName} onChange={handleFileNameChange} />
+                    {
+                      catData === 'addData' ? 
+                      (errorMessage.FileName && <div style={{ color: 'red' }}>{errorMessage.FileName}</div>) 
+                      : 
+                      (catData === 'ExtendExpiry' ? 
+                        (errorMessage.Delete && <div style={{ color: 'red' }}>{errorMessage.Delete}</div>) 
+                        : 
+                        null)
+                    }
+                  </label>
+                  <br />
+                </>
+              )
+            }
+            {
+              catData === 'addData' && (
+                <>
+                  <label>
+                    File Type:
+                    <select name="type" value={type} onChange={handleTypeChange}>
+                      <option value="Video">Video</option>
+                      <option value="PNG">PNG</option>
+                      <option value="JPG">JPG</option>
+                    </select>
+                  </label>
+                  <br />
+                  <label>
+                    Tag:
+                    <input name="tag" value={tag} onChange={handleTagChange} />
+                  </label>
+                  <br />
+                  <label>
+                    Photo URL:
+                    <input type="text" name="photoUrl" value={photoUrl} onChange={handlePhotoUrlChange} />
+                    {errorMessage.PhotoUrl && <div style={{ color: 'red' }}>{errorMessage.PhotoUrl}</div>}
+                  </label>
+                  <br />
+                  <label>
+                    Run Time:
+                    <input type="text" name="runTime" value={runTime} onChange={handleRunTimeChange} />
+                    {errorMessage.Run_Time && <div style={{ color: 'red' }}>{errorMessage.Run_Time}</div>}
+                  </label>
+                  <br />
+                  <label>
+                    Type:
+                    <input type="text" name="content" value={content} onChange={handleContentChange} />
+                    {errorMessage.Content && <div style={{ color: 'red' }}>{errorMessage.Content}</div>}
+                  </label>
+                  <br />
+                  <label>
+                    Video URL:
+                    <input type="text" name="videoUrl" value={videoUrl} onChange={handleVideoUrlChange} />
+                    {errorMessage.videoUrl && <div style={{ color: 'red' }}>{errorMessage.videoUrl}</div>}
+                  </label>
+                  <br />
+                </>
+              )}
+              {
+                (catData === 'addData' || catData === 'ExtendExpiry') && (
+                  <>
+                    <label>
+                      {catData === 'addData'? 'Expiry Date:' : catData === 'ExtendExpiry' ? 'New Expiry Date:' : ''}
+                      <input type="date" name="expiryDate" value={expiry} onChange={handleExpiryChange} />
+                    </label>
+                    <br />
+                    <br />
+                  </>
+                )
+              }
+            <button type="submit">{catData === 'addData' ? 'Add Data' : catData === 'ExtendExpiry' ? 'Extend Expiry Date' : ''}</button>
+          </form>
+          </>
+        }
+        
+        
+      </Modal>
 
-      <Modal style={{ height: '100%' }} isOpen={modalVidoeOpen} onClose={closeModal}>
-        <VideoViewer videoUrl={currentVideoUrl} key={videoKey} />
-      </Modal>
-      <Modal isOpen={notesModal} onClose={closeNotesModal}>
-        <h2>Notes</h2>
-        {fileName && <p>Filename: {fileName}</p>}
-        {Array.isArray(notes) && notes.length > 0 ? (
-          <ul>
-            {notes.map((note, index) => (
-              <li key={index}>
-                {note.text} - <small>Added on {new Date(note.addedOn).toLocaleDateString()}</small>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No notes found for this file.</p>
-        )}
-      </Modal>
-
-      <Modal isOpen={showAddForm} onClose={handleToggleAddForm}>
-        <form onSubmit={handleSubmit}>
-          <h2>Add New Data</h2>
-          <label>
-            Category:
-            <select value={selectedCategory} onChange={handleSelectedCategoryChange}>
-              <option value="Playlist">Playlist</option>
-              <option value="Ads">Ads</option>
-            </select>
-          </label>
-          <br />
-          <label>
-            File Name:
-            <input type="text" name="fileName" value={fileName} onChange={handleFileNameChange} />
-            {errorMessage.FileName && <div style={{ color: 'red' }}>{errorMessage.FileName}</div>}
-          </label>
-          <br />
-          <label>
-            File Type:
-            <select name="type" value={type} onChange={handleTypeChange}>
-              <option value="Video">Video</option>
-              <option value="PNG">PNG</option>
-              <option value="JPG">JPG</option>
-            </select>
-          </label>
-          <br />
-          <label>
-            Tag:
-            <input name="tag" value={tag} onChange={handleTagChange} />
-          </label>
-          <br />
-          <label>
-            Photo URL:
-            <input type="text" name="photoUrl" value={photoUrl} onChange={handlePhotoUrlChange} />
-            {errorMessage.PhotoUrl && <div style={{ color: 'red' }}>{errorMessage.PhotoUrl}</div>}
-          </label>
-          <br />
-          <label>
-            Run Time:
-            <input type="text" name="runTime" value={runTime} onChange={handleRunTimeChange} />
-            {errorMessage.Run_Time && <div style={{ color: 'red' }}>{errorMessage.Run_Time}</div>}
-          </label>
-          <br />
-          <label>
-            Type:
-            <input type="text" name="content" value={content} onChange={handleContentChange} />
-            {errorMessage.Content && <div style={{ color: 'red' }}>{errorMessage.Content}</div>}
-          </label>
-          <br />
-          <label>
-            Video URL:
-            <input type="text" name="videoUrl" value={videoUrl} onChange={handleVideoUrlChange} />
-            {errorMessage.videoUrl && <div style={{ color: 'red' }}>{errorMessage.videoUrl}</div>}
-          </label>
-          <br />
-          <label>
-            Expiry Date:
-            <input type="date" name="expiryDate" value={expiry} onChange={handleExpiryChange} />
-          </label>
-
-          <br />
-          <br />
-          <button type="submit">Add Data</button>
-        </form>
-      </Modal>
-      <Modal isOpen={showExpiryForm} onClose={handleExpiryForm}>
-        <form onSubmit={handleExtendExpiry}>
-          <h2>Extend Expiry Date</h2>
-          <label>
-            Category:
-            <select value={selectedCategory} onChange={handleSelectedCategoryChange}>
-              <option value="Playlist">Playlist</option>
-              <option value="Ads">Ads</option>
-              <option value="Archived">Archived</option>
-            </select>
-          </label>
-          <br />
-          <label>
-            New Expiry Date:
-            <input type="date" name="expiryDate" value={expiry} onChange={handleExpiryChange} />
-          </label>
-          <br />
-          <label>
-            File Name:
-            <input type="text" name="fileName" value={fileName} onChange={handleFileNameChange} />
-          </label>
-          {errorMessage.Delete && <div style={{ color: 'red' }}>{errorMessage.Delete}</div>}
-          <br />
-          <br />
-          <button type="submit">Extend Expiry Date</button>
-        </form>
-      </Modal>
+      
       <Modal isOpen={showDeleteForm} onClose={handleToggleDeleteForm}>
         <form onSubmit={handleDeleteSubmit}>
           <h2>Delete Data</h2>
@@ -737,6 +712,21 @@ const DataPage = () => {
           <br />
           <button type="submit">Delete Data</button>
         </form>
+      </Modal>
+      <Modal isOpen={notesModal} onClose={closeNotesModal}>
+        <h2>Notes</h2>
+        {fileName && <p>Filename: {fileName}</p>}
+        {Array.isArray(notes) && notes.length > 0 ? (
+          <ul>
+            {notes.map((note, index) => (
+              <li key={index}>
+                {note.text} - <small>Added on {new Date(note.addedOn).toLocaleDateString()}</small>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No notes found for this file.</p>
+        )}
       </Modal>
       <Modal isOpen={showAddNoteModal} onClose={() => setShowAddNoteModal(false)}>
         <form onSubmit={(e) => handleAddNoteSubmit(e, fileName)}>
@@ -825,9 +815,9 @@ const DataPage = () => {
         <br />
         <button onClick={() => setShowDeleteNoteModal(false)}>Close</button>
       </Modal>
-      <Modal isOpen={showCreatePlaylistSetForm} onClose={() => { setShowCreatePlaylistSetForm(false); setModalSearchTerm(''); setItem([]);}}>
+      <Modal isOpen={showCreateMode} onClose={() => { setShowCreateMode(false); setModalSearchTerm(''); setItem([]);}}>
         <form>
-          <h2>Create Playlist Set</h2>
+          <h2>{currentData === 'Playlist Schedule' ? 'Create Playlist Set' : 'Create Ads Set'}</h2>
           <br />
           <label>
             Search Data:
@@ -844,7 +834,7 @@ const DataPage = () => {
               modalFilteredData.filter(modalItem => !itemExists(modalItem.FileName)).map((modalItem, index) => (
                 <div key={index}>
                   <span>{modalItem.FileName}</span>
-                  <button onClick={(event) => handleAddToPlaylistSet(event, modalItem.FileName)}>
+                  <button onClick={(event) => handleAddToSet(event, modalItem.FileName)}>
                     Add
                   </button>
                 </div>
@@ -863,7 +853,6 @@ const DataPage = () => {
             </div>
           ))}
           <br />
-
           <div className="date-inputs">
             <label>
               Start Date:
@@ -878,7 +867,6 @@ const DataPage = () => {
               <input type="date" name="endDate" min={startDate ? startDate.toISOString().split('T')[0] : ''} />
             </label>
           </div>
-
           <br />
           <div className="time-inputs">
             <label>
@@ -899,86 +887,10 @@ const DataPage = () => {
           <br />
           <button type="submit" onClick={handleSubmitSetModal}>Submit</button>
           <br />
-          <button onClick={() => { setShowCreatePlaylistSetForm(false); setModalSearchTerm(''); setItem([]);}}>Close</button>
-        </form>
-      </Modal>
-      <Modal isOpen={showCreateAdsSetForm} onClose={() => { setShowCreateAdsSetForm(false); setModalSearchTerm(''); setItem([]);}}>
-        <form>
-          <h2>Create Ads Set</h2>
-          <br />
-          <label>
-            Search Data:
-            <input
-              type="search"
-              placeholder="Search Data..."
-              value={modalSearchTerm}
-              onChange={e => setModalSearchTerm(e.target.value)}
-            />
-          </label>
-          <br />
-          {modalSearchTerm.length > 0 ? (
-            modalFilteredData.length > 0 ? (
-              modalFilteredData.filter(modalItem => !itemExists(modalItem.FileName)).map((modalItem, index) => (
-                <div key={index}>
-                  <span>{modalItem.FileName}</span>
-                  <button onClick={(event) => handleAddToPlaylistSet(event, modalItem.FileName)}>
-                    Add
-                  </button>
-                </div>
-              ))
-            ) : (
-              <p>No data found. Please search for data.</p>
-            )
-          ) : (
-            <p>No data found. Please search for data.</p>
-          )}
-          <br />
-          {item.map((item, index) => (
-            <div key={index}>
-              <span>{item.FileName}</span>
-              <br />
-            </div>
-          ))}
-          <br />
-          
-          <div className="date-inputs">
-            <label>
-              Start Date:
-              <input type="date" name="startDate" onChange={(event) => {
-                startDate = new Date(event.target.value);
-                const endDateInput = document.querySelector('input[name="endDate"]');
-                endDateInput.min = startDate.toISOString().split('T')[0];
-              }} />
-            </label>
-            <label>
-              End Date:
-              <input type="date" name="endDate" min={startDate ? startDate.toISOString().split('T')[0] : ''} />
-            </label>
-          </div>
-
-          <br />
-          <div className="time-inputs">
-            <label>
-              Start Time:
-              <input type="time" name="startTime" onChange={(event) => {
-                startTime = new Date(startDate.toISOString().split('T')[0] + ' ' + event.target.value);
-                const endTimeInput = document.querySelector('input[name="endTime"]');
-                if (startDate.toISOString().split('T')[0] === endDate.toISOString().split('T')[0]) {
-                  endTimeInput.min = startTime.toTimeString().slice(0, 5);
-                }
-              }} />
-            </label>
-            <label>
-              End Time:
-              <input type="time" name="endTime" min={startTime && startDate.toISOString().split('T')[0] === endDate.toISOString().split('T')[0] ? startTime.toTimeString().slice(0, 5) : ''} />
-            </label>
-          </div>
-          <br />
-          <button onClick={() => { setShowCreateAdsSetForm(false); setModalSearchTerm(''); setItem([]);}}>Close</button>
+          <button onClick={() => { setShowCreateMode(false); setModalSearchTerm(''); setItem([]);}}>Close</button>
         </form>
       </Modal>
     </main>
   );
 }
-
 export default DataPage;

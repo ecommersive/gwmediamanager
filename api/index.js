@@ -95,7 +95,7 @@ app.get('/playlistSchedule', async (req, res) => {
   }
 });
 
-app.post('/createPlaylistSchedule', async (req, res) => {
+app.post('/createPlaylistSchedule',verifyToken, async (req, res) => {
   const folder = `Playlist ${await PlaylistSchedule.countDocuments() + 1}`;
   const { items, startTime, endTime, startDate, endDate, otherTimes } = req.body;
 
@@ -142,7 +142,7 @@ app.post('/createPlaylistSchedule', async (req, res) => {
   }
 });
 
-app.post('/createAdsSchedule', async (req, res) => {
+app.post('/createAdsSchedule',verifyToken, async (req, res) => {
   const folder = `Ads ${await AdsSchedule.countDocuments() + 1}`;
 
   const { items, startTime, endTime, startDate, endDate, otherTimes } = req.body;

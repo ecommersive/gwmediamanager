@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Modal from '../Components/Modal';
 import VideoViewer from '../Components/Videoviewer';
+import SearchInput from '../Components/SearchInput';
 import { v4 as uuidv4 } from 'uuid';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../styles/datapage.css';
@@ -29,18 +30,14 @@ const DataPage = () => {
   const token = localStorage.getItem('token');
   const [currentVideoUrl, setCurrentVideoUrl] = useState('');
   //set of playlist and ads states
-  const [showCreateMode, setShowCreateMode] = useState(false);
   const [modalSearchTerm, setModalSearchTerm] = useState('');
   const [modalData, setModalData] = useState([]);
   const [item, setItem] = useState([]);
   //notes
   const [notes, setNotes] = useState('');
-  const [showAddNoteModal, setShowAddNoteModal] = useState(false);
   const [newNote, setNewNote] = useState('');
-  const [showUpdateNoteModal, setShowUpdateNoteModal] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [editingNoteText, setEditingNoteText] = useState('');
-  const [showDeleteNoteModal, setShowDeleteNoteModal] = useState(false);
 
 
   const handleVideoClick = (videoUrl) => {
@@ -195,9 +192,6 @@ const DataPage = () => {
       }
     }
   };
-
-
-
   const handleFileNameChange = (event) => {
     setFileName(event.target.value);
   };
@@ -291,14 +285,6 @@ const DataPage = () => {
     setCurrentData(e.target.value);
     setSelectedCategory(e.target.value);
   };
-
-
-
-  const handleCreateSet = () => {
-    setShowCreateMode(!showCreateMode);
-  };
-
-
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('isAdmin');
@@ -339,7 +325,7 @@ const DataPage = () => {
       });
 
       if (response.status === 200) {
-        setShowAddNoteModal(false);
+        setShowModal(false);
         setNewNote('');
         fetchData();
       } else {
@@ -437,8 +423,6 @@ const DataPage = () => {
     }
   }, [item]);
 
-
-
   function handleAddToSet(event, fileName) {
     event.preventDefault();
 
@@ -468,36 +452,25 @@ const DataPage = () => {
           </select>
         </div>
         <div className="header-controls">
-          <div className="input-group">
-            <input
-              type="search"
-              placeholder="Search Data..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-            />
-          </div>
+          <SearchInput searchTerm={searchTerm} setSearchTerm={setSearchTerm}/>
           {
-            currentData === 'Playlist' || currentData === 'Ads' || currentData === 'Archived' ?
-              (
+            (currentData === 'Playlist' || currentData === 'Ads' || currentData === 'Archived') ? (
+              isAdmin && (
                 <>
-                  {
-                    isAdmin && (
-                      <>
-                        <button className="action-button" onClick={() => { handleModal(); setMode('configureData'); setCatData('addData') }} >Add Data</button>
-                        <button className="action-button" onClick={() => { handleModal(); setMode('configureData'); setCatData('ExtendExpiry') }} >Extend Expiry Data</button>
-                        <button className="action-button" onClick={() => { handleModal(); setMode('configureData'); setCatData('DeleteData') }} >Delete Data</button>
-                      </>
-                    )}
+                  <button className="action-button" onClick={() => { handleModal(); setMode('configureData'); setCatData('addData'); }}>Add Data</button>
+                  <button className="action-button" onClick={() => { handleModal(); setMode('configureData'); setCatData('ExtendExpiry'); }}>Extend Expiry Data</button>
+                  <button className="action-button" onClick={() => { handleModal(); setMode('configureData'); setCatData('DeleteData'); }}>Delete Data</button>
                 </>
               )
-              :
-              currentData === 'Playlist Schedule' || currentData === 'Ads Schedule' && (
-                (
-                  <>
-                    {isAdmin && (<button className="action-button" onClick={handleCreateSet}>{currentData === 'Playlist Schedule' ? 'Create playlist set' : 'Create ads set'}</button>)}
-                  </>
+            ) : (
+              (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') && (
+                isAdmin && (
+                  <button className="action-button" onClick={() => { handleModal(); setMode('configureData'); setCatData(currentData === 'Playlist Schedule' ? 'playlistSchedule' : 'adsSchedule'); }}>
+                    {currentData === 'Playlist Schedule' ? 'Configure Playlist Schedule' : 'Configure Ads Schedule'}
+                  </button>
                 )
               )
+            )
           }
           <button className="action-button" onClick={handleLogout} >Logout</button>
         </div>
@@ -544,11 +517,11 @@ const DataPage = () => {
                 {isAdmin && <td><button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setMode('configureData'); setCatData('viewNotes') }}>View</button></td>}
                 {isAdmin &&
                   <td>
-                    <button onClick={() => { setShowAddNoteModal(true); setFileName(item.FileName); setNotes(item.notes) }}>Add Notes</button>
+                    <button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setMode('configureData'); setCatData('AddNote') }}>Add Notes</button>
                     <br />
-                    <button onClick={() => { setShowUpdateNoteModal(true); setFileName(item.FileName); setNotes(item.notes) }}>Update Notes</button>
+                    <button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setMode('configureData'); setCatData('UpdateNote') }}>Update Notes</button>
                     <br />
-                    <button onClick={() => { setShowDeleteNoteModal(true); setFileName(item.FileName); setNotes(item.notes) }}>Delete Notes</button>
+                    <button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setMode('configureData'); setCatData('DeleteNote') }}>Delete Notes</button>
                   </td>
                 }
               </tr>
@@ -560,7 +533,13 @@ const DataPage = () => {
           </tbody>
         </table>
       </section>
-      <Modal style={mode === 'viewvideo' ? { height: '100%' } : {}} isOpen={showModal} onClose={ModalClose}>
+      <Modal style={mode === 'viewvideo' ? { height: '100%' } : {}} isOpen={showModal} onClose={() => {
+        ModalClose();
+        if (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') {
+          setModalSearchTerm('');
+          setItem([]);
+        }
+      }}>
         {mode === 'viewvideo' && <VideoViewer videoUrl={currentVideoUrl} key={videoKey} />}
         {mode === 'configureData' &&
           <>
@@ -575,7 +554,17 @@ const DataPage = () => {
                         'Delete Data' :
                         catData === 'viewNotes' ?
                           'View Notes' :
-                          ''
+                          catData === 'AddNote' ?
+                            'Add Note' :
+                            catData === 'UpdateNote' ?
+                              'Update Note' :
+                              catData === 'DeleteNote' ?
+                                'Delete Note' :
+                                catData === 'playlistSchedule' ?
+                                  'Create Playlist Set' :
+                                  catData === 'adsSchedule' ?
+                                    'Create Ads Set' :
+                                    ''
                 }
               </h2>
               {
@@ -674,190 +663,120 @@ const DataPage = () => {
 
               <button type="submit">{catData === 'addData' ? 'Add Data' : catData === 'ExtendExpiry' ? 'Extend Expiry Date' : catData === 'DeleteData' ? 'Delete Data' : ''}</button>
             </form>
-            {
-              catData === 'viewNotes' && (
+            <>
+              {(catData === 'viewNotes' || catData === 'AddNote' || catData === 'UpdateNote' || catData === 'DeleteNote') && (
                 <>
-                  {fileName && <p>Filename: {fileName}</p>}
-                  {Array.isArray(notes) && notes.length > 0 ? (
-                    <ul>
-                      {notes.map((note, index) => (
+                  <p>Filename: {fileName}</p>
+                  <br />
+                  <p>Notes:</p>
+                  <ul>
+                    {Array.isArray(notes) && notes.length > 0 ? (
+                      (catData === 'UpdateNote' || catData === 'AddNote' || catData === 'DeleteNote' || catData === 'viewNotes') && notes.map((note, index) => (
                         <li key={index}>
-                          {note.text} - <small>Added on {new Date(note.addedOn).toLocaleDateString()}</small>
+                          {catData === 'UpdateNote' && editingNoteId === index ? (
+                            <>
+                              <input type="text" value={editingNoteText} onChange={handleUpdateNoteText} />
+                              <button onClick={() => handleDoneEditNote(index)}>Done</button>
+                            </>
+                          ) : (
+                            <>
+                              {note.text} - <small>Added on {new Date(note.addedOn).toLocaleDateString()}</small>
+                              {catData === 'UpdateNote' && <button onClick={() => handleEditNote(index, note.text)}>Edit</button>}
+                              {catData === 'DeleteNote' && <button onClick={() => handleDeleteNote(index, fileName)}>Delete</button>}
+                            </>
+                          )}
                         </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p>No notes found for this file.</p>
+                      ))
+                    ) : (
+                      <p>No notes found for this file.</p>
+                    )}
+                  </ul>
+                  <br />
+                  {catData === 'AddNote' && (
+                    <>
+                      <textarea
+                        value={newNote}
+                        onChange={(e) => setNewNote(e.target.value)}
+                        placeholder="Enter note here..."
+                        style={{ width: '100%', height: '100px', resize: 'none' }}
+                      />
+                      <br />
+                      <br />
+                      <button type="submit" onClick={(e) => handleAddNoteSubmit(e, fileName)}>Submit Note</button>
+                    </>
                   )}
+                  <br />
                 </>
-              )
+              )}
+            </>
+
+            {
+              (catData === 'playlistSchedule' || catData === 'adsSchedule') && <>
+                <SearchInput searchTerm={modalSearchTerm} setSearchTerm={setModalSearchTerm} />
+                <br />
+                {modalSearchTerm.length > 0 ? (
+                  modalFilteredData.length > 0 ? (
+                    modalFilteredData.filter(modalItem => !itemExists(modalItem.FileName)).map((modalItem, index) => (
+                      <div key={index}>
+                        <span>{modalItem.FileName}</span>
+                        <button onClick={(event) => handleAddToSet(event, modalItem.FileName)}>
+                          Add
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <p>No data found. Please search for data.</p>
+                  )
+                ) : (
+                  <p>No data found. Please search for data.</p>
+                )}
+                <br />
+                {item.map((item, index) => (
+                  <div key={index}>
+                    <span>{item.FileName}</span>
+                    <br />
+                  </div>
+                ))}
+                <br />
+                <div className="date-inputs">
+                  <label>
+                    Start Date:
+                    <input type="date" name="startDate" onChange={(event) => {
+                      startDate = new Date(event.target.value);
+                      const endDateInput = document.querySelector('input[name="endDate"]');
+                      endDateInput.min = startDate.toISOString().split('T')[0];
+                    }} />
+                  </label>
+                  <label>
+                    End Date:
+                    <input type="date" name="endDate" min={startDate ? startDate.toISOString().split('T')[0] : ''} />
+                  </label>
+                </div>
+                <br />
+                <div className="time-inputs">
+                  <label>
+                    Start Time:
+                    <input type="time" name="startTime" onChange={(event) => {
+                      startTime = new Date(startDate.toISOString().split('T')[0] + ' ' + event.target.value);
+                      const endTimeInput = document.querySelector('input[name="endTime"]');
+                      if (startDate.toISOString().split('T')[0] === endDate.toISOString().split('T')[0]) {
+                        endTimeInput.min = startTime.toTimeString().slice(0, 5);
+                      }
+                    }} />
+                  </label>
+                  <label>
+                    End Time:
+                    <input type="time" name="endTime" min={startTime && startDate.toISOString().split('T')[0] === endDate.toISOString().split('T')[0] ? startTime.toTimeString().slice(0, 5) : ''} />
+                  </label>
+                </div>
+                <br />
+                <button type="submit" onClick={(event) => { handleSubmitSetModal(event); setShowModal(false); setModalSearchTerm(''); setItem([]); }}>Submit</button>
+              </>
             }
           </>
         }
       </Modal>
 
-      <Modal isOpen={showAddNoteModal} onClose={() => setShowAddNoteModal(false)}>
-        <form onSubmit={(e) => handleAddNoteSubmit(e, fileName)}>
-          <h2>Add Note</h2>
-          <br />
-          <p>Filename: {fileName}</p>
-          <br />
-          <p>Notes:</p>
-          {Array.isArray(notes) && notes.length > 0 ? (
-            <ul>
-              {notes.map((note, index) => (
-                <li key={index}>
-                  {note.text} - <small>Added on {new Date(note.addedOn).toLocaleDateString()}</small>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>No notes found for this file.</p>
-          )}
-          <br />
-          <textarea
-            value={newNote}
-            onChange={(e) => setNewNote(e.target.value)}
-            placeholder="Enter note here..."
-            style={{ width: '100%', height: '100px', resize: 'none' }}
-          />
-          <br />
-          <br />
-          <button type="submit">Submit Note</button>
-        </form>
-      </Modal>
-      <Modal isOpen={showUpdateNoteModal} onClose={() => setShowUpdateNoteModal(false)}>
-        <h2>Update Note</h2>
-        <br />
-        <p>Filename: {fileName}</p>
-        <br />
-        <p>Notes:</p>
-        <ul>
-          {Array.isArray(notes) && notes.length > 0 ? (
-            notes.map((note, index) => (
-              <li key={index}>
-                {editingNoteId === index ? (
-                  <>
-                    <input
-                      type="text"
-                      value={editingNoteText}
-                      onChange={handleUpdateNoteText}
-                    />
-                    <button onClick={() => handleDoneEditNote(index)}>Done</button>
-                  </>
-                ) : (
-                  <>
-                    {note.text} - <small>Added on {new Date(note.addedOn).toLocaleDateString()}</small>
-                    <button onClick={() => handleEditNote(index, note.text)}>Edit</button>
-                  </>
-                )}
-              </li>
-            ))
-          ) : (
-            <p>No notes found for this file.</p>
-          )}
-        </ul>
-        <br />
-        <br />
-        <button onClick={() => setShowUpdateNoteModal(false)}>Close</button>
-      </Modal>
-      <Modal isOpen={showDeleteNoteModal} onClose={() => setShowDeleteNoteModal(false)}>
-        <h2>Delete Note</h2>
-        <br />
-        <p>Filename: {fileName}</p>
-        <br />
-        <p>Notes:</p>
-        <ul>
-          {Array.isArray(notes) && notes.length > 0 ? (
-            notes.map((note, index) => (
-              <li key={index}>
-                {note.text} - <small>Added on {new Date(note.addedOn).toLocaleDateString()}</small>
-                <button onClick={() => handleDeleteNote(index, fileName)}>Delete</button>
-              </li>
-            ))
-          ) : (
-            <p>No notes found for this file.</p>
-          )}
-        </ul>
-        <br />
-        <br />
-        <button onClick={() => setShowDeleteNoteModal(false)}>Close</button>
-      </Modal>
-      <Modal isOpen={showCreateMode} onClose={() => { setShowCreateMode(false); setModalSearchTerm(''); setItem([]); }}>
-        <form>
-          <h2>{currentData === 'Playlist Schedule' ? 'Create Playlist Set' : 'Create Ads Set'}</h2>
-          <br />
-          <label>
-            Search Data:
-            <input
-              type="search"
-              placeholder="Search Data..."
-              value={modalSearchTerm}
-              onChange={e => setModalSearchTerm(e.target.value)}
-            />
-          </label>
-          <br />
-          {modalSearchTerm.length > 0 ? (
-            modalFilteredData.length > 0 ? (
-              modalFilteredData.filter(modalItem => !itemExists(modalItem.FileName)).map((modalItem, index) => (
-                <div key={index}>
-                  <span>{modalItem.FileName}</span>
-                  <button onClick={(event) => handleAddToSet(event, modalItem.FileName)}>
-                    Add
-                  </button>
-                </div>
-              ))
-            ) : (
-              <p>No data found. Please search for data.</p>
-            )
-          ) : (
-            <p>No data found. Please search for data.</p>
-          )}
-          <br />
-          {item.map((item, index) => (
-            <div key={index}>
-              <span>{item.FileName}</span>
-              <br />
-            </div>
-          ))}
-          <br />
-          <div className="date-inputs">
-            <label>
-              Start Date:
-              <input type="date" name="startDate" onChange={(event) => {
-                startDate = new Date(event.target.value);
-                const endDateInput = document.querySelector('input[name="endDate"]');
-                endDateInput.min = startDate.toISOString().split('T')[0];
-              }} />
-            </label>
-            <label>
-              End Date:
-              <input type="date" name="endDate" min={startDate ? startDate.toISOString().split('T')[0] : ''} />
-            </label>
-          </div>
-          <br />
-          <div className="time-inputs">
-            <label>
-              Start Time:
-              <input type="time" name="startTime" onChange={(event) => {
-                startTime = new Date(startDate.toISOString().split('T')[0] + ' ' + event.target.value);
-                const endTimeInput = document.querySelector('input[name="endTime"]');
-                if (startDate.toISOString().split('T')[0] === endDate.toISOString().split('T')[0]) {
-                  endTimeInput.min = startTime.toTimeString().slice(0, 5);
-                }
-              }} />
-            </label>
-            <label>
-              End Time:
-              <input type="time" name="endTime" min={startTime && startDate.toISOString().split('T')[0] === endDate.toISOString().split('T')[0] ? startTime.toTimeString().slice(0, 5) : ''} />
-            </label>
-          </div>
-          <br />
-          <button type="submit" onClick={handleSubmitSetModal}>Submit</button>
-          <br />
-          <button onClick={() => { setShowCreateMode(false); setModalSearchTerm(''); setItem([]); }}>Close</button>
-        </form>
-      </Modal>
     </main>
   );
 }

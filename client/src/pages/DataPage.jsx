@@ -467,17 +467,19 @@ const DataPage = () => {
   
   function handleAddToPlaylistSet(event, fileName) {
     event.preventDefault();
-    console.log('button has been clicked for handle add to playlist set');
-    setItem(prevItem => [...prevItem, fileName]);
-    console.log('item', item);
+    if (!itemExists(fileName)) {
+      setItem(prevItem => [...prevItem, { FileName: fileName }]);
+      console.log('item', item);
+    }
   }
 
   //function will add to ads set
   const handleAddToAdsSet = (event, fileName) => {
     event.preventDefault();
-    console.log('button has been clicked for handle add to playlist set');
-    setItem(prevItem => [...prevItem, fileName]);
-    console.log('item', item);
+    if (!itemExists(fileName)) {
+      setItem(prevItem => [...prevItem, { FileName: fileName }]);
+      console.log('item', item);
+    }
   }
 
 
@@ -839,17 +841,14 @@ const DataPage = () => {
           <br />
           {modalSearchTerm.length > 0 ? (
             modalFilteredData.length > 0 ? (
-              modalFilteredData.map((item, index) => {
-                const alreadyAdded = itemExists(item.FileName); // check if the item already exists in the list
-                return (
-                  !alreadyAdded && ( // only render the item if it's not already added
-                    <div key={index}>
-                      <span>{item.FileName}</span>
-                      <button onClick={(event) => handleAddToPlaylistSet(event, item.FileName)}>Add</button>
-                    </div>
-                  )
-                );
-              })
+              modalFilteredData.filter(modalItem => !itemExists(modalItem.FileName)).map((modalItem, index) => (
+                <div key={index}>
+                  <span>{modalItem.FileName}</span>
+                  <button onClick={(event) => handleAddToPlaylistSet(event, modalItem.FileName)}>
+                    Add
+                  </button>
+                </div>
+              ))
             ) : (
               <p>No data found. Please search for data.</p>
             )
@@ -857,11 +856,9 @@ const DataPage = () => {
             <p>No data found. Please search for data.</p>
           )}
           <br />
-
-
           {item.map((item, index) => (
             <div key={index}>
-              <span>{item}</span>
+              <span>{item.FileName}</span>
               <br />
             </div>
           ))}
@@ -921,17 +918,14 @@ const DataPage = () => {
           <br />
           {modalSearchTerm.length > 0 ? (
             modalFilteredData.length > 0 ? (
-              modalFilteredData.map((item, index) => {
-                const alreadyAdded = itemExists(item.FileName); // check if the item already exists in the list
-                return (
-                  !alreadyAdded && ( // only render the item if it's not already added
-                    <div key={index}>
-                      <span>{item.FileName}</span>
-                      <button onClick={(event) => handleAddToAdsSet(event, item.FileName)}>Add</button>
-                    </div>
-                  )
-                );
-              })
+              modalFilteredData.filter(modalItem => !itemExists(modalItem.FileName)).map((modalItem, index) => (
+                <div key={index}>
+                  <span>{modalItem.FileName}</span>
+                  <button onClick={(event) => handleAddToPlaylistSet(event, modalItem.FileName)}>
+                    Add
+                  </button>
+                </div>
+              ))
             ) : (
               <p>No data found. Please search for data.</p>
             )
@@ -941,7 +935,7 @@ const DataPage = () => {
           <br />
           {item.map((item, index) => (
             <div key={index}>
-              <span>{item}</span>
+              <span>{item.FileName}</span>
               <br />
             </div>
           ))}

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Modal from '../Components/Modal';
-
 import VideoViewer from '../Components/Videoviewer';
 import { v4 as uuidv4 } from 'uuid';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -10,16 +9,12 @@ const DataPage = () => {
   const [mode, setMode] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [catData, setCatData] = useState('');
-
-
   const [searchTerm, setSearchTerm] = useState('');
-  const [notesModal, setNotesModal] = useState(false);
   const [videoKey, setVideoKey] = useState(uuidv4());
   const [data, setData] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [currentData, setCurrentData] = useState('Playlist');
   const [fileName, setFileName] = useState('');
-  const [showDeleteForm, setShowDeleteForm] = useState(false);
   const [photoUrl, setPhotoUrl] = useState('');
   const [type, setType] = useState('Video');
   const [tag, setTag] = useState('');
@@ -56,18 +51,12 @@ const DataPage = () => {
   };
 
 
-  const handleModal = () =>{
+  const handleModal = () => {
     setShowModal(!showModal);
   }
   const ModalClose = () => {
     setShowModal(false);
   }
-
-
-  const closeNotesModal = useCallback(() => {
-    setNotesModal(false);
-  })
-
   const fetchData = useCallback(async () => {
     let baseUrl = process.env.REACT_APP_API_URL
     let url = `${baseUrl}/`;
@@ -114,7 +103,7 @@ const DataPage = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if(catData === 'addData'){
+    if (catData === 'addData') {
       const formData = {
         FileName: fileName,
         PhotoUrl: photoUrl,
@@ -156,7 +145,7 @@ const DataPage = () => {
         console.error(`Error submitting ${selectedCategory} item:`, error.response ? error.response.data : error);
         setErrorMessage({ Upload: 'Failed to add data. Please try again.' });
       }
-    }else if(catData === 'ExtendExpiry'){
+    } else if (catData === 'ExtendExpiry') {
       const encodedFileName = encodeURIComponent(fileName);
       let baseUrl = process.env.REACT_APP_API_URL;
       console.log("Handle Set Expiry = ", baseUrl);
@@ -181,36 +170,33 @@ const DataPage = () => {
         console.error(`Error submitting set expiry for ${selectedCategory} item:`, error.response ? error.response.data : error);
         setErrorMessage({ SetExpiry: 'Failed to set expiry date. Please try again.' });
       }
-    }
-  };
+    } else if (catData === 'DeleteData') {
+      const encodedFileName = encodeURIComponent(fileName);
+      let baseUrl = process.env.REACT_APP_API_URL;
+      console.log("Handle Delete = ", baseUrl);
+      try {
+        const response = await axios.delete(`${baseUrl}/deleteData/${selectedCategory.toLowerCase()}/${encodedFileName}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          }
+        });
 
-
-
-  const handleDeleteSubmit = async (event) => {
-    event.preventDefault();
-    const encodedFileName = encodeURIComponent(fileName);
-    let baseUrl = process.env.REACT_APP_API_URL;
-    console.log("Handle Delete = ", baseUrl);
-    try {
-      const response = await axios.delete(`${baseUrl}/deleteData/${selectedCategory.toLowerCase()}/${encodedFileName}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+        if (response.status === 200) {
+          console.log('Deletion successful');
+          fetchData();
+          setShowModal(false);
+        } else {
+          throw new Error(`Failed to delete ${selectedCategory} item`);
         }
-      });
-
-      if (response.status === 200) {
-        console.log('Deletion successful');
-        fetchData();
-        setShowDeleteForm(false);
-      } else {
-        throw new Error(`Failed to delete ${selectedCategory} item`);
+      } catch (error) {
+        console.error(`Error submitting delete:`, error.response ? error.response.data : error);
+        setErrorMessage({ Delete: 'Failed to delete data. Please try again.' });
       }
-    } catch (error) {
-      console.error(`Error submitting delete:`, error.response ? error.response.data : error);
-      setErrorMessage({ Delete: 'Failed to delete data. Please try again.' });
     }
   };
+
+
 
   const handleFileNameChange = (event) => {
     setFileName(event.target.value);
@@ -306,9 +292,7 @@ const DataPage = () => {
     setSelectedCategory(e.target.value);
   };
 
-  const handleToggleDeleteForm = () => {
-    setShowDeleteForm(!showDeleteForm);
-  };
+
 
   const handleCreateSet = () => {
     setShowCreateMode(!showCreateMode);
@@ -426,8 +410,8 @@ const DataPage = () => {
 
       if (response.status === 200) {
         console.log('Note deleted successfully');
-        setNotes(notes.filter((_, index) => index !== noteIndex)); 
-        fetchData(); 
+        setNotes(notes.filter((_, index) => index !== noteIndex));
+        fetchData();
       } else {
         throw new Error('Failed to delete the note');
       }
@@ -439,9 +423,9 @@ const DataPage = () => {
 
   const handleSubmitSetModal = (event) => {
     event.preventDefault();
-    if(currentData === 'Playlist Schedule'){
+    if (currentData === 'Playlist Schedule') {
       console.log('playlist schedule has been created');
-    }else if(currentData === 'Ads Schedule'){
+    } else if (currentData === 'Ads Schedule') {
       console.log('ads schedule has been created');
     }
 
@@ -454,12 +438,12 @@ const DataPage = () => {
   }, [item]);
 
 
-  
+
   function handleAddToSet(event, fileName) {
     event.preventDefault();
-    
-      setItem(prevItem => [...prevItem, { FileName: fileName }]);
-      console.log('item', item);
+
+    setItem(prevItem => [...prevItem, { FileName: fileName }]);
+    console.log('item', item);
   }
 
   const itemExists = (fileName) => {
@@ -499,10 +483,9 @@ const DataPage = () => {
                   {
                     isAdmin && (
                       <>
-
-                        <button className="action-button" onClick={() => { handleModal(); setMode('configureData'); setCatData('addData')}} >Add Data</button>
-                        <button className="action-button" onClick={() => { handleModal(); setMode('configureData'); setCatData('ExtendExpiry')}} >Extend Expiry Data</button>
-                        <button className="action-button" onClick={handleToggleDeleteForm} >Delete Data</button>
+                        <button className="action-button" onClick={() => { handleModal(); setMode('configureData'); setCatData('addData') }} >Add Data</button>
+                        <button className="action-button" onClick={() => { handleModal(); setMode('configureData'); setCatData('ExtendExpiry') }} >Extend Expiry Data</button>
+                        <button className="action-button" onClick={() => { handleModal(); setMode('configureData'); setCatData('DeleteData') }} >Delete Data</button>
                       </>
                     )}
                 </>
@@ -514,7 +497,7 @@ const DataPage = () => {
                     {isAdmin && (<button className="action-button" onClick={handleCreateSet}>{currentData === 'Playlist Schedule' ? 'Create playlist set' : 'Create ads set'}</button>)}
                   </>
                 )
-              ) 
+              )
           }
           <button className="action-button" onClick={handleLogout} >Logout</button>
         </div>
@@ -556,9 +539,9 @@ const DataPage = () => {
                 <td>{item.Tag}</td>
                 <td>{item.Run_Time}</td>
                 <td>{item.Content}</td>
-                <td><button onClick={() => {handleVideoClick(item.videoUrl); setMode('viewvideo')}}>View</button></td>
+                <td><button onClick={() => { handleVideoClick(item.videoUrl); setMode('viewvideo') }}>View</button></td>
                 <td>{item.Expiry}</td>
-                {isAdmin && <td><button onClick={() => { setNotesModal(true); setFileName(item.FileName); setNotes(item.notes); }}>View</button></td>}
+                {isAdmin && <td><button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setMode('configureData'); setCatData('viewNotes') }}>View</button></td>}
                 {isAdmin &&
                   <td>
                     <button onClick={() => { setShowAddNoteModal(true); setFileName(item.FileName); setNotes(item.notes) }}>Add Notes</button>
@@ -581,100 +564,106 @@ const DataPage = () => {
         {mode === 'viewvideo' && <VideoViewer videoUrl={currentVideoUrl} key={videoKey} />}
         {mode === 'configureData' &&
           <>
-          <form onSubmit={handleSubmit}>
-            <h2>
+            <form onSubmit={handleSubmit}>
+              <h2>
+                {
+                  catData === 'addData' ?
+                    'Add New Data' :
+                    catData === 'ExtendExpiry' ?
+                      'Extend Expiry Date' :
+                      catData === 'DeleteData' ?
+                        'Delete Data' :
+                        catData === 'viewNotes' ?
+                          'View Notes' :
+                          ''
+                }
+              </h2>
               {
-                catData === 'addData' ? 
-                'Add New Data': 
-                catData === 'ExtendExpiry' ? 
-                'Extend Expiry Date' : ''
+                <>
+                  {(catData === 'addData' || catData === 'ExtendExpiry' || catData === 'DeleteData') && (
+                    <>
+                      <label>
+                        Category:
+                        <select value={selectedCategory} onChange={handleSelectedCategoryChange}>
+                          <option value="Playlist">Playlist</option>
+                          <option value="Ads">Ads</option>
+                          {(catData === 'ExtendExpiry' || catData === 'DeleteData') && <option value="Archived">Archived</option>}
+                        </select>
+                      </label>
+                      <br />
+                    </>
+                  )}
+                </>
               }
-            </h2>
-            {
-              <>
-                {(catData === 'addData' || catData === 'ExtendExpiry') && (
+              {
+                (catData === 'addData' || catData === 'ExtendExpiry' || catData === 'DeleteData') && (
                   <>
                     <label>
-                      Category:
-                      <select value={selectedCategory} onChange={handleSelectedCategoryChange}>
-                        <option value="Playlist">Playlist</option>
-                        <option value="Ads">Ads</option>
-                        {catData === 'ExtendExpiry' && <option value="Archived">Archived</option>}
+                      File Name:
+                      <input type="text" name="fileName" value={fileName} onChange={handleFileNameChange} />
+                      {
+                        catData === 'addData' ?
+                          (errorMessage.FileName && <div style={{ color: 'red' }}>{errorMessage.FileName}</div>)
+                          : catData === 'ExtendExpiry' ?
+                            (errorMessage.Expiry && <div style={{ color: 'red' }}>{errorMessage.Expiry}</div>)
+                            : catData === 'DeleteData' ?
+                              (errorMessage.Delete && <div style={{ color: 'red' }}>{errorMessage.Delete}</div>)
+                              :
+                              null
+                      }
+                    </label>
+                    <br />
+                  </>
+                )
+              }
+              {
+                catData === 'addData' && (
+                  <>
+                    <label>
+                      File Type:
+                      <select name="type" value={type} onChange={handleTypeChange}>
+                        <option value="Video">Video</option>
+                        <option value="PNG">PNG</option>
+                        <option value="JPG">JPG</option>
                       </select>
+                    </label>
+                    <br />
+                    <label>
+                      Tag:
+                      <input name="tag" value={tag} onChange={handleTagChange} />
+                    </label>
+                    <br />
+                    <label>
+                      Photo URL:
+                      <input type="text" name="photoUrl" value={photoUrl} onChange={handlePhotoUrlChange} />
+                      {errorMessage.PhotoUrl && <div style={{ color: 'red' }}>{errorMessage.PhotoUrl}</div>}
+                    </label>
+                    <br />
+                    <label>
+                      Run Time:
+                      <input type="text" name="runTime" value={runTime} onChange={handleRunTimeChange} />
+                      {errorMessage.Run_Time && <div style={{ color: 'red' }}>{errorMessage.Run_Time}</div>}
+                    </label>
+                    <br />
+                    <label>
+                      Type:
+                      <input type="text" name="content" value={content} onChange={handleContentChange} />
+                      {errorMessage.Content && <div style={{ color: 'red' }}>{errorMessage.Content}</div>}
+                    </label>
+                    <br />
+                    <label>
+                      Video URL:
+                      <input type="text" name="videoUrl" value={videoUrl} onChange={handleVideoUrlChange} />
+                      {errorMessage.videoUrl && <div style={{ color: 'red' }}>{errorMessage.videoUrl}</div>}
                     </label>
                     <br />
                   </>
                 )}
-              </>
-            }
-            {
-              (catData === 'addData' || catData === 'ExtendExpiry') && (
-                <>
-                  <label>
-                    File Name:
-                    <input type="text" name="fileName" value={fileName} onChange={handleFileNameChange} />
-                    {
-                      catData === 'addData' ? 
-                      (errorMessage.FileName && <div style={{ color: 'red' }}>{errorMessage.FileName}</div>) 
-                      : 
-                      (catData === 'ExtendExpiry' ? 
-                        (errorMessage.Delete && <div style={{ color: 'red' }}>{errorMessage.Delete}</div>) 
-                        : 
-                        null)
-                    }
-                  </label>
-                  <br />
-                </>
-              )
-            }
-            {
-              catData === 'addData' && (
-                <>
-                  <label>
-                    File Type:
-                    <select name="type" value={type} onChange={handleTypeChange}>
-                      <option value="Video">Video</option>
-                      <option value="PNG">PNG</option>
-                      <option value="JPG">JPG</option>
-                    </select>
-                  </label>
-                  <br />
-                  <label>
-                    Tag:
-                    <input name="tag" value={tag} onChange={handleTagChange} />
-                  </label>
-                  <br />
-                  <label>
-                    Photo URL:
-                    <input type="text" name="photoUrl" value={photoUrl} onChange={handlePhotoUrlChange} />
-                    {errorMessage.PhotoUrl && <div style={{ color: 'red' }}>{errorMessage.PhotoUrl}</div>}
-                  </label>
-                  <br />
-                  <label>
-                    Run Time:
-                    <input type="text" name="runTime" value={runTime} onChange={handleRunTimeChange} />
-                    {errorMessage.Run_Time && <div style={{ color: 'red' }}>{errorMessage.Run_Time}</div>}
-                  </label>
-                  <br />
-                  <label>
-                    Type:
-                    <input type="text" name="content" value={content} onChange={handleContentChange} />
-                    {errorMessage.Content && <div style={{ color: 'red' }}>{errorMessage.Content}</div>}
-                  </label>
-                  <br />
-                  <label>
-                    Video URL:
-                    <input type="text" name="videoUrl" value={videoUrl} onChange={handleVideoUrlChange} />
-                    {errorMessage.videoUrl && <div style={{ color: 'red' }}>{errorMessage.videoUrl}</div>}
-                  </label>
-                  <br />
-                </>
-              )}
               {
                 (catData === 'addData' || catData === 'ExtendExpiry') && (
                   <>
                     <label>
-                      {catData === 'addData'? 'Expiry Date:' : catData === 'ExtendExpiry' ? 'New Expiry Date:' : ''}
+                      {catData === 'addData' ? 'Expiry Date:' : catData === 'ExtendExpiry' ? 'New Expiry Date:' : ''}
                       <input type="date" name="expiryDate" value={expiry} onChange={handleExpiryChange} />
                     </label>
                     <br />
@@ -682,52 +671,31 @@ const DataPage = () => {
                   </>
                 )
               }
-            <button type="submit">{catData === 'addData' ? 'Add Data' : catData === 'ExtendExpiry' ? 'Extend Expiry Date' : ''}</button>
-          </form>
+
+              <button type="submit">{catData === 'addData' ? 'Add Data' : catData === 'ExtendExpiry' ? 'Extend Expiry Date' : catData === 'DeleteData' ? 'Delete Data' : ''}</button>
+            </form>
+            {
+              catData === 'viewNotes' && (
+                <>
+                  {fileName && <p>Filename: {fileName}</p>}
+                  {Array.isArray(notes) && notes.length > 0 ? (
+                    <ul>
+                      {notes.map((note, index) => (
+                        <li key={index}>
+                          {note.text} - <small>Added on {new Date(note.addedOn).toLocaleDateString()}</small>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>No notes found for this file.</p>
+                  )}
+                </>
+              )
+            }
           </>
         }
-        
-        
       </Modal>
 
-      
-      <Modal isOpen={showDeleteForm} onClose={handleToggleDeleteForm}>
-        <form onSubmit={handleDeleteSubmit}>
-          <h2>Delete Data</h2>
-          <label>
-            Category:
-            <select value={selectedCategory} onChange={handleSelectedCategoryChange}>
-              <option value="Playlist">Playlist</option>
-              <option value="Ads">Ads</option>
-              <option value="Archived">Archived</option>
-            </select>
-          </label>
-          <br />
-          <label>
-            File Name:
-            <input type="text" name="fileName" value={fileName} onChange={handleFileNameChange} />
-          </label>
-          {errorMessage.Delete && <div style={{ color: 'red' }}>{errorMessage.Delete}</div>}
-          <br />
-          <br />
-          <button type="submit">Delete Data</button>
-        </form>
-      </Modal>
-      <Modal isOpen={notesModal} onClose={closeNotesModal}>
-        <h2>Notes</h2>
-        {fileName && <p>Filename: {fileName}</p>}
-        {Array.isArray(notes) && notes.length > 0 ? (
-          <ul>
-            {notes.map((note, index) => (
-              <li key={index}>
-                {note.text} - <small>Added on {new Date(note.addedOn).toLocaleDateString()}</small>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No notes found for this file.</p>
-        )}
-      </Modal>
       <Modal isOpen={showAddNoteModal} onClose={() => setShowAddNoteModal(false)}>
         <form onSubmit={(e) => handleAddNoteSubmit(e, fileName)}>
           <h2>Add Note</h2>
@@ -815,7 +783,7 @@ const DataPage = () => {
         <br />
         <button onClick={() => setShowDeleteNoteModal(false)}>Close</button>
       </Modal>
-      <Modal isOpen={showCreateMode} onClose={() => { setShowCreateMode(false); setModalSearchTerm(''); setItem([]);}}>
+      <Modal isOpen={showCreateMode} onClose={() => { setShowCreateMode(false); setModalSearchTerm(''); setItem([]); }}>
         <form>
           <h2>{currentData === 'Playlist Schedule' ? 'Create Playlist Set' : 'Create Ads Set'}</h2>
           <br />
@@ -887,7 +855,7 @@ const DataPage = () => {
           <br />
           <button type="submit" onClick={handleSubmitSetModal}>Submit</button>
           <br />
-          <button onClick={() => { setShowCreateMode(false); setModalSearchTerm(''); setItem([]);}}>Close</button>
+          <button onClick={() => { setShowCreateMode(false); setModalSearchTerm(''); setItem([]); }}>Close</button>
         </form>
       </Modal>
     </main>

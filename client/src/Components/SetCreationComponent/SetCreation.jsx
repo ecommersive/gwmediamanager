@@ -26,12 +26,21 @@ const SetCreation = ({
   };
 
   const handleStartTimeChange = (event) => {
-    const newStartTime = new Date(startDate.toISOString().split('T')[0] + ' ' + event.target.value);
+    if (!startDate) {
+      console.error("Start date is not set.");
+      return; // Exit the function if startDate is null
+    }
+  
+    const datePortion = startDate.toISOString().split('T')[0];
+    const newStartTime = new Date(datePortion + ' ' + event.target.value);
     setStartTime(newStartTime);
-    if (startDate.toISOString().split('T')[0] === endDate.toISOString().split('T')[0]) {
+  
+    if (datePortion === endDate.toISOString().split('T')[0]) {
       document.querySelector('input[name="endTime"]').min = newStartTime.toTimeString().slice(0, 5);
     }
   };
+
+  const isButtonDisabled = !startDate || !endDate || !startTime || !endTime
 
   return (
     (catData === 'playlistSchedule' || catData === 'adsSchedule') && <>
@@ -55,12 +64,12 @@ const SetCreation = ({
       )}
       <br />
       {item.map((item, index) => (
-                  <div key={index}>
-                    <span>{item.FileName}</span>
-                    <br />
-                  </div>
-                ))}
-        <br />
+        <div key={index}>
+          <span>{item.FileName}</span>
+          <br />
+        </div>
+      ))}
+      <br />
       <div className="date-inputs">
         <label>
           Start Date:
@@ -83,7 +92,7 @@ const SetCreation = ({
         </label>
       </div>
       <br />
-      <button type="submit" onClick={(event) => { handleSubmitSetModal(event); setShowModal(false); setModalSearchTerm(''); }}>Submit</button>
+      <button type="submit" onClick={(event) => { handleSubmitSetModal(event); setShowModal(false); setModalSearchTerm(''); }} disabled={isButtonDisabled}>Submit</button>
     </>
   );
 };

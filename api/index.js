@@ -98,31 +98,6 @@ app.get('/playlistSchedule', async (req, res) => {
 app.post('/createPlaylistSchedule',verifyToken, async (req, res) => {
   const folder = `Playlist ${await PlaylistSchedule.countDocuments() + 1}`;
   const { items, startTime, endTime, startDate, endDate, otherTimes } = req.body;
-
-  let errors = {};
-  if (!folder) {
-    errors.folder = 'Folder is required';
-  }
-  if (!items) {
-    errors.items = 'Items are required';
-  }
-  if (!startTime) {
-    errors.startTime = 'Start Time is required';
-  }
-  if (!endTime) {
-    errors.endTime = 'End Time is required';
-  }
-  if (!startDate) {
-    errors.startDate = 'Start Date is required';
-  }
-  if (!endDate) {
-    errors.endDate = 'End Date is required';
-  }
-
-  if (Object.keys(errors).length > 0) {
-    return res.status(400).json(errors);
-  }
-
   const newPlaylistSchedule = new PlaylistSchedule({
     folder,
     items,
@@ -132,7 +107,6 @@ app.post('/createPlaylistSchedule',verifyToken, async (req, res) => {
     endDate,
     otherTimes
   });
-
   try {
     const savedItem = await newPlaylistSchedule.save();
     res.status(201).json(savedItem);
@@ -144,34 +118,7 @@ app.post('/createPlaylistSchedule',verifyToken, async (req, res) => {
 
 app.post('/createAdsSchedule',verifyToken, async (req, res) => {
   const folder = `Ads ${await AdsSchedule.countDocuments() + 1}`;
-
   const { items, startTime, endTime, startDate, endDate, otherTimes } = req.body;
-
-  let errors = {};
-  if (!folder) {
-    errors.folder = 'Folder is required';
-  }
-  if (!items) {
-    errors.items = 'Items are required';
-  }
-  if (!startTime) {
-    errors.startTime = 'Start Time is required';
-  }
-  if (!endTime) {
-    errors.endTime = 'End Time is required';
-  }
-  if (!startDate) {
-    errors.startDate = 'Start Date is required';
-  }
-  
-  if (!endDate) {
-    errors.endDate = 'End Date is required';
-  }
-
-  if (Object.keys(errors).length > 0) {
-    return res.status(400).json(errors);
-  }
-
   const newAdsSchedule = new AdsSchedule({
     folder,
     items,

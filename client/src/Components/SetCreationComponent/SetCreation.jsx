@@ -28,7 +28,7 @@ const SetCreation = ({
   const handleStartTimeChange = (event) => {
     if (!startDate) {
       console.error("Start date is not set.");
-      return; // Exit the function if startDate is null
+      return; 
     }
   
     const datePortion = startDate.toISOString().split('T')[0];

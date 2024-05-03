@@ -10,7 +10,7 @@ const SetCreation = ({
   modalFilteredData,
   itemExists,
   handleAddToSet,
-  item
+  item,
 }) => {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);

@@ -368,7 +368,7 @@ const DataPage = () => {
       console.error('Error deleting note:', error.response ? error.response.data : error);
     }
   };
-  const handleSubmitSetModal = (event) => {
+  const handleSubmitSetModal = (event, startDate, endDate, startTime, endTime, item) => {
     event.preventDefault();
     let baseUrl = process.env.REACT_APP_API_URL;
     let url = `${baseUrl}/`
@@ -382,7 +382,28 @@ const DataPage = () => {
       default:
         return;
     }
-    
+    try {
+      const response = axios.post(url, {
+        startDate: startDate,
+        endDate: endDate,
+        startTime: startTime,
+        endTime: endTime,
+        items: item
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (response.status === 201) {
+        console.log('Schedule created successfully');
+        setShowModal(false);
+      } else {
+        throw new Error('Failed to create schedule');
+      }
+    } catch (error) {
+      console.log('Error occurred. Please try again = ', error);
+    }
   }
   useEffect(() => {
     if (item.length > 0) {

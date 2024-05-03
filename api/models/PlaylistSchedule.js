@@ -6,10 +6,10 @@ const playlistScheduleSchema = new mongoose.Schema({
         type: Number
     },
     items: [{
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'Playlist' 
     }, {
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'Ads' 
     }],
     startDate: {
@@ -21,11 +21,11 @@ const playlistScheduleSchema = new mongoose.Schema({
         required: true
     },
     startTime: {
-        type: String,
+        type: Date,
         required: true
     },
     endTime: {
-        type: String,
+        type: Date,
         required: true
     },
     otherTimes: [String]

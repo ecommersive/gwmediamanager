@@ -59,20 +59,26 @@ const SetCreation = ({
   };
 
   const isButtonDisabled = !startDate || !endDate || !startTime || !endTime
-  const checkedData = () =>{
+  const checkedData = (startDate, endDate, startTime, endTime, item) =>{
     //need a function to check the type of data of startDate, endDate, startTime, endTime and item as well, no like we need like if it's a string or object and etc...
    
-      const startDateType = typeof startDate;
-      const endDateType = typeof endDate;
-      const startTimeType = typeof startTime;
-      const endTimeType = typeof endTime;
-      const itemType = typeof item;
+      // const startDateType = typeof startDate;
+      // const endDateType = typeof endDate;
+      // const startTimeType = typeof startTime;
+      // const endTimeType = typeof endTime;
+      // const itemType = typeof item;
 
-      console.log('startDate type:', startDateType);
-      console.log('endDate type:', endDateType);
-      console.log('startTime type:', startTimeType);
-      console.log('endTime type:', endTimeType);
-      console.log('item type:', itemType);
+      //it only says object, it doesn't say what type of object it is
+      console.log('startDate:', startDate);
+      console.log('endDate:', endDate);
+      console.log('startTime:', startTime);
+      console.log('endTime:', endTime);
+      console.log('item:', item);
+      // console.log('startDate type:', startDateType);
+      // console.log('endDate type:', endDateType);
+      // console.log('startTime type:', startTimeType);
+      // console.log('endTime type:', endTimeType);
+      // console.log('item type:', itemType);
 
 
   }
@@ -127,8 +133,8 @@ const SetCreation = ({
         </label>
       </div>
       <br />
-      {/* <button type="submit" onClick={(event) => { handleSubmitSetModal(event, startDate, endDate, startTime, endTime, item); setShowModal(false); setModalSearchTerm(''); }} disabled={isButtonDisabled}>Submit</button> */}
-      <button type="submit" onClick={(event) => { checkedData(); setModalSearchTerm(''); }} disabled={isButtonDisabled}>test</button>
+      <button type="submit" onClick={(event) => { handleSubmitSetModal(event, startDate, endDate, startTime, endTime, item); setShowModal(false); setModalSearchTerm(''); }} disabled={isButtonDisabled}>Submit</button>
+      {/* <button type="submit" onClick={(event) => { checkedData(startDate, endDate, startTime, endTime, item); setModalSearchTerm(''); }} disabled={isButtonDisabled}>test</button> */}
     </>
   );
 };

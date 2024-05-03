@@ -8,11 +8,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../styles/datapage.css';
 import axios from 'axios';
-import DataFormModal from '../Components/DataForm';
 const DataPage = () => {
   const [mode, setMode] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [catData, setCatData] = useState('');
+
   const [searchTerm, setSearchTerm] = useState('');
   const [videoKey, setVideoKey] = useState(uuidv4());
   const [data, setData] = useState([]);
@@ -27,7 +27,6 @@ const DataPage = () => {
   const [videoUrl, setVideoUrl] = useState('');
   const [expiry, setExpiry] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Playlist');
-  const [errorMessage, setErrorMessage] = useState({});
   const navigate = useNavigate();
   const location = useLocation();
   const token = localStorage.getItem('token');
@@ -100,6 +99,45 @@ const DataPage = () => {
     fetchData();
   }, [fetchData]);
 
+  //create useEffect to console log catData
+  useEffect(() => {
+    console.log('catData:', catData);
+  }, [catData]);
+  
+  const handleFileNameChange = (event) => {
+    setFileName(event.target.value);
+  };
+  const handlePhotoUrlChange = (event) => {
+    setPhotoUrl(event.target.value);
+  };
+
+  const handleTypeChange = (event) => {
+    setType(event.target.value);
+  };
+
+  const handleTagChange = (event) => {
+    setTag(event.target.value);
+  };
+
+  const handleRunTimeChange = (event) => {
+    setRunTime(event.target.value);
+  };
+
+  const handleContentChange = (event) => {
+    setContent(event.target.value);
+  };
+
+  const handleVideoUrlChange = (event) => {
+    setVideoUrl(event.target.value);
+  };
+
+  const handleExpiryChange = (event) => {
+    setExpiry(event.target.value);
+  };
+
+  const handleSelectedCategoryChange = (event) => {
+    setSelectedCategory(event.target.value);
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -137,13 +175,11 @@ const DataPage = () => {
           setShowModal(false);
           fetchData();
           console.log(`${selectedCategory} item added:`, response.data);
-          setErrorMessage({});
         } else {
           throw new Error(`Failed to add ${selectedCategory} item`);
         }
       } catch (error) {
-        console.error(`Error submitting ${selectedCategory} item:`, error.response ? error.response.data : error);
-        setErrorMessage({ Upload: 'Failed to add data. Please try again.' });
+        console.log('An error occurred. Please try again.', error);
       }
     } else if (catData === 'ExtendExpiry') {
       const encodedFileName = encodeURIComponent(fileName);
@@ -167,8 +203,7 @@ const DataPage = () => {
           throw new Error(`Failed to set expiry date for ${selectedCategory} item`);
         }
       } catch (error) {
-        console.error(`Error submitting set expiry for ${selectedCategory} item:`, error.response ? error.response.data : error);
-        setErrorMessage({ SetExpiry: 'Failed to set expiry date. Please try again.' });
+        console.log('An error occurred. Please try again.', error);
       }
     } else if (catData === 'DeleteData') {
       const encodedFileName = encodeURIComponent(fileName);
@@ -190,45 +225,11 @@ const DataPage = () => {
           throw new Error(`Failed to delete ${selectedCategory} item`);
         }
       } catch (error) {
-        console.error(`Error submitting delete:`, error.response ? error.response.data : error);
-        setErrorMessage({ Delete: 'Failed to delete data. Please try again.' });
+        console.log('An error occurred. Please try again.', error);
       }
     }
   };
-  const handleFileNameChange = (event) => {
-    setFileName(event.target.value);
-  };
-  const handlePhotoUrlChange = (event) => {
-    setPhotoUrl(event.target.value);
-  };
 
-  const handleTypeChange = (event) => {
-    setType(event.target.value);
-  };
-
-  const handleTagChange = (event) => {
-    setTag(event.target.value);
-  };
-
-  const handleRunTimeChange = (event) => {
-    setRunTime(event.target.value);
-  };
-
-  const handleContentChange = (event) => {
-    setContent(event.target.value);
-  };
-
-  const handleVideoUrlChange = (event) => {
-    setVideoUrl(event.target.value);
-  };
-
-  const handleExpiryChange = (event) => {
-    setExpiry(event.target.value);
-  };
-
-  const handleSelectedCategoryChange = (event) => {
-    setSelectedCategory(event.target.value);
-  };
 
   //regular search
   const filteredData = useMemo(() => {
@@ -336,7 +337,6 @@ const DataPage = () => {
       }
     } catch (error) {
       console.error('Error adding note:', error);
-      setErrorMessage({ NoteAdd: 'Failed to add note. Please try again.' });
     }
   };
   const handleEditNote = (noteId, text) => {
@@ -379,7 +379,6 @@ const DataPage = () => {
       }
     } catch (error) {
       console.error('Error updating note:', error.response ? error.response.data : error);
-      setErrorMessage({ NoteUpdate: 'Failed to update note. Please try again.' });
     }
   };
 
@@ -459,7 +458,7 @@ const DataPage = () => {
           <HeaderButtons currentData={currentData} isAdmin={isAdmin} handleModal={handleModal} setMode={setMode} setCatData={setCatData} handleLogout={handleLogout} />
         </div>
       </section>
-      <DataTable currentData={currentData} searchTerm={searchTerm} filteredData={filteredData} handleVideoClick={handleVideoClick}isAdmin={isAdmin} setMode={setMode} setCatData={setCatData} setShowModal={setShowModal} setFileName={setFileName} setNotes={setNotes} setErrorMessage={setErrorMessage} setModalSearchTerm={setModalSearchTerm} setItem={setItem} setVideoKey={setVideoKey} />
+      <DataTable currentData={currentData} isAdmin={isAdmin} searchTerm={searchTerm} handleVideoClick={handleVideoClick} filteredData={filteredData} setShowModal={setShowModal} setFileName={setFileName} setNotes={setNotes} setMode={setMode} setCatData={setCatData} />
       <Modal style={mode === 'viewvideo' ? { height: '100%' } : {}} isOpen={showModal} onClose={() => {ModalClose(); if (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') {setModalSearchTerm('');setItem([]);}}}>
         {mode === 'viewvideo' && <VideoViewer videoUrl={currentVideoUrl} key={videoKey} />}
         {mode === 'configureData' &&
@@ -510,17 +509,7 @@ const DataPage = () => {
                   <>
                     <label>
                       File Name:
-                      <input type="text" name="fileName" value={fileName} onChange={handleFileNameChange} />
-                      {
-                        catData === 'addData' ?
-                          (errorMessage.FileName && <div style={{ color: 'red' }}>{errorMessage.FileName}</div>)
-                          : catData === 'ExtendExpiry' ?
-                            (errorMessage.Expiry && <div style={{ color: 'red' }}>{errorMessage.Expiry}</div>)
-                            : catData === 'DeleteData' ?
-                              (errorMessage.Delete && <div style={{ color: 'red' }}>{errorMessage.Delete}</div>)
-                              :
-                              null
-                      }
+                      <input type="text" name="fileName" value={fileName} onChange={handleFileNameChange} required/>
                     </label>
                     <br />
                   </>
@@ -545,26 +534,22 @@ const DataPage = () => {
                     <br />
                     <label>
                       Photo URL:
-                      <input type="text" name="photoUrl" value={photoUrl} onChange={handlePhotoUrlChange} />
-                      {errorMessage.PhotoUrl && <div style={{ color: 'red' }}>{errorMessage.PhotoUrl}</div>}
+                      <input type="text" name="photoUrl" value={photoUrl} onChange={handlePhotoUrlChange} required/>
                     </label>
                     <br />
                     <label>
                       Run Time:
-                      <input type="text" name="runTime" value={runTime} onChange={handleRunTimeChange} />
-                      {errorMessage.Run_Time && <div style={{ color: 'red' }}>{errorMessage.Run_Time}</div>}
+                      <input type="text" name="runTime" value={runTime} onChange={handleRunTimeChange} required/>
                     </label>
                     <br />
                     <label>
                       Type:
-                      <input type="text" name="content" value={content} onChange={handleContentChange} />
-                      {errorMessage.Content && <div style={{ color: 'red' }}>{errorMessage.Content}</div>}
+                      <input type="text" name="content" value={content} onChange={handleContentChange} required/>
                     </label>
                     <br />
                     <label>
                       Video URL:
-                      <input type="text" name="videoUrl" value={videoUrl} onChange={handleVideoUrlChange} />
-                      {errorMessage.videoUrl && <div style={{ color: 'red' }}>{errorMessage.videoUrl}</div>}
+                      <input type="text" name="videoUrl" value={videoUrl} onChange={handleVideoUrlChange} required/>
                     </label>
                     <br />
                   </>
@@ -582,7 +567,14 @@ const DataPage = () => {
                 )
               }
 
-              <button type="submit">{catData === 'addData' ? 'Add Data' : catData === 'ExtendExpiry' ? 'Extend Expiry Date' : catData === 'DeleteData' ? 'Delete Data' : ''}</button>
+              <button type="submit" 
+              disabled={
+                catData === 'addData' ? !fileName || !photoUrl || !type || !runTime || !content || !videoUrl
+                : (catData === 'DeleteData' || catData === 'ExtendExpiry') ? !fileName
+                : null
+              }>
+                {catData === 'addData' ? 'Add Data' : catData === 'ExtendExpiry' ? 'Extend Expiry Date' : catData === 'DeleteData' ? 'Delete Data' : ''}
+              </button>
             </form>
             <>
               {(catData === 'viewNotes' || catData === 'AddNote' || catData === 'UpdateNote' || catData === 'DeleteNote') && (

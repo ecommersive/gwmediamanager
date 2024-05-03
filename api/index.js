@@ -203,31 +203,6 @@ app.get('/archived', async (req, res) => {
 
 app.post('/uploadPlaylist',verifyToken, async (req, res) => {
   const { FileName, PhotoUrl, Type, Tag, Run_Time, Content, videoUrl, Expiry, notes } = req.body;
-
-  let errors = {};
-  if (!FileName) {
-    errors.FileName = 'File name is required';
-  }
-  if (!PhotoUrl) {
-    errors.PhotoUrl = 'Photo URL is required';
-  }
-  if (!Type) {
-    errors.Type = 'Type is required';
-  }
-  if (!Run_Time) {
-    errors.Run_Time = 'Run Time is required';
-  }
-  if (!Content) {
-    errors.Content = 'Content is required';
-  }
-  if (!videoUrl) {
-    errors.videoUrl = 'Video URL is required';
-  }
-
-  if (Object.keys(errors).length > 0) {
-    return res.status(400).json(errors);
-  }
-
   const foundIn = await checkFileExistence(FileName);
   if (foundIn.length > 0) {
     return res.status(400).json({ message: `File name already exists in ${foundIn.join(', ')}.` });
@@ -290,30 +265,6 @@ app.post('/register', async (req, res) => {
 });
 app.post('/uploadAds', verifyToken, async (req, res) => {
   const { FileName, PhotoUrl, Type, Tag, Run_Time, Content, videoUrl, Expiry, notes } = req.body;
-
-  let errors = {};
-  if (!FileName) {
-    errors.FileName = 'File name is required';
-  }
-  if (!PhotoUrl) {
-    errors.PhotoUrl = 'Photo URL is required';
-  }
-  if (!Type) {
-    errors.Type = 'Type is required';
-  }
-  if (!Run_Time) {
-    errors.Run_Time = 'Run Time is required';
-  }
-  if (!Content) {
-    errors.Content = 'Content is required';
-  }
-  if (!videoUrl) {
-    errors.videoUrl = 'Video URL is required';
-  }
-
-  if (Object.keys(errors).length > 0) {
-    return res.status(400).json(errors);
-  }
 
   const foundIn = await checkFileExistence(FileName);
   if (foundIn.length > 0) {

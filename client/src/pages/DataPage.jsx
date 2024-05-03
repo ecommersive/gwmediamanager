@@ -370,11 +370,19 @@ const DataPage = () => {
   };
   const handleSubmitSetModal = (event) => {
     event.preventDefault();
-    if (currentData === 'Playlist Schedule') {
-      console.log('playlist schedule has been created');
-    } else if (currentData === 'Ads Schedule') {
-      console.log('ads schedule has been created');
+    let baseUrl = process.env.REACT_APP_API_URL;
+    let url = `${baseUrl}/`
+    switch (currentData){
+      case 'Playlist Schedule':
+        url += 'createPlaylistSchedule';
+        break;
+      case 'Ads Schedule':
+        url += 'createAdsSchedule'
+        break;
+      default:
+        return;
     }
+    
   }
   useEffect(() => {
     if (item.length > 0) {

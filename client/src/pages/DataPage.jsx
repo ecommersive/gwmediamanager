@@ -11,6 +11,7 @@ import FormExpiry from '../Components/FormMainComponents/FormExpiry';
 import FormButton from '../Components/FormMainComponents/FormButton';
 import NotesForm from '../Components/NotesFormComponent/NotesForm';
 import SetCreation from '../Components/SetCreationComponent/SetCreation';
+import SwitchSections from '../Components/SwitchSections';
 import { v4 as uuidv4 } from 'uuid';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../styles/datapage.css';
@@ -392,14 +393,7 @@ const DataPage = () => {
     <main className="table">
       <section className="table_header">
         <div className="data-display-container">
-          <h1>{currentData}</h1>
-          <select value={currentData} onChange={handleDataSelection} className="data-selector">
-            <option value="Playlist">Playlist</option>
-            <option value="Ads">Ads</option>
-            <option value="Archived">Archived</option>
-            <option value="Playlist Schedule">Playlist Schedule</option>
-            <option value="Ads Schedule">Ads Schedule</option>
-          </select>
+          <SwitchSections currentData={currentData} handleDataSelection={handleDataSelection}/>
         </div>
         <div className="header-controls">
           <SearchInput searchTerm={searchTerm} setSearchTerm={setSearchTerm} />

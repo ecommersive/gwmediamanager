@@ -112,7 +112,7 @@ app.post('/createPlaylistSchedule',verifyToken, async (req, res) => {
     res.status(201).json(savedItem);
   } catch (err) {
     console.error('Error saving new playlist item:', err);
-    res.status(500).send('Internal Server Error');
+    res.status(500).send(err.message); 
   }
 });
 

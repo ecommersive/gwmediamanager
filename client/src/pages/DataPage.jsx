@@ -56,6 +56,7 @@ const DataPage = () => {
     setShowModal(!showModal);
   }
   const ModalClose = () => {
+    setItem([]);
     setShowModal(false);
   }
   const fetchData = useCallback(async () => {
@@ -430,7 +431,7 @@ const DataPage = () => {
         </div>
       </section>
       <DataTable currentData={currentData} isAdmin={isAdmin} searchTerm={searchTerm} handleVideoClick={handleVideoClick} filteredData={filteredData} setShowModal={setShowModal} setFileName={setFileName} setNotes={setNotes} setMode={setMode} setCatData={setCatData} />
-      <Modal style={mode === 'viewvideo' ? { height: '100%' } : {}} isOpen={showModal} onClose={() => { ModalClose(); if (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') { setModalSearchTerm(''); setItem([]); } }}>
+      <Modal style={mode === 'viewvideo' ? { height: '100%' } : {}} isOpen={showModal} onClose={() => { ModalClose(); if (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') { setModalSearchTerm(''); } }}>
         {mode === 'viewvideo' && <VideoViewer videoUrl={currentVideoUrl} key={videoKey} />}
         {mode === 'configureData' &&
           <>

@@ -6,10 +6,10 @@ const playlistScheduleSchema = new mongoose.Schema({
         type: Number
     },
     items: [{
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         ref: 'Playlist' 
     }, {
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         ref: 'Ads' 
     }],
     startDate: {

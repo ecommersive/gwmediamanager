@@ -2,10 +2,13 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Modal from '../Components/Modal';
 import VideoViewer from '../Components/Videoviewer';
 import SearchInput from '../Components/SearchInput';
+import HeaderButtons from '../Components/HeaderButtons';
+import DataTable from '../Components/DataTable';
 import { v4 as uuidv4 } from 'uuid';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../styles/datapage.css';
 import axios from 'axios';
+import DataFormModal from '../Components/DataForm';
 const DataPage = () => {
   const [mode, setMode] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -453,93 +456,11 @@ const DataPage = () => {
         </div>
         <div className="header-controls">
           <SearchInput searchTerm={searchTerm} setSearchTerm={setSearchTerm}/>
-          {
-            (currentData === 'Playlist' || currentData === 'Ads' || currentData === 'Archived') ? (
-              isAdmin && (
-                <>
-                  <button className="action-button" onClick={() => { handleModal(); setMode('configureData'); setCatData('addData'); }}>Add Data</button>
-                  <button className="action-button" onClick={() => { handleModal(); setMode('configureData'); setCatData('ExtendExpiry'); }}>Extend Expiry Data</button>
-                  <button className="action-button" onClick={() => { handleModal(); setMode('configureData'); setCatData('DeleteData'); }}>Delete Data</button>
-                </>
-              )
-            ) : (
-              (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') && (
-                isAdmin && (
-                  <button className="action-button" onClick={() => { handleModal(); setMode('configureData'); setCatData(currentData === 'Playlist Schedule' ? 'playlistSchedule' : 'adsSchedule'); }}>
-                    {currentData === 'Playlist Schedule' ? 'Configure Playlist Schedule' : 'Configure Ads Schedule'}
-                  </button>
-                )
-              )
-            )
-          }
-          <button className="action-button" onClick={handleLogout} >Logout</button>
+          <HeaderButtons currentData={currentData} isAdmin={isAdmin} handleModal={handleModal} setMode={setMode} setCatData={setCatData} handleLogout={handleLogout} />
         </div>
       </section>
-      <section className="table_body">
-        <table>
-          <thead>
-            {
-              currentData === 'Playlist Schedule' || currentData === 'Ads Schedule' ?
-                <tr>
-                  <th>Folder</th>
-                  <th>Starting Date</th>
-                  <th>Ending Date</th>
-                  <th>Starting Time</th>
-                  <th>Ending Time</th>
-                  <th>other times {currentData === 'Playlist Schedule' ? 'set of playlist' : currentData === 'Ads Schedule' ? 'set of ads' : 'Other Times Being Played At'} being played at</th>
-                </tr>
-                :
-                <tr>
-                  <th>Photo</th>
-                  <th>File Name</th>
-                  <th>File Type</th>
-                  <th>Tag</th>
-                  <th>Run Time</th>
-                  <th>Type</th>
-                  <th>Video Url</th>
-                  <th>Expiry</th>
-                  {isAdmin && <th>Notes</th>}
-                  {isAdmin && <th>Alter Notes</th>}
-                </tr>
-            }
-          </thead>
-          <tbody>
-            {filteredData.length > 0 ? filteredData.map((item, index) => (
-              <tr key={index} style={{ backgroundColor: index % 2 === 0 ? 'transparent' : '#f0f0f0' }}>
-                <td><img src={item.PhotoUrl} alt="Data" style={{ width: '50px', height: '50px' }} /></td>
-                <td>{item.FileName}</td>
-                <td>{item.Type}</td>
-                <td>{item.Tag}</td>
-                <td>{item.Run_Time}</td>
-                <td>{item.Content}</td>
-                <td><button onClick={() => { handleVideoClick(item.videoUrl); setMode('viewvideo') }}>View</button></td>
-                <td>{item.Expiry}</td>
-                {isAdmin && <td><button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setMode('configureData'); setCatData('viewNotes') }}>View</button></td>}
-                {isAdmin &&
-                  <td>
-                    <button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setMode('configureData'); setCatData('AddNote') }}>Add Notes</button>
-                    <br />
-                    <button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setMode('configureData'); setCatData('UpdateNote') }}>Update Notes</button>
-                    <br />
-                    <button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setMode('configureData'); setCatData('DeleteNote') }}>Delete Notes</button>
-                  </td>
-                }
-              </tr>
-            )) : (
-              <tr>
-                <td colSpan="12" style={{ textAlign: 'center' }}>No data found</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </section>
-      <Modal style={mode === 'viewvideo' ? { height: '100%' } : {}} isOpen={showModal} onClose={() => {
-        ModalClose();
-        if (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') {
-          setModalSearchTerm('');
-          setItem([]);
-        }
-      }}>
+      <DataTable currentData={currentData} searchTerm={searchTerm} filteredData={filteredData} handleVideoClick={handleVideoClick}isAdmin={isAdmin} setMode={setMode} setCatData={setCatData} setShowModal={setShowModal} setFileName={setFileName} setNotes={setNotes} setErrorMessage={setErrorMessage} setModalSearchTerm={setModalSearchTerm} setItem={setItem} setVideoKey={setVideoKey} />
+      <Modal style={mode === 'viewvideo' ? { height: '100%' } : {}} isOpen={showModal} onClose={() => {ModalClose(); if (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') {setModalSearchTerm('');setItem([]);}}}>
         {mode === 'viewvideo' && <VideoViewer videoUrl={currentVideoUrl} key={videoKey} />}
         {mode === 'configureData' &&
           <>
@@ -776,7 +697,6 @@ const DataPage = () => {
           </>
         }
       </Modal>
-
     </main>
   );
 }

@@ -68,17 +68,41 @@ main.table{
 }
 
 
+.table_header .input-group{
+    width: 35%;
+    height: 100%;
+    background-color: #fff5;
+    padding: 0 .8rem;
+    border-radius: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: .5s;
+}
+
+.table_header .input-group:hover{
+    background-color: #fff8;
+    box-shadow: 0 .1rem .4rem #0002;
+}
 
 
 
-
+.input-group input {
+    height: 40px;
+  }
 .header-controls {
     flex-grow: 1;
     display: flex;
     justify-content: flex-end;
     align-items: center;
 }
-
+.table_header .input-group input{
+    width: 100%;
+    padding: 0 .5rem 0 .3rem;
+    background-color: transparent;
+    border: none;
+    outline: none;
+}
 td img{
     width: 36px;
     height: 36px;
@@ -148,7 +172,10 @@ tbody tr.hide td{
     height: 0;
     transition: .2s ease-in-out .5s;
 }
-
+.table_header .input-group {
+    width: auto; /* Change from percentage to auto so it only takes the space it needs */
+    margin-right: 1rem; /* Add some margin to the right of the search bar */
+}
 @media screen and (max-width: 1000px){
     td:not(:first-of-type){
         min-width: 12.1rem;

@@ -1,0 +1,15 @@
+.action-button{
+    background-color: #454749;
+    border: none;
+    color: white;
+    padding: 10px;
+    height: 40px;
+    border-radius: 2rem;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    cursor: pointer;
+    margin: 4px 2px;
+    margin-left: 1rem
+}

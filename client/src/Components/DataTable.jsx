@@ -1,7 +1,12 @@
-import React from 'react';
+import React, {useState} from 'react';
 import '../styles/datatable.css';
 
 const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setShowModal, setFileName, setNotes, setMode, setCatData }) => {
+  const [folderViewMode, setFolderViewMode] = useState(false)
+  const handleFolderView = () => {
+    setFolderViewMode(!folderViewMode)
+    console.log('folder view = ', folderViewMode);
+  }
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
@@ -12,7 +17,7 @@ const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setSh
     return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
   };
 
-  let renderedRows = 0;
+  
   return (
     <section className="table_body">
       <table>
@@ -45,7 +50,7 @@ const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setSh
         </thead>
         <tbody>
           {filteredData && filteredData.length > 0 && filteredData.map((item, index) => {
-            if (currentData === 'Playlist' || currentData === 'Ads' || currentData === 'Archived') {
+            if ((currentData === 'Playlist' || currentData === 'Ads' || currentData === 'Archived')) {
               return (
                 <tr key={index} style={{ backgroundColor: index % 2 === 0 ? 'transparent' : '#f0f0f0' }}>
                   <td><img src={item.PhotoUrl} alt="Data" style={{ width: '50px', height: '50px' }} /></td>
@@ -69,23 +74,29 @@ const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setSh
                 </tr>
               );
             }else if(currentData === 'Playlist Schedule' || currentData === 'Ads Schedule'){
-              return (
-                <tr key={index} style={{ backgroundColor: index % 2 === 0 ? 'transparent' : '#f0f0f0' }}>
-                  <td>{(currentData === 'Playlist Schedule'? 'Playlist ': 'Ads ') + item.folder}</td>
-                  <td>{formatDate(item.startDate)}</td>
-                  <td>{formatDate(item.endDate)}</td>
-                  <td>{formatTime(item.startTime)}</td>
-                  <td>{formatTime(item.endTime)}</td>
-                  <td>{item.otherTimes}</td>
-                  {isAdmin && 
-                    <th>
-                      <button>
-                        Alter {currentData === 'Playlist Schedule' ? 'Playlist Times': currentData === 'Ads Schedule' ? 'Ad Times': ''}
+              if(!folderViewMode){
+                return (
+                  <tr key={index} style={{ backgroundColor: index % 2 === 0 ? 'transparent' : '#f0f0f0' }}>
+                    <td>
+                      <button className="action-button" onClick={handleFolderView}>
+                        {(currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads ') + item.folder}
                       </button>
-                    </th>
-                  }
-                </tr>
-              );
+                    </td>
+                    <td>{formatDate(item.startDate)}</td>
+                    <td>{formatDate(item.endDate)}</td>
+                    <td>{formatTime(item.startTime)}</td>
+                    <td>{formatTime(item.endTime)}</td>
+                    <td>{item.otherTimes}</td>
+                    {isAdmin && 
+                      <th>
+                        <button className="action-button">
+                          Alter {currentData === 'Playlist Schedule' ? 'Playlist Times': currentData === 'Ads Schedule' ? 'Ad Times': ''}
+                        </button>
+                      </th>
+                    }
+                  </tr>
+                );
+              }
             }
             return (
               <tr>

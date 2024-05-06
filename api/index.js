@@ -95,33 +95,70 @@ app.get('/playlistSchedule', async (req, res) => {
   }
 });
 
-app.post('/createPlaylistSchedule',verifyToken, async (req, res) => {
-  const folder = `Playlist ${await PlaylistSchedule.countDocuments() + 1}`;
+app.post('/createPlaylistSchedule', verifyToken, async (req, res) => {
+  console.log('request body = ',req.body);  // Log the entire request body
   const { items, startTime, endTime, startDate, endDate, otherTimes } = req.body;
+  
+  // Ensure items is defined and not empty
+  if (!items || items.length === 0) {
+    return res.status(400).send('items array is required and must not be empty.');
+  }
+
+  console.log('items = ', items);  // Check what this outputs
+  
+  // Extract file names and convert to ObjectId references
+  const itemsFileNames = items.map(item => item.FileName);
+  const itemsIds = await Promise.all(itemsFileNames.map(async (fileName) => {
+    const playlistItem = await Playlist.findOne({ FileName: fileName });
+    const adsItem = await Ads.findOne({ FileName: fileName });
+    return playlistItem ? playlistItem._id : adsItem ? adsItem._id : null;
+  }));
+
+  const folderNumber = await PlaylistSchedule.countDocuments() + 1; // Ensure this is a number
+
   const newPlaylistSchedule = new PlaylistSchedule({
-    folder,
-    items,
+    folder: folderNumber,
+    items: itemsIds.filter(id => id !== null), // Filter out any null values if files not found
     startTime,
     endTime,
     startDate,
     endDate,
     otherTimes
   });
+
   try {
-    const savedItem = await newPlaylistSchedule.save();
-    res.status(201).json(savedItem);
+    const savedSchedule = await newPlaylistSchedule.save();
+    res.status(201).json(savedSchedule);
   } catch (err) {
-    console.error('Error saving new playlist item:', err);
-    res.status(500).send(err.message); 
+    console.error('Error saving new playlist schedule:', err);
+    res.status(500).send('Internal Server Error');
   }
 });
 
-app.post('/createAdsSchedule',verifyToken, async (req, res) => {
-  const folder = `Ads ${await AdsSchedule.countDocuments() + 1}`;
+
+
+app.post('/createAdsSchedule', verifyToken, async (req, res) => {
+  // Ensure the folder is assigned a numerical value
+  const folderNumber = await AdsSchedule.countDocuments() + 1;
+
   const { items, startTime, endTime, startDate, endDate, otherTimes } = req.body;
+
+   // Ensure items is defined and not empty
+   if (!items || items.length === 0) {
+    return res.status(400).send('items array is required and must not be empty.');
+  }
+  // Extract file names and convert to ObjectId references
+  const itemsFileNames = items.map(item => item.FileName);
+  // Convert file names to ObjectId references
+  const itemsIds = await Promise.all(itemsFileNames.map(async (fileName) => {
+    const playlistItem = await Playlist.findOne({ FileName: fileName });
+    const adsItem = await Ads.findOne({ FileName: fileName });
+    return playlistItem ? playlistItem._id : adsItem ? adsItem._id : null;
+  }));
+
   const newAdsSchedule = new AdsSchedule({
-    folder,
-    items,
+    folder: folderNumber,
+    items: itemsIds.filter(id => id !== null), // Ensure all IDs are valid
     startTime,
     endTime,
     startDate,
@@ -137,6 +174,7 @@ app.post('/createAdsSchedule',verifyToken, async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 });
+
 
 app.get('/archived', async (req, res) => {
   try {

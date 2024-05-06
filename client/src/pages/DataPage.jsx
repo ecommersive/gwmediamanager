@@ -215,15 +215,30 @@ const DataPage = () => {
     }
   };
   const filteredData = useMemo(() => {
-    return data.filter(item =>
-      item.FileName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.Type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.Tag?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.Run_Time.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.Content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.videoUrl.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.Expiry?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    
+      return data.filter(item => {
+        if(currentData === 'Playlist' || currentData === 'Ads' || currentData === 'Archived'){
+          return (
+            item.FileName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.Type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.Tag?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.Run_Time.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.Content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.videoUrl.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.Expiry?.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+        }else if(currentData === 'Playlist Schedule' || currentData === 'Ads Schedule'){
+          return (
+            item.folder.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.startDate.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.endDate.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.startTime.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.endTime.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.otherTimes.toString().toLowerCase().includes(searchTerm.toLowerCase())
+          );
+        }
+      });
+    
   }, [searchTerm, data]);
   const fetchDataModals = async () => {
     let baseUrl = process.env.REACT_APP_API_URL;

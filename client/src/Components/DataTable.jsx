@@ -25,13 +25,14 @@ const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setSh
           {
             currentData === 'Playlist Schedule' || currentData === 'Ads Schedule' ?
               <tr>
-                <th>Folder</th>
+                <th>{!folderViewMode ? 'Folder' : 'Filename'}</th>
                 <th>Starting Date</th>
                 <th>Ending Date</th>
                 <th>Starting Time</th>
                 <th>Ending Time</th>
-                <th>Times {currentData === 'Playlist Schedule' ? 'set of playlist' : currentData === 'Ads Schedule' ? 'set of ads' : ''} being played at</th>
-                {isAdmin && <th>Alter {currentData === 'Playlist Schedule' ? 'Playlist Schedule': currentData === 'Ads Schedule' ? 'Ads Schedule': ''}</th>}
+                {!folderViewMode && <th>Times {currentData === 'Playlist Schedule' ? 'set of playlist' : currentData === 'Ads Schedule' ? 'set of ads' : ''} being played at</th>}
+                {isAdmin && !folderViewMode && <th>Alter {currentData === 'Playlist Schedule' ? 'Playlist Schedule': currentData === 'Ads Schedule' ? 'Ads Schedule': ''}</th>}
+                {isAdmin && folderViewMode && <th>Alter {currentData === 'Playlist Schedule' ? 'Alter Playlist Video': currentData === 'Ads Schedule' ? 'Alter Ad': ''}</th>}
               </tr>
               :
               <tr>
@@ -96,6 +97,12 @@ const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setSh
                     }
                   </tr>
                 );
+              }else if(folderViewMode){
+                return (
+                  <tr>
+                    <td colSpan="12" style={{ textAlign: 'center' }}>No data found</td>
+                  </tr>
+                )
               }
             }
             return (

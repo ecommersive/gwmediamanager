@@ -1,8 +1,7 @@
-import React, {useState} from 'react';
+import React from 'react';
 import '../styles/datatable.css';
 
-const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setShowModal, setFileName, setNotes, setCatData }) => {
-  
+const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setShowModal, setFileName, setMode ,setNotes, setCatData }) => {
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
@@ -55,16 +54,16 @@ const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setSh
                   <td>{item.Tag}</td>
                   <td>{item.Run_Time}</td>
                   <td>{item.Content}</td>
-                  <td><button onClick={() => { handleVideoClick(item.videoUrl); }}>View</button></td>
+                  <td><button onClick={() => { handleVideoClick(item.videoUrl); setMode('viewvideo')}}>View</button></td>
                   <td>{item.Expiry}</td>
-                  {isAdmin && <td><button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setCatData('viewNotes') }}>View</button></td>}
+                  {isAdmin && <td><button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setCatData('viewNotes'); setMode('configureData')}}>View</button></td>}
                   {isAdmin &&
                     <td>
-                      <button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setCatData('AddNote') }}>Add Notes</button>
+                      <button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setCatData('AddNote'); setMode('configureData'); }}>Add Notes</button>
                       <br />
-                      <button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes);  setCatData('UpdateNote') }}>Update Notes</button>
+                      <button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes);  setCatData('UpdateNote'); setMode('configureData'); }}>Update Notes</button>
                       <br />
-                      <button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes);  setCatData('DeleteNote') }}>Delete Notes</button>
+                      <button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes);  setCatData('DeleteNote'); setMode('configureData'); }}>Delete Notes</button>
                     </td>
                   }
                 </tr>

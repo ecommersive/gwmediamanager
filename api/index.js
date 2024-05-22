@@ -7,7 +7,6 @@ const app = express();
 const User = require('./models/Users');
 const Playlist = require('./models/Playlist');
 const Ads = require('./models/Ads');
-const Archived = require('./models/Archived');
 const AdsSchedule = require('./models/AdsSchedule');
 const PlaylistSchedule = require('./models/PlaylistSchedule');
 const sgMail = require('@sendgrid/mail')
@@ -45,12 +44,10 @@ const checkFileExistence = async (fileName) => {
   const regex = new RegExp('^' + fileName + '$', 'i');  // Case insensitive search
   const playlistExists = await Playlist.findOne({ FileName: regex });
   const adsExists = await Ads.findOne({ FileName: regex });
-  const archivedExists = await Archived.findOne({ FileName: regex });
 
   let foundIn = [];
   if (playlistExists) foundIn.push('Playlist');
   if (adsExists) foundIn.push('Ads');
-  if (archivedExists) foundIn.push('Archived');
   return foundIn;
 };
 app.get('/playlists' , async (req, res) => {
@@ -104,7 +101,7 @@ app.post('/createPlaylistSchedule', verifyToken, async (req, res) => {
     return res.status(400).send('items array is required and must not be empty.');
   }
 
-  console.log('items = ', items);  // Check what this outputs
+s
   
   // Extract file names and convert to ObjectId references
   const itemsFileNames = items.map(item => item.FileName);
@@ -176,15 +173,6 @@ app.post('/createAdsSchedule', verifyToken, async (req, res) => {
 });
 
 
-app.get('/archived', async (req, res) => {
-  try {
-    const archived = await Archived.find({});
-    res.json(archived);
-  } catch (err) {
-    console.error('Error fetching playlists:', err);
-    res.status(500).send('Internal Server Error');
-  }
-});
 
 app.post('/uploadPlaylist',verifyToken, async (req, res) => {
   const { FileName, PhotoUrl, Type, Tag, Run_Time, Content, videoUrl, Expiry, notes } = req.body;
@@ -284,7 +272,6 @@ app.delete('/deleteData/:category/:fileName', verifyToken, async (req, res) => {
   const categoryModelMap = {
     playlist: Playlist,
     ads: Ads,
-    archived: Archived
   };
 
   const Model = categoryModelMap[category.toLowerCase()];
@@ -316,7 +303,6 @@ app.post('/setExpiry/:category/:fileName', verifyToken, async (req, res) => {
   const categoryModelMap = {
     playlist: Playlist,
     ads: Ads,
-    archived: Archived
   };
 
   const Model = categoryModelMap[category.toLowerCase()];
@@ -348,7 +334,7 @@ app.post('/setExpiry/:category/:fileName', verifyToken, async (req, res) => {
 });
 app.get('/notes/:category/:filename', verifyToken, async (req, res) => {
   const { category, filename } = req.params;
-  const Model = { 'playlist': Playlist, 'ads': Ads, 'archived': Archived }[category.toLowerCase()];
+  const Model = { 'playlist': Playlist, 'ads': Ads }[category.toLowerCase()];
   
   if (!Model) {
     return res.status(404).json({ error: 'Category not found' });
@@ -414,7 +400,6 @@ app.post('/notes/add/:category/:fileName', verifyToken, async (req, res) => {
   const categoryModelMap = {
     playlist: Playlist,
     ads: Ads,
-    archived: Archived
   };
 
   const Model = categoryModelMap[category.toLowerCase()];
@@ -447,7 +432,6 @@ app.put('/notes/update/:category/:fileName', verifyToken, async (req, res) => {
   const categoryModelMap = {
     playlist: Playlist,
     ads: Ads,
-    archived: Archived
   };
 
   const Model = categoryModelMap[category.toLowerCase()];
@@ -489,7 +473,6 @@ app.delete('/notes/delete/:category/:fileName/:noteIndex', verifyToken, async (r
   const categoryModelMap = {
     playlist: Playlist,
     ads: Ads,
-    archived: Archived
   };
 
   const Model = categoryModelMap[category.toLowerCase()];
@@ -576,45 +559,12 @@ async function notifyExpiringItemsAcrossModels(modelMap) {
 const modelMap = {
   Playlist: Playlist,
   Ads: Ads,
-  Archived: Archived
 };
 
 cron.schedule('0 0 * * *', async () => {
   console.log('Daily check for expiring items started.');
   notifyExpiringItemsAcrossModels(modelMap);
 });
-cron.schedule('0 0 * * *', async () => {
-  console.log('Running daily check to move expiring playlist items and ads to the Archived collection.');
-
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  tomorrow.setHours(23, 59, 59, 999);
-  async function archiveExpiringItems(model, modelName) {
-    try {
-      const expiringItems = await model.find({
-        Expiry: {
-          $lte: tomorrow
-        }
-      });
-      for (let item of expiringItems) {
-        const ArchivedItem = new Archived(item.toObject());
-        await ArchivedItem.save();
-        await model.findByIdAndDelete(item._id);
-      }
-      if (expiringItems.length > 0) {
-        console.log(`${expiringItems.length} ${modelName} item(s) moved to the Archived collection.`);
-      } else {
-        console.log(`No ${modelName} items expiring tomorrow to move.`);
-      }
-    } catch (error) {
-      console.error(`Error moving expiring ${modelName} items:`, error);
-    }
-  }
-  await archiveExpiringItems(Playlist, 'playlist');
-  await archiveExpiringItems(Ads, 'ads');
-});
-
 
 // const checkDataChanges = async () => {
 //   // Check for new uploads for the day 
@@ -624,15 +574,12 @@ cron.schedule('0 0 * * *', async () => {
 //   // Check for deletions 
 //   const deletedPlaylistItems = await Playlist.find({ deletedAt: { $gte: new Date().setHours(0, 0, 0, 0) } });
 //   const deletedAdsItems = await Ads.find({ deletedAt: { $gte: new Date().setHours(0, 0, 0, 0) } });
-//   const deletedArchivedItems = await Archived.find({ deletedAt: { $gte: new Date().setHours(0, 0, 0, 0) } });
 //   // Check for extended expiry
 //   const extendedExpiryPlaylistItems = await Playlist.find({ Expiry: { $gte: new Date().setHours(0, 0, 0, 0) } });
 //   const extendedExpiryAdsItems = await Ads.find({ Expiry: { $gte: new Date().setHours(0, 0, 0, 0) } });
-//   const extendedExpiryArchivedItems = await Archived.find({ Expiry: { $gte: new Date().setHours(0, 0, 0, 0) } });
 //   // Check for note changes
 //   const updatedPlaylistNotes = await Playlist.find({ 'notes.updatedAt': { $gte: new Date().setHours(0, 0, 0, 0) } });
 //   const updatedAdsNotes = await Ads.find({ 'notes.updatedAt': { $gte: new Date().setHours(0, 0, 0, 0) } });
-//   const updatedArchivedNotes = await Archived.find({ 'notes.updatedAt': { $gte: new Date().setHours(0, 0, 0, 0) } });
   
 
 //   let emailContent = '';

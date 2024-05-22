@@ -1,12 +1,8 @@
 import React, {useState} from 'react';
 import '../styles/datatable.css';
 
-const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setShowModal, setFileName, setNotes, setMode, setCatData }) => {
-  const [folderViewMode, setFolderViewMode] = useState(false)
-  const handleFolderView = () => {
-    setFolderViewMode(!folderViewMode)
-    console.log('folder view = ', folderViewMode);
-  }
+const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setShowModal, setFileName, setNotes, setCatData }) => {
+  
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
@@ -25,14 +21,13 @@ const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setSh
           {
             currentData === 'Playlist Schedule' || currentData === 'Ads Schedule' ?
               <tr>
-                <th>{!folderViewMode ? 'Folder' : 'Filename'}</th>
+                <th>Filename</th>
                 <th>Starting Date</th>
                 <th>Ending Date</th>
                 <th>Starting Time</th>
                 <th>Ending Time</th>
-                {!folderViewMode && <th>Times {currentData === 'Playlist Schedule' ? 'set of playlist' : currentData === 'Ads Schedule' ? 'set of ads' : ''} being played at</th>}
-                {isAdmin && !folderViewMode && <th>Alter {currentData === 'Playlist Schedule' ? 'Playlist Schedule': currentData === 'Ads Schedule' ? 'Ads Schedule': ''}</th>}
-                {isAdmin && folderViewMode && <th>Alter {currentData === 'Playlist Schedule' ? 'Alter Playlist Video': currentData === 'Ads Schedule' ? 'Alter Ad': ''}</th>}
+                <th>Times {currentData === 'Playlist Schedule' ? 'set of playlist' : currentData === 'Ads Schedule' ? 'set of ads' : ''} being played at</th>
+                {isAdmin && <th>Alter {currentData === 'Playlist Schedule' ? 'Playlist Schedule': currentData === 'Ads Schedule' ? 'Ads Schedule': ''}</th>}
               </tr>
               :
               <tr>
@@ -51,7 +46,7 @@ const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setSh
         </thead>
         <tbody>
           {filteredData && filteredData.length > 0 && filteredData.map((item, index) => {
-            if ((currentData === 'Playlist' || currentData === 'Ads' || currentData === 'Archived')) {
+            if ((currentData === 'Playlist' || currentData === 'Ads')) {
               return (
                 <tr key={index} style={{ backgroundColor: index % 2 === 0 ? 'transparent' : '#f0f0f0' }}>
                   <td><img src={item.PhotoUrl} alt="Data" style={{ width: '50px', height: '50px' }} /></td>
@@ -60,26 +55,25 @@ const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setSh
                   <td>{item.Tag}</td>
                   <td>{item.Run_Time}</td>
                   <td>{item.Content}</td>
-                  <td><button onClick={() => { handleVideoClick(item.videoUrl); setMode('viewvideo') }}>View</button></td>
+                  <td><button onClick={() => { handleVideoClick(item.videoUrl); }}>View</button></td>
                   <td>{item.Expiry}</td>
-                  {isAdmin && <td><button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setMode('configureData'); setCatData('viewNotes') }}>View</button></td>}
+                  {isAdmin && <td><button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setCatData('viewNotes') }}>View</button></td>}
                   {isAdmin &&
                     <td>
-                      <button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setMode('configureData'); setCatData('AddNote') }}>Add Notes</button>
+                      <button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setCatData('AddNote') }}>Add Notes</button>
                       <br />
-                      <button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setMode('configureData'); setCatData('UpdateNote') }}>Update Notes</button>
+                      <button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes);  setCatData('UpdateNote') }}>Update Notes</button>
                       <br />
-                      <button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setMode('configureData'); setCatData('DeleteNote') }}>Delete Notes</button>
+                      <button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes);  setCatData('DeleteNote') }}>Delete Notes</button>
                     </td>
                   }
                 </tr>
               );
             }else if(currentData === 'Playlist Schedule' || currentData === 'Ads Schedule'){
-              if(!folderViewMode){
                 return (
                   <tr key={index} style={{ backgroundColor: index % 2 === 0 ? 'transparent' : '#f0f0f0' }}>
                     <td>
-                      <button className="action-button" onClick={handleFolderView}>
+                      <button className="action-button">
                         {(currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads ') + item.folder}
                       </button>
                     </td>
@@ -97,19 +91,8 @@ const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setSh
                     }
                   </tr>
                 );
-              }else if(folderViewMode){
-                return (
-                  <tr>
-                    <td colSpan="12" style={{ textAlign: 'center' }}>No data found</td>
-                  </tr>
-                )
-              }
             }
-            return (
-              <tr>
-                <td colSpan="12" style={{ textAlign: 'center' }}>No data found</td>
-              </tr>
-            );
+            
           })}
 
         </tbody>

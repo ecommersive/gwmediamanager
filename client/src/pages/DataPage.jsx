@@ -35,7 +35,6 @@ const DataPage = () => {
   const [expiry, setExpiry] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Playlist');
   const navigate = useNavigate();
-  const location = useLocation();
   const token = localStorage.getItem('token');
   const [currentVideoUrl, setCurrentVideoUrl] = useState('');
   const [modalSearchTerm, setModalSearchTerm] = useState('');
@@ -50,7 +49,6 @@ const DataPage = () => {
     setCurrentVideoUrl(videoUrl);
     setShowModal(true);
     setVideoKey(uuidv4());
-    console.log('embedUrl', videoUrl);
   };
   const handleModal = () => {
     setShowModal(!showModal);
@@ -68,9 +66,6 @@ const DataPage = () => {
         break;
       case 'Ads':
         url += 'ads';
-        break;
-      case 'Archived':
-        url += 'archived';
         break;
       case 'Playlist Schedule':
         url += 'playlistSchedule';
@@ -283,19 +278,7 @@ const DataPage = () => {
     localStorage.removeItem('isAdmin');
     navigate('/');
   }
-  useEffect(() => {
-    const handleUnload = () => {
-      if (location.pathname !== '/') {
-        console.log('User is navigating away from DataPage.');
-        localStorage.removeItem('token');
-        localStorage.removeItem('isAdmin');
-      }
-    };
-    window.addEventListener('beforeunload', handleUnload);
-    return () => {
-      window.removeEventListener('beforeunload', handleUnload);
-    };
-  }, [location]);
+
   const handleAddNoteSubmit = async (event, fileName) => {
     event.preventDefault();
     const noteToAdd = {
@@ -445,7 +428,7 @@ const DataPage = () => {
           <HeaderButtons currentData={currentData} isAdmin={isAdmin} handleModal={handleModal} setMode={setMode} setCatData={setCatData} handleLogout={handleLogout} />
         </div>
       </section>
-      <DataTable currentData={currentData} isAdmin={isAdmin} searchTerm={searchTerm} handleVideoClick={handleVideoClick} filteredData={filteredData} setShowModal={setShowModal} setFileName={setFileName} setNotes={setNotes} setMode={setMode} setCatData={setCatData} />
+      <DataTable currentData={currentData} isAdmin={isAdmin} searchTerm={searchTerm} handleVideoClick={handleVideoClick} filteredData={filteredData} setShowModal={setShowModal} setFileName={setFileName} setNotes={setNotes} setCatData={setCatData} />
       <Modal style={mode === 'viewvideo' ? { height: '100%' } : {}} isOpen={showModal} onClose={() => { ModalClose(); if (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') { setModalSearchTerm(''); } }}>
         {mode === 'viewvideo' && <VideoViewer videoUrl={currentVideoUrl} key={videoKey} />}
         {mode === 'configureData' &&

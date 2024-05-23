@@ -13,10 +13,12 @@ import NotesForm from '../Components/NotesFormComponent/NotesForm';
 import SetCreation from '../Components/SetCreationComponent/SetCreation';
 import SwitchSections from '../Components/SwitchSections';
 import { v4 as uuidv4 } from 'uuid';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import '../styles/datapage.css';
 import axios from 'axios';
+import ViewList from '../Components/ViewTimeModal/ViewList';
 const DataPage = () => {
+  const [folderViewNum, setfolderViewNum] = useState(0)
   const [mode, setMode] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [catData, setCatData] = useState('');
@@ -227,8 +229,6 @@ const DataPage = () => {
             item.folder.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
             item.startDate.toLowerCase().includes(searchTerm.toLowerCase()) ||
             item.endDate.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.startTime.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.endTime.toLowerCase().includes(searchTerm.toLowerCase()) ||
             item.otherTimes.toString().toLowerCase().includes(searchTerm.toLowerCase())
           );
         }
@@ -367,7 +367,7 @@ const DataPage = () => {
       console.error('Error deleting note:', error.response ? error.response.data : error);
     }
   };
-  const handleSubmitSetModal = (event, startDate, endDate, startTime, endTime, item) => {
+  const handleSubmitSetModal = (event, startDate, endDate, item) => {
     event.preventDefault();
     let baseUrl = process.env.REACT_APP_API_URL;
     let url = `${baseUrl}/`
@@ -385,8 +385,6 @@ const DataPage = () => {
       const response = axios.post(url, {
         startDate: startDate,
         endDate: endDate,
-        startTime: startTime,
-        endTime: endTime,
         items: item
       }, {
         headers: {
@@ -428,7 +426,7 @@ const DataPage = () => {
           <HeaderButtons currentData={currentData} isAdmin={isAdmin} handleModal={handleModal} setMode={setMode} setCatData={setCatData} handleLogout={handleLogout} />
         </div>
       </section>
-      <DataTable currentData={currentData} isAdmin={isAdmin} searchTerm={searchTerm} handleVideoClick={handleVideoClick} filteredData={filteredData} setShowModal={setShowModal} setFileName={setFileName} setNotes={setNotes} setCatData={setCatData} />
+      <DataTable currentData={currentData} isAdmin={isAdmin} setMode={setMode} searchTerm={searchTerm} handleVideoClick={handleVideoClick} filteredData={filteredData} setShowModal={setShowModal} setFileName={setFileName} setNotes={setNotes} setCatData={setCatData} setfolderViewNum={setfolderViewNum}/>
       <Modal style={mode === 'viewvideo' ? { height: '100%' } : {}} isOpen={showModal} onClose={() => { ModalClose(); if (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') { setModalSearchTerm(''); } }}>
         {mode === 'viewvideo' && <VideoViewer videoUrl={currentVideoUrl} key={videoKey} />}
         {mode === 'configureData' &&
@@ -442,8 +440,10 @@ const DataPage = () => {
             </form>
             <NotesForm catData={catData} fileName={fileName} notes={notes} editingNoteId={editingNoteId} editingNoteText={editingNoteText} handleUpdateNoteText={handleUpdateNoteText} handleDoneEditNote={handleDoneEditNote} handleEditNote={handleEditNote} handleDeleteNote={handleDeleteNote} handleAddNoteSubmit={handleAddNoteSubmit} newNote={newNote} setNewNote={setNewNote} />
             <SetCreation catData={catData} setShowModal={setShowModal} handleSubmitSetModal={handleSubmitSetModal} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} handleAddToSet={handleAddToSet} item={item} />
+            <ViewList currentData={currentData} catData={catData} folderViewNum={folderViewNum} token={token}/>
           </>
         }
+        
       </Modal>
     </main>
   );

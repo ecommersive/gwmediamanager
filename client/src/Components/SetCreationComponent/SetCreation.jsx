@@ -14,9 +14,6 @@ const SetCreation = ({
 }) => {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
-  const [startTime, setStartTime] = useState(null);
-  const [endTime, setEndTime] = useState(null);
-  const [timeError, setTimeError] = useState('');
 
   const handleStartDateChange = (event) => {
     const newStartDate = new Date(event.target.value);
@@ -26,39 +23,13 @@ const SetCreation = ({
     }
   };
 
-  const handleStartTimeChange = (event) => {
-    if (!startDate) {
-      console.error("Start date is not set.");
-      return; 
-    }
-    const datePortion = startDate.toISOString().split('T')[0];
-    const newStartTime = new Date(datePortion + ' ' + event.target.value);
-    setStartTime(newStartTime);
-    validateTimes(newStartTime, endTime);
+  const handleEndDateChange = (event) => {
+    const newEndDate = new Date(event.target.value);
+    setEndDate(newEndDate);
   };
 
-  const handleEndTimeChange = (event) => {
-    if (!endDate) {
-      console.error("End date is not set.");
-      return;
-    }
-    const datePortion = endDate.toISOString().split('T')[0];
-    const newEndTime = new Date(datePortion + ' ' + event.target.value);
-    setEndTime(newEndTime);
-    validateTimes(startTime, newEndTime);
-  };
 
-  const validateTimes = (start, end) => {
-    if (startDate && endDate && startDate.toISOString().split('T')[0] === endDate.toISOString().split('T')[0] && start && end && start >= end) {
-      setTimeError('Start time must be earlier than end time on the same day.');
-      return false;
-    } else {
-      setTimeError('');
-      return true;
-    }
-  };
-
-  const isButtonDisabled = !startDate || !endDate || !startTime || !endTime
+  const isButtonDisabled = !startDate || !endDate;
 
   return (
     (catData === 'playlistSchedule' || catData === 'adsSchedule') && <>
@@ -88,7 +59,6 @@ const SetCreation = ({
         </div>
       ))}
       <br />
-      {timeError && <p className="error">{timeError}</p>}
       <div className="date-inputs">
         <label>
           Start Date:
@@ -96,22 +66,13 @@ const SetCreation = ({
         </label>
         <label>
           End Date:
-          <input type="date" name="endDate" value={endDate ? endDate.toISOString().split('T')[0] : ''} min={startDate ? startDate.toISOString().split('T')[0] : ''} onChange={handleStartDateChange} />
+          <input type="date" name="endDate" value={endDate ? endDate.toISOString().split('T')[0] : ''} min={startDate ? startDate.toISOString().split('T')[0] : ''} onChange={handleEndDateChange} />
         </label>
       </div>
       <br />
-      <div className="time-inputs">
-        <label>
-          Start Time:
-          <input type="time" name="startTime" onChange={handleStartTimeChange} />
-        </label>
-        <label>
-          End Time:
-          <input type="time" name="endTime" min={startTime && startDate.toISOString().split('T')[0] === endDate.toISOString().split('T')[0] ? startTime.toTimeString().slice(0, 5) : ''} onChange={handleEndTimeChange} />
-        </label>
-      </div>
+     
       <br />
-      <button type="submit" onClick={(event) => { handleSubmitSetModal(event, startDate, endDate, startTime, endTime, item); setShowModal(false); setModalSearchTerm(''); }} disabled={isButtonDisabled}>Submit</button>
+      <button type="submit" onClick={(event) => { handleSubmitSetModal(event, startDate, endDate, item); setShowModal(false); setModalSearchTerm(''); }} disabled={isButtonDisabled}>Submit</button>
     </>
   );
 };

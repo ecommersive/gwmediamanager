@@ -93,31 +93,21 @@ app.get('/playlistSchedule', async (req, res) => {
 });
 
 app.post('/createPlaylistSchedule', verifyToken, async (req, res) => {
-  console.log('request body = ',req.body);  // Log the entire request body
-  const { items, startTime, endTime, startDate, endDate, otherTimes } = req.body;
+  const { items, startDate, endDate, otherTimes } = req.body;
   
   // Ensure items is defined and not empty
   if (!items || items.length === 0) {
     return res.status(400).send('items array is required and must not be empty.');
   }
 
-s
-  
-  // Extract file names and convert to ObjectId references
+  // Extract file names directly
   const itemsFileNames = items.map(item => item.FileName);
-  const itemsIds = await Promise.all(itemsFileNames.map(async (fileName) => {
-    const playlistItem = await Playlist.findOne({ FileName: fileName });
-    const adsItem = await Ads.findOne({ FileName: fileName });
-    return playlistItem ? playlistItem._id : adsItem ? adsItem._id : null;
-  }));
 
   const folderNumber = await PlaylistSchedule.countDocuments() + 1; // Ensure this is a number
 
   const newPlaylistSchedule = new PlaylistSchedule({
     folder: folderNumber,
-    items: itemsIds.filter(id => id !== null), // Filter out any null values if files not found
-    startTime,
-    endTime,
+    items: itemsFileNames, // Directly store file names
     startDate,
     endDate,
     otherTimes
@@ -129,6 +119,21 @@ s
   } catch (err) {
     console.error('Error saving new playlist schedule:', err);
     res.status(500).send('Internal Server Error');
+  }
+});
+
+
+app.get('/playlistSchedule/:folder', verifyToken, async (req, res) => {
+  const { folder } = req.params;
+  try {
+    const playlistSchedule = await PlaylistSchedule.findOne({ folder });
+    if (!playlistSchedule) {
+      return res.status(404).json({ message: 'Playlist schedule not found' });
+    }
+    res.json(playlistSchedule);
+  } catch (error) {
+    console.error('Error retrieving playlist schedule:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 

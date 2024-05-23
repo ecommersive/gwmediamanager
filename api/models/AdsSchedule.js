@@ -5,13 +5,7 @@ const adsScheduleSchema = new mongoose.Schema({
     folder: {
         type: Number,
     },
-    items: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Playlist' 
-    }, {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Ads' 
-    }],
+    items: [String],
    
     startDate: {
         type: Date,
@@ -19,14 +13,6 @@ const adsScheduleSchema = new mongoose.Schema({
     },
     endDate: {
         type: Date,
-        required: true
-    },
-    startTime: {
-        type: String,
-        required: true
-    },
-    endTime: {
-        type: String,
         required: true
     },
     otherTimes: [String]

@@ -5,26 +5,12 @@ const playlistScheduleSchema = new mongoose.Schema({
     folder: {
         type: Number
     },
-    items: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Playlist' 
-    }, {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Ads' 
-    }],
+    items: [String],
     startDate: {
         type: Date,
         required: true
     },
     endDate: {
-        type: Date,
-        required: true
-    },
-    startTime: {
-        type: Date,
-        required: true
-    },
-    endTime: {
         type: Date,
         required: true
     },

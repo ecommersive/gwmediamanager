@@ -1,7 +1,7 @@
 import React from 'react';
 import '../styles/datatable.css';
 
-const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setShowModal, setFileName, setMode ,setNotes, setCatData }) => {
+const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setShowModal, setFileName, setMode ,setNotes, setCatData, setfolderViewNum }) => {
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
@@ -23,8 +23,6 @@ const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setSh
                 <th>Filename</th>
                 <th>Starting Date</th>
                 <th>Ending Date</th>
-                <th>Starting Time</th>
-                <th>Ending Time</th>
                 <th>Times {currentData === 'Playlist Schedule' ? 'set of playlist' : currentData === 'Ads Schedule' ? 'set of ads' : ''} being played at</th>
                 {isAdmin && <th>Alter {currentData === 'Playlist Schedule' ? 'Playlist Schedule': currentData === 'Ads Schedule' ? 'Ads Schedule': ''}</th>}
               </tr>
@@ -72,20 +70,14 @@ const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setSh
                 return (
                   <tr key={index} style={{ backgroundColor: index % 2 === 0 ? 'transparent' : '#f0f0f0' }}>
                     <td>
-                      <button className="action-button">
-                        {(currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads ') + item.folder}
-                      </button>
+                      <button className="action-button" onClick={() => { setShowModal(true); setMode('configureData'); setCatData('viewTimes'); setfolderViewNum(item.folder)}}>{(currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads ') + item.folder}</button>
                     </td>
                     <td>{formatDate(item.startDate)}</td>
                     <td>{formatDate(item.endDate)}</td>
-                    <td>{formatTime(item.startTime)}</td>
-                    <td>{formatTime(item.endTime)}</td>
                     <td>{item.otherTimes}</td>
                     {isAdmin && 
                       <th>
-                        <button className="action-button">
-                          Alter {currentData === 'Playlist Schedule' ? 'Playlist Times': currentData === 'Ads Schedule' ? 'Ad Times': ''}
-                        </button>
+                        <button className="action-button" onClick={() => { setShowModal(true); setMode('configureData'); setCatData('setupTimes');}}>Alter {currentData === 'Playlist Schedule' ? 'Playlist Times': currentData === 'Ads Schedule' ? 'Ad Times': ''}</button>
                       </th>
                     }
                   </tr>

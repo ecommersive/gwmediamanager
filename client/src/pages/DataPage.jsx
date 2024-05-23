@@ -367,7 +367,7 @@ const DataPage = () => {
       console.error('Error deleting note:', error.response ? error.response.data : error);
     }
   };
-  const handleSubmitSetModal = (event, startDate, endDate, item) => {
+  const handleSubmitSetModal = (event, startDate, endDate, item, startTime, endTime) => {
     event.preventDefault();
     let baseUrl = process.env.REACT_APP_API_URL;
     let url = `${baseUrl}/`
@@ -385,7 +385,9 @@ const DataPage = () => {
       const response = axios.post(url, {
         startDate: startDate,
         endDate: endDate,
-        items: item
+        items: item,
+        startTime: startTime, 
+        endTime: endTime
       }, {
         headers: {
           Authorization: `Bearer ${token}`,

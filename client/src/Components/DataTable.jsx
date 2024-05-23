@@ -1,18 +1,20 @@
 import React from 'react';
 import '../styles/datatable.css';
 
-const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setShowModal, setFileName, setMode ,setNotes, setCatData, setfolderViewNum }) => {
+const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setShowModal, setFileName, setMode, setNotes, setCatData, setfolderViewNum }) => {
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
   };
 
-  const formatTime = (dateTimeString) => {
-    const date = new Date(dateTimeString);
-    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+  const formatTime = (timeString) => {
+    if (!timeString) return '';
+    const [hours, minutes] = timeString.split(':');
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const adjustedHours = hours % 12 || 12;
+    return `${adjustedHours}:${minutes} ${period}`;
   };
 
-  
   return (
     <section className="table_body">
       <table>
@@ -24,7 +26,6 @@ const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setSh
                 <th>Starting Date</th>
                 <th>Ending Date</th>
                 <th>Times {currentData === 'Playlist Schedule' ? 'set of playlist' : currentData === 'Ads Schedule' ? 'set of ads' : ''} being played at</th>
-                {isAdmin && <th>Alter {currentData === 'Playlist Schedule' ? 'Playlist Schedule': currentData === 'Ads Schedule' ? 'Ads Schedule': ''}</th>}
               </tr>
               :
               <tr>
@@ -66,24 +67,18 @@ const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setSh
                   }
                 </tr>
               );
-            }else if(currentData === 'Playlist Schedule' || currentData === 'Ads Schedule'){
-                return (
-                  <tr key={index} style={{ backgroundColor: index % 2 === 0 ? 'transparent' : '#f0f0f0' }}>
-                    <td>
-                      <button className="action-button" onClick={() => { setShowModal(true); setMode('configureData'); setCatData('viewTimes'); setfolderViewNum(item.folder)}}>{(currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads ') + item.folder}</button>
-                    </td>
-                    <td>{formatDate(item.startDate)}</td>
-                    <td>{formatDate(item.endDate)}</td>
-                    <td>{item.otherTimes}</td>
-                    {isAdmin && 
-                      <th>
-                        <button className="action-button" onClick={() => { setShowModal(true); setMode('configureData'); setCatData('setupTimes');}}>Alter {currentData === 'Playlist Schedule' ? 'Playlist Times': currentData === 'Ads Schedule' ? 'Ad Times': ''}</button>
-                      </th>
-                    }
-                  </tr>
-                );
+            } else if (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') {
+              return (
+                <tr key={index} style={{ backgroundColor: index % 2 === 0 ? 'transparent' : '#f0f0f0' }}>
+                  <td>
+                    <button className="action-button" onClick={() => { setShowModal(true); setMode('configureData'); setCatData('viewTimes'); setfolderViewNum(item.folder) }}>{(currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads ') + item.folder}</button>
+                  </td>
+                  <td>{formatDate(item.startDate)}</td>
+                  <td>{formatDate(item.endDate)}</td>
+                  <td>{formatTime(item.startTime)} - {formatTime(item.endTime)}</td>
+                </tr>
+              );
             }
-            
           })}
 
         </tbody>

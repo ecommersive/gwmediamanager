@@ -14,7 +14,14 @@ const playlistScheduleSchema = new mongoose.Schema({
         type: Date,
         required: true
     },
-    otherTimes: [String]
+    startTime: {
+        type: String, // Store time as string in HH:MM format
+        required: true
+    },
+    endTime: {
+        type: String, // Store time as string in HH:MM format
+        required: true
+    }
 });
 
 const PlaylistSchedule = mongoose.model('PlaylistSchedule', playlistScheduleSchema);

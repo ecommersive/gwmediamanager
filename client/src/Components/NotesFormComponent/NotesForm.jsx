@@ -1,4 +1,4 @@
-const NotesForm = ({ currentData, catData, fileName, notes, editingNoteId, editingNoteText, handleUpdateNoteText, handleEditNote,handleDoneEditNote, handleDeleteNote, handleAddNoteSubmit, newNote, setNewNote={setNewNote} }) => {
+const NotesForm = ({ currentData, catData, fileName, notes, editingNoteId, editingNoteText, handleUpdateNoteText, handleEditNote,handleDoneEditNote, handleDeleteNote, handleAddNoteSubmit, newNote, setNewNote={setNewNote}}) => {
     const shouldRenderNotes = catData === 'viewNotes' || catData === 'AddNote' || catData === 'UpdateNote' || catData === 'DeleteNote';
   
     return (

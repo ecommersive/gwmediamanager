@@ -525,8 +525,8 @@ app.get('/notes/:category/:filename', verifyToken, async (req, res) => {
 
 //notes for folders
 
-app.post('/notes/add/:category/:folder', verifyToken, async (req, res) => {
-  const { category, folder } = req.params;
+app.post('/notes/add/playlistSchedule/:folder', verifyToken, async (req, res) => {
+  const { folder } = req.params;
   const { text } = req.body;
 
   try {
@@ -543,34 +543,19 @@ app.post('/notes/add/:category/:folder', verifyToken, async (req, res) => {
     console.error('Failed to add note:', error);
     res.status(500).json({ message: 'Failed to add note' });
   }
-  try {
-    let model;
-    if (category === 'Playlist Schedule') {
-      model = PlaylistSchedule;
-    } else if (category === 'Ads Schedule') {
-      model = AdsSchedule;
-    } else {
-      return res.status(400).json({ message: 'Invalid category' });
-    }
-
-    const item = await model.findOne({ folder });
-    if (!item) {
-      return res.status(404).json({ message: `${category} not found` });
-    }
-
-    item.notes.push({ text });
-    await item.save();
-
-    res.status(200).json({ message: 'Note added successfully' });
-  } catch (error) {
-    console.error('Failed to add note:', error);
-    res.status(500).json({ message: 'Failed to add note' });
-  }
 });
 app.get('/notes/:category/:folder', verifyToken, async (req, res) => {
+  const category = req.params.category;
+  const folder = req.params.folder;
   try {
-    const folder = req.params.folder;
-    const notes = await PlaylistSchedule.find({ folder: folder });
+    let notes;
+    if (category === 'Playlist Schedule') {
+      notes = await PlaylistSchedule.find({ folder: folder });
+    } else if (category === 'Ads Schedule') {
+      notes = await AdsSchedule.find({ folder: folder });
+    } else {
+      throw new Error('Invalid category');
+    }
     res.json(notes);
   } catch (error) {
     console.error('Failed to fetch notes:', error);

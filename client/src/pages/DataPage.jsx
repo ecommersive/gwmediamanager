@@ -269,7 +269,7 @@ const DataPage = () => {
     localStorage.removeItem('isAdmin');
     navigate('/');
   }
-
+  console.log('SELECTED CATEGORY++++++++++++++++', selectedCategory);
   const handleAddNoteSubmit = async (event, fileName) => {
     event.preventDefault();
     const noteToAdd = {
@@ -279,7 +279,10 @@ const DataPage = () => {
     let baseUrl = process.env.REACT_APP_API_URL;
     try {
       const encodedFileName = encodeURIComponent(fileName);
-      const response = await axios.post(`${baseUrl}/notes/add/${selectedCategory.toLowerCase()}/${encodedFileName}`, noteToAdd, {
+      const endpoint = currentData === 'Playlist Schedule' || currentData === 'Ads Schedule'
+        ? `${baseUrl}/notes/add/playlistSchedule/${encodeURIComponent(1)}`
+        : `${baseUrl}/notes/add/${selectedCategory.toLowerCase()}/${encodedFileName}`;
+      const response = await axios.post(endpoint, noteToAdd, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -438,8 +441,8 @@ const DataPage = () => {
               <FormExpiry catData={catData} expiry={expiry} handleExpiryChange={handleExpiryChange} />
               <FormButton catData={catData} fileName={fileName} photoUrl={photoUrl} type={type} runTime={runTime} content={content} videoUrl={videoUrl} handleSubmit={handleSubmit} />
             </form>
-            <NotesForm currentData={currentData} catData={catData} fileName={fileName} notes={notes} editingNoteId={editingNoteId} editingNoteText={editingNoteText} handleUpdateNoteText={handleUpdateNoteText} handleDoneEditNote={handleDoneEditNote} handleEditNote={handleEditNote} handleDeleteNote={handleDeleteNote} handleAddNoteSubmit={handleAddNoteSubmit} newNote={newNote} setNewNote={setNewNote} />
-            <SetCreation catData={catData} setShowModal={setShowModal} handleSubmitSetModal={handleSubmitSetModal} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} handleAddToSet={handleAddToSet} item={item} />
+            <NotesForm currentData={currentData} catData={catData} fileName={fileName} notes={notes} editingNoteId={editingNoteId} editingNoteText={editingNoteText} handleUpdateNoteText={handleUpdateNoteText} handleDoneEditNote={handleDoneEditNote} handleEditNote={handleEditNote} handleDeleteNote={handleDeleteNote} handleAddNoteSubmit={handleAddNoteSubmit} newNote={newNote} setNewNote={setNewNote}/>
+            <SetCreation catData={catData} setShowModal={setShowModal} handleSubmitSetModal={handleSubmitSetModal} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} handleAddToSet={handleAddToSet} item={item}/>
             <ViewList currentData={currentData} catData={catData} folderViewNum={folderViewNum} data={data.find(d => d.folder === folderViewNum)}/>
           </>
         }

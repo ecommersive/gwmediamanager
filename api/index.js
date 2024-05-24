@@ -100,23 +100,27 @@ app.post('/createPlaylistSchedule', verifyToken, async (req, res) => {
     return res.status(400).send('items array is required and must not be empty.');
   }
 
-   // Validate no overlapping time slots
-   if (startTime >= endTime) {
+  // Validate no overlapping time slots
+  if (startTime >= endTime) {
     return res.status(400).json({ message: 'Start time must be earlier than end time.' });
   }
-  const itemsFileNames = items.map(item => item.FileName);
-  const folderNumber = await PlaylistSchedule.countDocuments() + 1;
 
-  const newPlaylistSchedule = new PlaylistSchedule({
-    folder: folderNumber,
-    items: itemsFileNames,
-    startDate,
-    endDate,
-    startTime,
-    endTime
-  });
+  const itemsFileNames = items.map(item => item.FileName);
 
   try {
+    // Improved folder number calculation
+    const latestSchedule = await PlaylistSchedule.findOne().sort({ folder: -1 }).exec();
+    const folderNumber = latestSchedule ? latestSchedule.folder + 1 : 1;
+
+    const newPlaylistSchedule = new PlaylistSchedule({
+      folder: folderNumber,
+      items: itemsFileNames,
+      startDate,
+      endDate,
+      startTime,
+      endTime
+    });
+
     const savedSchedule = await newPlaylistSchedule.save();
     res.status(201).json(savedSchedule);
   } catch (err) {

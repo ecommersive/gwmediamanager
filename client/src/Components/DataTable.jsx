@@ -26,6 +26,7 @@ const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setSh
                 <th>Starting Date</th>
                 <th>Ending Date</th>
                 <th>Times {currentData === 'Playlist Schedule' ? 'set of playlist' : currentData === 'Ads Schedule' ? 'set of ads' : ''} being played at</th>
+                <th>Alter {currentData === 'Playlist Schedule' ? 'Playlist' : currentData === 'Ads Schedule' ? 'Ads':''}</th>
               </tr>
               :
               <tr>
@@ -76,6 +77,7 @@ const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setSh
                   <td>{formatDate(item.startDate)}</td>
                   <td>{formatDate(item.endDate)}</td>
                   <td>{formatTime(item.startTime)} - {formatTime(item.endTime)}</td>
+                  <td><button onClick={()=>{setShowModal(true);setMode('configureData'); setCatData('alterTimes'); setfolderViewNum(item.folder)}}>Alter</button></td>
                 </tr>
               );
             }

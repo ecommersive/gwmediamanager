@@ -214,7 +214,7 @@ const DataPage = () => {
   const filteredData = useMemo(() => {
     
       return data.filter(item => {
-        if(currentData === 'Playlist' || currentData === 'Ads' || currentData === 'Archived'){
+        if(currentData === 'Playlist' || currentData === 'Ads'){
           return (
             item.FileName.toLowerCase().includes(searchTerm.toLowerCase()) ||
             item.Type.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -228,13 +228,14 @@ const DataPage = () => {
           return (
             item.folder.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
             item.startDate.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.endDate.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.otherTimes.toString().toLowerCase().includes(searchTerm.toLowerCase())
+            item.endDate.toLowerCase().includes(searchTerm.toLowerCase())
           );
+        }else {
+          return false; // Ensure that the filter function always returns a boolean
         }
       });
     
-  }, [searchTerm, data]);
+  }, [searchTerm, data, currentData]);
   const fetchDataModals = async () => {
     let baseUrl = process.env.REACT_APP_API_URL;
     let playlistUrl = `${baseUrl}/playlists`;
@@ -367,35 +368,42 @@ const DataPage = () => {
       console.error('Error deleting note:', error.response ? error.response.data : error);
     }
   };
-  const handleSubmitSetModal = (event, startDate, endDate, item, startTime, endTime) => {
+  const handleSubmitSetModal = async (event, startDate, endDate, item, startTime, endTime) => {
     event.preventDefault();
     let baseUrl = process.env.REACT_APP_API_URL;
-    let url = `${baseUrl}/`
-    switch (currentData){
+    let url = `${baseUrl}/`;
+    switch (currentData) {
       case 'Playlist Schedule':
         url += 'createPlaylistSchedule';
         break;
       case 'Ads Schedule':
-        url += 'createAdsSchedule'
+        url += 'createAdsSchedule';
         break;
       default:
         return;
     }
+  
+    const requestData = {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      items: item, // Extract FileName
+      startTime: startTime.startTime, // Ensure it's a string
+      endTime: endTime.endTime         // Ensure it's a string
+    };
+  
+    console.log('Request data:', requestData);
+  
     try {
-      const response = axios.post(url, {
-        startDate: startDate,
-        endDate: endDate,
-        items: item,
-        startTime: startTime, 
-        endTime: endTime
-      }, {
+      const response = await axios.post(url, requestData, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
+  
       if (response.status === 201) {
         console.log('Schedule created successfully');
+        setData(prevData => [...prevData, response.data]);
         setShowModal(false);
       } else {
         throw new Error('Failed to create schedule');
@@ -403,7 +411,8 @@ const DataPage = () => {
     } catch (error) {
       console.log('Error occurred. Please try again = ', error);
     }
-  }
+  };
+  
   useEffect(() => {
     if (item.length > 0) {
       console.log('item updated:', item);
@@ -442,7 +451,7 @@ const DataPage = () => {
             </form>
             <NotesForm catData={catData} fileName={fileName} notes={notes} editingNoteId={editingNoteId} editingNoteText={editingNoteText} handleUpdateNoteText={handleUpdateNoteText} handleDoneEditNote={handleDoneEditNote} handleEditNote={handleEditNote} handleDeleteNote={handleDeleteNote} handleAddNoteSubmit={handleAddNoteSubmit} newNote={newNote} setNewNote={setNewNote} />
             <SetCreation catData={catData} setShowModal={setShowModal} handleSubmitSetModal={handleSubmitSetModal} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} handleAddToSet={handleAddToSet} item={item} />
-            <ViewList currentData={currentData} catData={catData} folderViewNum={folderViewNum} token={token}/>
+            <ViewList currentData={currentData} catData={catData} folderViewNum={folderViewNum} data={data.find(d => d.folder === folderViewNum)}/>
           </>
         }
         

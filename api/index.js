@@ -93,7 +93,7 @@ app.get('/playlistSchedule', async (req, res) => {
 });
 
 app.post('/createPlaylistSchedule', verifyToken, async (req, res) => {
-  const { items, startDate, endDate, startTime, endTime } = req.body;
+  const { items, startDate, endDate, startTime, endTime, notes } = req.body;
 
   // Ensure items is defined and not empty
   if (!items || items.length === 0) {
@@ -118,7 +118,8 @@ app.post('/createPlaylistSchedule', verifyToken, async (req, res) => {
       startDate,
       endDate,
       startTime,
-      endTime
+      endTime,
+      notes
     });
 
     const savedSchedule = await newPlaylistSchedule.save();
@@ -147,7 +148,7 @@ app.get('/playlistSchedule/:folder', verifyToken, async (req, res) => {
 
 
 app.post('/createAdsSchedule', verifyToken, async (req, res) => {
-  const { items, startDate, endDate, startTime, endTime } = req.body;
+  const { items, startDate, endDate, startTime, endTime, notes } = req.body;
 
   // Ensure items is defined and not empty
   if (!items || items.length === 0) {
@@ -167,7 +168,8 @@ app.post('/createAdsSchedule', verifyToken, async (req, res) => {
     startDate,
     endDate,
     startTime,
-    endTime
+    endTime,
+    notes
   });
 
   try {
@@ -196,7 +198,7 @@ app.get('/adsSchedule/:folder', verifyToken, async (req, res) => {
 
 
 app.post('/uploadPlaylist',verifyToken, async (req, res) => {
-  const { FileName, PhotoUrl, Type, Tag, Run_Time, Content, videoUrl, Expiry, notes } = req.body;
+  const { FileName, PhotoUrl, Type, Tag, Run_Time, Content,  Expiry, notes } = req.body;
   const foundIn = await checkFileExistence(FileName);
   if (foundIn.length > 0) {
     return res.status(400).json({ message: `File name already exists in ${foundIn.join(', ')}.` });
@@ -209,7 +211,7 @@ app.post('/uploadPlaylist',verifyToken, async (req, res) => {
     Tag,
     Run_Time,
     Content,
-    videoUrl,
+    
     Expiry,
     notes
   });
@@ -258,7 +260,7 @@ app.post('/register', async (req, res) => {
   }
 });
 app.post('/uploadAds', verifyToken, async (req, res) => {
-  const { FileName, PhotoUrl, Type, Tag, Run_Time, Content, videoUrl, Expiry, notes } = req.body;
+  const { FileName, PhotoUrl, Type, Tag, Run_Time, Content,  Expiry, notes } = req.body;
 
   const foundIn = await checkFileExistence(FileName);
   if (foundIn.length > 0) {
@@ -272,7 +274,7 @@ app.post('/uploadAds', verifyToken, async (req, res) => {
     Tag,
     Run_Time,
     Content,
-    videoUrl,
+    
     Expiry,
     notes
   });

@@ -1,7 +1,7 @@
 import React from 'react';
 import '../styles/datatable.css';
 
-const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setShowModal, setFileName, setMode, setNotes, setCatData, setfolderViewNum }) => {
+const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileName, setMode, setNotes, setCatData, setfolderViewNum }) => {
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
@@ -35,7 +35,6 @@ const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setSh
                 <th>Tag</th>
                 <th>Run Time</th>
                 <th>Type</th>
-                <th>Video Url</th>
                 <th>Expiry</th>
                 {isAdmin && <th>Notes</th>}
                 {isAdmin && <th>Alter Notes</th>}
@@ -53,7 +52,6 @@ const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setSh
                   <td>{item.Tag}</td>
                   <td>{item.Run_Time}</td>
                   <td>{item.Content}</td>
-                  <td><button onClick={() => { handleVideoClick(item.videoUrl); setMode('viewvideo')}}>View</button></td>
                   <td>{item.Expiry}</td>
                   {isAdmin && <td><button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setCatData('viewNotes'); setMode('configureData')}}>View</button></td>}
                   {isAdmin &&

@@ -10,7 +10,6 @@ const FormAllDataBody = ({ catData, selectedCategory, handleSelectedCategoryChan
               <select value={selectedCategory} onChange={handleSelectedCategoryChange}>
                 <option value="Playlist">Playlist</option>
                 <option value="Ads">Ads</option>
-                {(catData === 'ExtendExpiry' || catData === 'DeleteData') && <option value="Archived">Archived</option>}
               </select>
             </label>
             <br />

@@ -3,7 +3,7 @@ import '../styles/headerbuttons.css'
 const HeaderButtons = ({ currentData, isAdmin, handleModal, setMode, setCatData, handleLogout}) => {
   return (
     <div>
-      {(currentData === 'Playlist' || currentData === 'Ads' || currentData === 'Archived') ? (
+      {(currentData === 'Playlist' || currentData === 'Ads') ? (
         isAdmin && (
           <>
             <button className="action-button" onClick={() => { handleModal(true); setMode('configureData'); setCatData('addData'); }}>Add Data</button>

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Modal from '../Components/Modal';
-import VideoViewer from '../Components/Videoviewer';
 import SearchInput from '../Components/SearchInput';
 import HeaderButtons from '../Components/HeaderButtons';
 import DataTable from '../Components/DataTable';
@@ -23,7 +22,6 @@ const DataPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [catData, setCatData] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [videoKey, setVideoKey] = useState(uuidv4());
   const [data, setData] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [currentData, setCurrentData] = useState('Playlist');
@@ -38,7 +36,6 @@ const DataPage = () => {
   const [selectedCategory, setSelectedCategory] = useState('Playlist');
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
-  const [currentVideoUrl, setCurrentVideoUrl] = useState('');
   const [modalSearchTerm, setModalSearchTerm] = useState('');
   const [modalData, setModalData] = useState([]);
   const [item, setItem] = useState([]);
@@ -46,12 +43,6 @@ const DataPage = () => {
   const [newNote, setNewNote] = useState('');
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [editingNoteText, setEditingNoteText] = useState('');
-
-  const handleVideoClick = (videoUrl) => {
-    setCurrentVideoUrl(videoUrl);
-    setShowModal(true);
-    setVideoKey(uuidv4());
-  };
   const handleModal = () => {
     setShowModal(!showModal);
   }
@@ -437,9 +428,8 @@ const DataPage = () => {
           <HeaderButtons currentData={currentData} isAdmin={isAdmin} handleModal={handleModal} setMode={setMode} setCatData={setCatData} handleLogout={handleLogout} />
         </div>
       </section>
-      <DataTable currentData={currentData} isAdmin={isAdmin} setMode={setMode} searchTerm={searchTerm} handleVideoClick={handleVideoClick} filteredData={filteredData} setShowModal={setShowModal} setFileName={setFileName} setNotes={setNotes} setCatData={setCatData} setfolderViewNum={setfolderViewNum}/>
-      <Modal style={mode === 'viewvideo' ? { height: '100%' } : {}} isOpen={showModal} onClose={() => { ModalClose(); if (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') { setModalSearchTerm(''); } }}>
-        {mode === 'viewvideo' && <VideoViewer videoUrl={currentVideoUrl} key={videoKey} />}
+      <DataTable currentData={currentData} isAdmin={isAdmin} setMode={setMode} searchTerm={searchTerm}  filteredData={filteredData} setShowModal={setShowModal} setFileName={setFileName} setNotes={setNotes} setCatData={setCatData} setfolderViewNum={setfolderViewNum}/>
+      <Modal isOpen={showModal} onClose={() => { ModalClose(); if (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') { setModalSearchTerm(''); } }}>
         {mode === 'configureData' &&
           <>
             <form onSubmit={handleSubmit}>

@@ -355,25 +355,7 @@ app.post('/setExpiry/:category/:fileName', verifyToken, async (req, res) => {
     res.status(500).send({ error: 'Internal Server Error' });
   }
 });
-app.get('/notes/:category/:filename', verifyToken, async (req, res) => {
-  const { category, filename } = req.params;
-  const Model = { 'playlist': Playlist, 'ads': Ads }[category.toLowerCase()];
-  
-  if (!Model) {
-    return res.status(404).json({ error: 'Category not found' });
-  }
 
-  try {
-    const document = await Model.findOne({ FileName: new RegExp(`^${filename}$`, 'i') });
-    if (!document) {
-      return res.status(404).json({ error: 'File not found' });
-    }
-    res.json(document.notes || []);
-  } catch (error) {
-    console.error(`Failed to fetch notes for file: ${filename} in category: ${category}`, error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
 
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
@@ -415,7 +397,7 @@ app.listen(PORT, () => {
 });
 
 
-
+//notes for files
 app.post('/notes/add/:category/:fileName', verifyToken, async (req, res) => {
   const { category, fileName } = req.params;
   const { text, addedOn } = req.body; 
@@ -488,7 +470,6 @@ app.put('/notes/update/:category/:fileName', verifyToken, async (req, res) => {
   }
 });
 
-
 app.delete('/notes/delete/:category/:fileName/:noteIndex', verifyToken, async (req, res) => {
   const { category, fileName, noteIndex } = req.params;
   const index = parseInt(noteIndex, 10); 
@@ -522,6 +503,56 @@ app.delete('/notes/delete/:category/:fileName/:noteIndex', verifyToken, async (r
   }
 });
 
+app.get('/notes/:category/:filename', verifyToken, async (req, res) => {
+  const { category, filename } = req.params;
+  const Model = { 'playlist': Playlist, 'ads': Ads }[category.toLowerCase()];
+  
+  if (!Model) {
+    return res.status(404).json({ error: 'Category not found' });
+  }
+
+  try {
+    const document = await Model.findOne({ FileName: new RegExp(`^${filename}$`, 'i') });
+    if (!document) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+    res.json(document.notes || []);
+  } catch (error) {
+    console.error(`Failed to fetch notes for file: ${filename} in category: ${category}`, error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+//notes for folders
+app.post('/notes/add/:folder', verifyToken, async (req, res) => {
+  const { folder } = req.params;
+  const { text } = req.body;
+
+  try {
+    const playlistSchedule = await PlaylistSchedule.findOne({ folder });
+    if (!playlistSchedule) {
+      return res.status(404).json({ message: 'Playlist schedule not found' });
+    }
+
+    playlistSchedule.notes.push({ text });
+    await playlistSchedule.save();
+
+    res.status(200).json({ message: 'Note added successfully' });
+  } catch (error) {
+    console.error('Failed to add note:', error);
+    res.status(500).json({ message: 'Failed to add note' });
+  }
+});
+app.get('/notes/:folder', verifyToken, async (req, res) => {
+  try {
+    const folder = req.params.folder;
+    const notes = await PlaylistSchedule.find({ folder: folder });
+    res.json(notes);
+  } catch (error) {
+    console.error('Failed to fetch notes:', error);
+    res.status(500).json({ error: 'Failed to fetch notes' });
+  }
+});
 
 
 

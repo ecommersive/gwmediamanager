@@ -216,19 +216,19 @@ const DataPage = () => {
       return data.filter(item => {
         if(currentData === 'Playlist' || currentData === 'Ads'){
           return (
-            item.FileName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.Type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.FileName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.Type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             item.Tag?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.Run_Time.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.Content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.videoUrl.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.Run_Time?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.Content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.videoUrl?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             item.Expiry?.toLowerCase().includes(searchTerm.toLowerCase())
           );
         }else if(currentData === 'Playlist Schedule' || currentData === 'Ads Schedule'){
           return (
-            item.folder.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.startDate.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.endDate.toLowerCase().includes(searchTerm.toLowerCase())
+            item.folder?.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.startDate?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.endDate?.toLowerCase().includes(searchTerm.toLowerCase())
           );
         }else {
           return false; // Ensure that the filter function always returns a boolean
@@ -255,12 +255,12 @@ const DataPage = () => {
   };
   const modalFilteredData = useMemo(() => {
     return modalData.filter(item =>
-      item.FileName.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
-      item.Type.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
+      item.FileName?.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
+      item.Type?.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
       item.Tag?.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
-      item.Run_Time.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
-      item.Content.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
-      item.videoUrl.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
+      item.Run_Time?.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
+      item.Content?.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
+      item.videoUrl?.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
       item.Expiry?.toLowerCase().includes(modalSearchTerm.toLowerCase())
     );
   }, [modalSearchTerm, modalData]);
@@ -433,7 +433,7 @@ const DataPage = () => {
           <SwitchSections currentData={currentData} handleDataSelection={handleDataSelection}/>
         </div>
         <div className="header-controls">
-          <SearchInput searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+          {(currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? '' : <SearchInput searchTerm={searchTerm} setSearchTerm={setSearchTerm} />}
           <HeaderButtons currentData={currentData} isAdmin={isAdmin} handleModal={handleModal} setMode={setMode} setCatData={setCatData} handleLogout={handleLogout} />
         </div>
       </section>

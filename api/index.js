@@ -148,6 +148,7 @@ app.get('/playlistSchedule/:folder', verifyToken, async (req, res) => {
 
 app.delete('/playlistSchedule/:folder/:item', verifyToken, async (req, res) => {
   const { folder, item } = req.params;
+  console.log(folder, item)
 
   try {
     const decodedItem = decodeURIComponent(item);
@@ -170,7 +171,7 @@ app.delete('/playlistSchedule/:folder/:item', verifyToken, async (req, res) => {
     console.error('Error deleting item from playlist schedule:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
-});
+})
 
 app.post('/createAdsSchedule', verifyToken, async (req, res) => {
   const { items, startDate, endDate, startTime, endTime, notes } = req.body;

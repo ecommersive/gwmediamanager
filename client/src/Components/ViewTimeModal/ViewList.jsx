@@ -1,41 +1,42 @@
-import React, { useState } from 'react';
+import React from 'react';
 import SearchInput from '../SearchInput';
 
-const ViewList = ({ currentData, catData, data, modalSearchTerm ,setModalSearchTerm, modalFilteredData, itemExists, state, setState }) => {  
+const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchTerm, modalFilteredData, itemExists, state, setState, deleteItemPlaylistSchedule }) => {
+  
+  
+
   return (
     <>
       {((currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') && (catData === 'viewTimes' || catData === 'alterTable')) && (
         <>
-        
           <h1>{currentData === 'Playlist Schedule' ? 'Playlist Schedule' : 'Ads Schedule'}</h1>
-          {state === 'Add' && <>
-            <SearchInput searchTerm={modalSearchTerm} setSearchTerm={setModalSearchTerm}/>
-            <br />
-            {modalSearchTerm.length > 0 ? (
-              modalFilteredData.length > 0 ? (
-                modalFilteredData.filter(modalItem => !itemExists(modalItem.FileName)).map((modalItem, index) => (
-                  <div key={index}>
-                    <span>{modalItem.FileName}</span>
-                    <button>
-                      Add
-                    </button>
-                  </div>
-                ))
+          {state === 'Add' && (
+            <>
+              <SearchInput searchTerm={modalSearchTerm} setSearchTerm={setModalSearchTerm} />
+              <br />
+              {modalSearchTerm.length > 0 ? (
+                modalFilteredData.length > 0 ? (
+                  modalFilteredData.filter(modalItem => !itemExists(modalItem.FileName)).map((modalItem, index) => (
+                    <div key={index}>
+                      <span>{modalItem.FileName}</span>
+                      <button>Add</button>
+                    </div>
+                  ))
+                ) : (
+                  <p>No data found. Please search for data.</p>
+                )
               ) : (
                 <p>No data found. Please search for data.</p>
-              )
-            ) : (
-              <p>No data found. Please search for data.</p>
-            )}
-          </> }
+              )}
+            </>
+          )}
           {data && (
-            
             <div>
-              { state === '' && catData === 'viewTimes' &&
-              <p>
-                {currentData === 'Playlist Schedule' ? `Duration of Playlist ${data.folder}` : `Duration of Ads ${data.folder}`} : {new Date(data.startDate).toLocaleDateString()} - {new Date(data.endDate).toLocaleDateString()}
-              </p>
-              }
+              {state === '' && (catData === 'viewTimes' || catData === 'alterTable') && (
+                <p>
+                  {currentData === 'Playlist Schedule' ? `Duration of Playlist ${data.folder}` : `Duration of Ads ${data.folder}`} : {new Date(data.startDate).toLocaleDateString()} - {new Date(data.endDate).toLocaleDateString()}
+                </p>
+              )}
               {state === '' && catData === 'alterTable' && (
                 <>
                   <h1>Alter {currentData === 'Playlist Schedule' ? ` Playlist ${data.folder}` : ` Ads ${data.folder}`}</h1>
@@ -52,10 +53,9 @@ const ViewList = ({ currentData, catData, data, modalSearchTerm ,setModalSearchT
                   <ul>
                     {data.items.map((item, index) => (
                       <li key={index}>
-                        
                         {item}
                         {state === 'Delete' && (
-                          <button className='action-button' onClick={() => console.log('Delete', item)}>Delete</button>
+                          <button className='action-button' onClick={() => deleteItemPlaylistSchedule(item)}>Delete</button>
                         )}
                         {state === 'Move' && (
                           <>
@@ -68,9 +68,9 @@ const ViewList = ({ currentData, catData, data, modalSearchTerm ,setModalSearchT
                   </ul>
                 </div>
               )}
-              {
-                (state === 'Add' || state === 'Delete' || state === 'Move') && <button className='action-button' onClick={() => setState('')}>Save</button>
-              }
+              {(state === 'Add' || state === 'Delete' || state === 'Move') && (
+                <button className='action-button' onClick={() => setState('')}>Save</button>
+              )}
             </div>
           )}
         </>

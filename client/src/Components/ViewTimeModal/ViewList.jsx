@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import SearchInput from '../SearchInput';
 
-const ViewList = ({ currentData, catData, data, modalSearchTerm ,setModalSearchTerm, modalFilteredData, itemExists }) => {
-  const [state, setState] = useState('');
-
+const ViewList = ({ currentData, catData, data, modalSearchTerm ,setModalSearchTerm, modalFilteredData, itemExists, state, setState }) => {  
   return (
     <>
       {((currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') && (catData === 'viewTimes' || catData === 'alterTable')) && (
@@ -31,12 +29,15 @@ const ViewList = ({ currentData, catData, data, modalSearchTerm ,setModalSearchT
             )}
           </> }
           {data && (
+            
             <div>
+              { state === '' && catData === 'viewTimes' &&
+              <p>
+                {currentData === 'Playlist Schedule' ? `Duration of Playlist ${data.folder}` : `Duration of Ads ${data.folder}`} : {new Date(data.startDate).toLocaleDateString()} - {new Date(data.endDate).toLocaleDateString()}
+              </p>
+              }
               {state === '' && catData === 'alterTable' && (
                 <>
-                  <p>
-                    {currentData === 'Playlist Schedule' ? `Duration of Playlist ${data.folder}` : `Duration of Ads ${data.folder}`} : {new Date(data.startDate).toLocaleDateString()} - {new Date(data.endDate).toLocaleDateString()}
-                  </p>
                   <h1>Alter {currentData === 'Playlist Schedule' ? ` Playlist ${data.folder}` : ` Ads ${data.folder}`}</h1>
                   <div style={{ display: 'flex', margin: '0 10px' }}>
                     <button className='action-button' style={{ margin: '0 10px' }} onClick={() => setState('Add')}>Add</button>

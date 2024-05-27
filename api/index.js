@@ -146,6 +146,31 @@ app.get('/playlistSchedule/:folder', verifyToken, async (req, res) => {
 });
 
 
+app.delete('/playlistSchedule/:folder/:item', verifyToken, async (req, res) => {
+  const { folder, item } = req.params;
+
+  try {
+    const decodedItem = decodeURIComponent(item);
+    console.log(`Decoded item: ${decodedItem}`); // Log the decoded item name
+
+    const playlistSchedule = await PlaylistSchedule.findOne({ folder });
+    if (!playlistSchedule) {
+      return res.status(404).json({ message: 'Playlist schedule not found' });
+    }
+
+    console.log(`Current items before deletion: ${playlistSchedule.items}`);
+
+    playlistSchedule.items = playlistSchedule.items.filter(i => i !== decodedItem);
+    await playlistSchedule.save();
+
+    console.log(`Updated items after deletion: ${playlistSchedule.items}`);
+
+    res.json(playlistSchedule);
+  } catch (error) {
+    console.error('Error deleting item from playlist schedule:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 app.post('/createAdsSchedule', verifyToken, async (req, res) => {
   const { items, startDate, endDate, startTime, endTime, notes } = req.body;
@@ -306,6 +331,7 @@ app.delete('/deleteData/:category/:fileName', verifyToken, async (req, res) => {
   try {
     const regex = new RegExp('^' + fileName + '$', 'i');
     const deletedDocument = await Model.findOneAndDelete({ FileName: regex });
+    console.log('deleted = ', deletedDocument);
     if (!deletedDocument) {
       return res.status(404).send({ error: 'File not found' });
     }
@@ -523,7 +549,6 @@ app.get('/notes/:category/:filename', verifyToken, async (req, res) => {
   }
 });
 
-//notes for folders
 
 
 

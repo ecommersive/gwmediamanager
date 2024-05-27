@@ -32,6 +32,7 @@ const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileNa
                 <th>Starting Date</th>
                 <th>Ending Date</th>
                 <th>Times {currentData === 'Playlist Schedule' ? 'set of playlist' : currentData === 'Ads Schedule' ? 'set of ads' : ''} being played at</th>
+                <th>Alter {currentData}</th>
               </tr>
               :
               <tr>
@@ -79,6 +80,7 @@ const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileNa
                   <td>{formatDate(item.startDate)}</td>
                   <td>{formatDate(item.endDate)}</td>
                   <td>{formatTime(item.startTime)} - {formatTime(item.endTime)}</td>
+                  <td><button className="action-button" onClick={()=>{setShowModal(true); setMode('configureData'); setCatData('alterTable'); setfolderViewNum(item.folder)}}>Alter {currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} Schedule</button></td>
                 </tr>
               );
             }

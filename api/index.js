@@ -525,43 +525,6 @@ app.get('/notes/:category/:filename', verifyToken, async (req, res) => {
 
 //notes for folders
 
-app.post('/notes/add/playlistSchedule/:folder', verifyToken, async (req, res) => {
-  const { folder } = req.params;
-  const { text } = req.body;
-
-  try {
-    const playlistSchedule = await PlaylistSchedule.findOne({ folder });
-    if (!playlistSchedule) {
-      return res.status(404).json({ message: 'Playlist schedule not found' });
-    }
-
-    playlistSchedule.notes.push({ text });
-    await playlistSchedule.save();
-
-    res.status(200).json({ message: 'Note added successfully' });
-  } catch (error) {
-    console.error('Failed to add note:', error);
-    res.status(500).json({ message: 'Failed to add note' });
-  }
-});
-app.get('/notes/:category/:folder', verifyToken, async (req, res) => {
-  const category = req.params.category;
-  const folder = req.params.folder;
-  try {
-    let notes;
-    if (category === 'Playlist Schedule') {
-      notes = await PlaylistSchedule.find({ folder: folder });
-    } else if (category === 'Ads Schedule') {
-      notes = await AdsSchedule.find({ folder: folder });
-    } else {
-      throw new Error('Invalid category');
-    }
-    res.json(notes);
-  } catch (error) {
-    console.error('Failed to fetch notes:', error);
-    res.status(500).json({ error: 'Failed to fetch notes' });
-  }
-});
 
 
 

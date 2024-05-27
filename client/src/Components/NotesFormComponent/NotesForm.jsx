@@ -1,11 +1,11 @@
-const NotesForm = ({ currentData, catData, fileName, notes, editingNoteId, editingNoteText, handleUpdateNoteText, handleEditNote,handleDoneEditNote, handleDeleteNote, handleAddNoteSubmit, newNote, setNewNote={setNewNote}}) => {
+const NotesForm = ({ catData, fileName, notes, editingNoteId, editingNoteText, handleUpdateNoteText, handleEditNote,handleDoneEditNote, handleDeleteNote, handleAddNoteSubmit, newNote, setNewNote={setNewNote}}) => {
     const shouldRenderNotes = catData === 'viewNotes' || catData === 'AddNote' || catData === 'UpdateNote' || catData === 'DeleteNote';
   
     return (
       <>
         {shouldRenderNotes && (
           <>
-            {(currentData !== 'Playlist Schedule' && currentData !== 'Ads Schedule') ? <p>Filename: {fileName}</p> : <p>Folder: {}</p>}
+            <p>Filename: {fileName}</p>
             <br />
             <p>Notes:</p>
             <ul>
@@ -27,7 +27,7 @@ const NotesForm = ({ currentData, catData, fileName, notes, editingNoteId, editi
                   </li>
                 ))
               ) : (
-                <p>{(currentData !== 'Playlist Schedule' && currentData !== 'Ads Schedule') ? 'No notes found for this file.' : 'No notes found for this folder.'}</p>
+                <p>No notes found for this folder.</p>
 
               )}
             </ul>

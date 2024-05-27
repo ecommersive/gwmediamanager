@@ -19,6 +19,9 @@ const ViewList = ({ currentData, catData, folderViewNum, data }) => {
                     {data.items.map((item, index) => (
                       <li key={index}>
                         {item}
+                        <button>Move up</button>
+                        <button>Move down</button>
+                        <button>Delete</button>
                       </li>
                     ))}
                   </ul>

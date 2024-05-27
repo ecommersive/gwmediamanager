@@ -32,7 +32,6 @@ const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileNa
                 <th>Starting Date</th>
                 <th>Ending Date</th>
                 <th>Times {currentData === 'Playlist Schedule' ? 'set of playlist' : currentData === 'Ads Schedule' ? 'set of ads' : ''} being played at</th>
-                {notes}
               </tr>
               :
               <tr>
@@ -80,16 +79,6 @@ const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileNa
                   <td>{formatDate(item.startDate)}</td>
                   <td>{formatDate(item.endDate)}</td>
                   <td>{formatTime(item.startTime)} - {formatTime(item.endTime)}</td>
-                  {isAdmin && <td><button onClick={() => {setShowModal(true); setMode('configureData'); setCatData('viewNotes');}}>View</button></td>}
-                  {isAdmin &&
-                    <td>
-                      <button onClick={() => {setShowModal(true); setMode('configureData'); setCatData('AddNote');}}>Add Notes</button>
-                      <br />
-                      <button onClick={() => {setShowModal(true); setMode('configureData'); setCatData('UpdateNote');}}>Update Notes</button>
-                      <br />
-                      <button onClick={() => {setShowModal(true); setMode('configureData'); setCatData('DeleteNote');}}>Delete Notes</button>
-                    </td>
-                  }
                 </tr>
               );
             }

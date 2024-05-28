@@ -145,57 +145,6 @@ app.get('/playlistSchedule/:folder', verifyToken, async (req, res) => {
   }
 });
 
-app.post('/playlistSchedule/:folder/add', verifyToken, async (req, res) => {
-  const { folder } = req.params;
-  const { item } = req.body;
-
-  if (!item) {
-    return res.status(400).json({ message: 'Item is required' });
-  }
-
-  try {
-    const playlistSchedule = await PlaylistSchedule.findOne({ folder });
-    if (!playlistSchedule) {
-      return res.status(404).json({ message: 'Playlist schedule not found' });
-    }
-
-    playlistSchedule.items.push(item);
-    await playlistSchedule.save();
-
-    res.json(playlistSchedule);
-  } catch (error) {
-    console.error('Error adding item to playlist schedule:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-
-app.delete('/playlistSchedule/:folder/:item', verifyToken, async (req, res) => {
-  const { folder, item } = req.params;
-  console.log(folder, item)
-
-  try {
-    const decodedItem = decodeURIComponent(item);
-    console.log(`Decoded item: ${decodedItem}`); // Log the decoded item name
-
-    const playlistSchedule = await PlaylistSchedule.findOne({ folder });
-    if (!playlistSchedule) {
-      return res.status(404).json({ message: 'Playlist schedule not found' });
-    }
-
-    console.log(`Current items before deletion: ${playlistSchedule.items}`);
-
-    playlistSchedule.items = playlistSchedule.items.filter(i => i !== decodedItem);
-    await playlistSchedule.save();
-
-    console.log(`Updated items after deletion: ${playlistSchedule.items}`);
-
-    res.json(playlistSchedule);
-  } catch (error) {
-    console.error('Error deleting item from playlist schedule:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-})
 
 app.post('/createAdsSchedule', verifyToken, async (req, res) => {
   const { items, startDate, endDate, startTime, endTime, notes } = req.body;
@@ -574,9 +523,201 @@ app.get('/notes/:category/:filename', verifyToken, async (req, res) => {
   }
 });
 
+//folder edit
+// app.post('/playlistSchedule/:folder/add', verifyToken, async (req, res) => {
+//   const { folder } = req.params;
+//   const { item } = req.body;
 
+//   if (!item) {
+//     return res.status(400).json({ message: 'Item is required' });
+//   }
 
+//   try {
+//     const playlistSchedule = await PlaylistSchedule.findOne({ folder });
+//     if (!playlistSchedule) {
+//       return res.status(404).json({ message: 'Playlist schedule not found' });
+//     }
 
+//     playlistSchedule.items.push(item);
+//     await playlistSchedule.save();
+
+//     res.json(playlistSchedule);
+//   } catch (error) {
+//     console.error('Error adding item to playlist schedule:', error);
+//     res.status(500).json({ message: 'Internal server error' });
+//   }
+// });
+
+// app.delete('/playlistSchedule/:folder/:item', verifyToken, async (req, res) => {
+//   const { folder, item } = req.params;
+//   console.log(folder, item)
+
+//   try {
+//     const decodedItem = decodeURIComponent(item);
+//     console.log(`Decoded item: ${decodedItem}`); // Log the decoded item name
+
+//     const playlistSchedule = await PlaylistSchedule.findOne({ folder });
+//     if (!playlistSchedule) {
+//       return res.status(404).json({ message: 'Playlist schedule not found' });
+//     }
+
+//     console.log(`Current items before deletion: ${playlistSchedule.items}`);
+
+//     playlistSchedule.items = playlistSchedule.items.filter(i => i !== decodedItem);
+//     await playlistSchedule.save();
+
+//     console.log(`Updated items after deletion: ${playlistSchedule.items}`);
+
+//     res.json(playlistSchedule);
+//   } catch (error) {
+//     console.error('Error deleting item from playlist schedule:', error);
+//     res.status(500).json({ message: 'Internal server error' });
+//   }
+// })
+
+// app.post('/playlistSchedule/:folder/move', verifyToken, async (req, res) => {
+//   const { folder } = req.params;
+//   const { item, direction } = req.body;
+
+//   if (!item || !direction) {
+//     return res.status(400).json({ message: 'Item and direction are required' });
+//   }
+
+//   try {
+//     const playlistSchedule = await PlaylistSchedule.findOne({ folder });
+//     if (!playlistSchedule) {
+//       return res.status(404).json({ message: 'Playlist schedule not found' });
+//     }
+
+//     const index = playlistSchedule.items.indexOf(item);
+//     if (index === -1) {
+//       return res.status(404).json({ message: 'Item not found in the playlist schedule' });
+//     }
+
+//     if (direction === 'up' && index > 0) {
+//       const temp = playlistSchedule.items[index - 1];
+//       playlistSchedule.items[index - 1] = playlistSchedule.items[index];
+//       playlistSchedule.items[index] = temp;
+//     } else if (direction === 'down' && index < playlistSchedule.items.length - 1) {
+//       const temp = playlistSchedule.items[index + 1];
+//       playlistSchedule.items[index + 1] = playlistSchedule.items[index];
+//       playlistSchedule.items[index] = temp;
+//     } else {
+//       return res.status(400).json({ message: 'Invalid move operation' });
+//     }
+
+//     await playlistSchedule.save();
+
+//     res.json(playlistSchedule);
+//   } catch (error) {
+//     console.error('Error moving item in playlist schedule:', error);
+//     res.status(500).json({ message: 'Internal server error' });
+//   }
+// });
+
+const getModel = (scheduleType) => {
+  return scheduleType === 'Playlist Schedule' ? PlaylistSchedule : AdsSchedule;
+};
+
+// Add item to schedule
+app.post('/:scheduleType/:folder/add', verifyToken, async (req, res) => {
+  const { scheduleType, folder } = req.params;
+  const { item } = req.body;
+
+  if (!item) {
+    return res.status(400).json({ message: 'Item is required' });
+  }
+
+  const Model = getModel(scheduleType);
+
+  try {
+    const schedule = await Model.findOne({ folder });
+    if (!schedule) {
+      return res.status(404).json({ message: 'Schedule not found' });
+    }
+
+    schedule.items.push(item);
+    await schedule.save();
+
+    res.json(schedule);
+  } catch (error) {
+    console.error(`Error adding item to ${scheduleType} schedule:`, error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Delete item from schedule
+app.delete('/:scheduleType/:folder/:item', verifyToken, async (req, res) => {
+  const { scheduleType, folder, item } = req.params;
+  console.log(scheduleType, folder, item);
+
+  const decodedItem = decodeURIComponent(item);
+  console.log(`Decoded item: ${decodedItem}`); // Log the decoded item name
+
+  const Model = getModel(scheduleType);
+
+  try {
+    const schedule = await Model.findOne({ folder });
+    if (!schedule) {
+      return res.status(404).json({ message: 'Schedule not found' });
+    }
+
+    console.log(`Current items before deletion: ${schedule.items}`);
+
+    schedule.items = schedule.items.filter(i => i !== decodedItem);
+    await schedule.save();
+
+    console.log(`Updated items after deletion: ${schedule.items}`);
+
+    res.json(schedule);
+  } catch (error) {
+    console.error(`Error deleting item from ${scheduleType} schedule:`, error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Move item in schedule
+app.post('/:scheduleType/:folder/move', verifyToken, async (req, res) => {
+  const { scheduleType, folder } = req.params;
+  const { item, direction } = req.body;
+
+  if (!item || !direction) {
+    return res.status(400).json({ message: 'Item and direction are required' });
+  }
+
+  const Model = getModel(scheduleType);
+
+  try {
+    const schedule = await Model.findOne({ folder });
+    if (!schedule) {
+      return res.status(404).json({ message: 'Schedule not found' });
+    }
+
+    const index = schedule.items.indexOf(item);
+    if (index === -1) {
+      return res.status(404).json({ message: 'Item not found in the schedule' });
+    }
+
+    if (direction === 'up' && index > 0) {
+      const temp = schedule.items[index - 1];
+      schedule.items[index - 1] = schedule.items[index];
+      schedule.items[index] = temp;
+    } else if (direction === 'down' && index < schedule.items.length - 1) {
+      const temp = schedule.items[index + 1];
+      schedule.items[index + 1] = schedule.items[index];
+      schedule.items[index] = temp;
+    } else {
+      return res.status(400).json({ message: 'Invalid move operation' });
+    }
+
+    await schedule.save();
+
+    res.json(schedule);
+  } catch (error) {
+    console.error(`Error moving item in ${scheduleType} schedule:`, error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 async function notifyExpiringItemsAcrossModels(modelMap) {
   const currentDate = new Date();

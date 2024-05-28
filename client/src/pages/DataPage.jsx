@@ -408,9 +408,8 @@ const DataPage = () => {
   };
   const addItemToPlaylistSchedule = async (itemToAdd) => {
     let baseUrl = process.env.REACT_APP_API_URL;
-    const scheduleType = currentData === 'Playlist Schedule' ? 'playlistSchedule' : 'adsSchedule';
   
-    const url = `${baseUrl}/${scheduleType}/${folderViewNum}/add`;
+    const url = `${baseUrl}/playlistSchedule/${folderViewNum}/add`;
   
     try {
       const response = await axios.post(url, { item: itemToAdd }, {
@@ -432,8 +431,7 @@ const DataPage = () => {
   const deleteItemPlaylistSchedule = async (itemToDelete) => {
     let baseUrl = process.env.REACT_APP_API_URL;
     const encodedFileName = encodeURIComponent(itemToDelete);
-    const scheduleType = currentData === 'Playlist Schedule' ? 'playlistSchedule' : 'adsSchedule';
-    const url = `${baseUrl}/${scheduleType}/${folderViewNum}/${encodedFileName}`;
+    const url = `${baseUrl}/playlistSchedule/${folderViewNum}/${encodedFileName}`;
     try {
       const response = await axios.delete(url, {
         headers: {
@@ -451,29 +449,7 @@ const DataPage = () => {
       console.error('Error deleting item:', error.response ? error.response.data : error);
     }
   };
-  const moveItemPlaylistSchedule = async (itemToMove, direction) => {
-    let baseUrl = process.env.REACT_APP_API_URL;
-    const scheduleType = currentData === 'Playlist Schedule' ? 'playlistSchedule' : 'adsSchedule';
-
-    const url = `${baseUrl}/${scheduleType}/${folderViewNum}/move`;
   
-    try {
-      const response = await axios.post(url, { item: itemToMove, direction }, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        }
-      });
-      if (response.status === 200) {
-        console.log('Item moved successfully');
-        fetchData();
-      } else {
-        throw new Error('Failed to move the item');
-      }
-    } catch (error) {
-      console.error('Error moving item:', error.response ? error.response.data : error);
-    }
-  };
   
   useEffect(() => {
     if (item.length > 0) {
@@ -512,8 +488,12 @@ const DataPage = () => {
             </form>
             <NotesForm catData={catData} fileName={fileName} notes={notes} editingNoteId={editingNoteId} editingNoteText={editingNoteText} handleUpdateNoteText={handleUpdateNoteText} handleDoneEditNote={handleDoneEditNote} handleEditNote={handleEditNote} handleDeleteNote={handleDeleteNote} handleAddNoteSubmit={handleAddNoteSubmit} newNote={newNote} setNewNote={setNewNote}/>
             <SetCreation catData={catData} setShowModal={setShowModal} handleSubmitSetModal={handleSubmitSetModal} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} handleAddToSet={handleAddToSet} item={item}/>
+<<<<<<< HEAD
             <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} state={state} setState={setState} deleteItemPlaylistSchedule={deleteItemPlaylistSchedule} addItemToPlaylistSchedule={addItemToPlaylistSchedule} moveItemPlaylistSchedule={moveItemPlaylistSchedule}/>
       
+=======
+            <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} state={state} setState={setState} deleteItemPlaylistSchedule={deleteItemPlaylistSchedule} addItemToPlaylistSchedule={addItemToPlaylistSchedule}/>
+>>>>>>> parent of ad7f06d (Works now for ads as well)
           </>
         }
         

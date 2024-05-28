@@ -24,6 +24,7 @@ const HomePage = () => {
           const data = await response.json();
           localStorage.setItem('token', data.token);  
           localStorage.setItem('isAdmin', data.isAdmin);
+          localStorage.setItem('username', username);
           navigate('/home');
         } else {
           const errorText = await response.text(); 

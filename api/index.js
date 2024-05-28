@@ -430,6 +430,7 @@ app.post('/notes/add/:category/:fileName', verifyToken, async (req, res) => {
   }
 });
 
+//notes backend alters
 app.put('/notes/update/:category/:fileName', verifyToken, async (req, res) => {
   const { category, fileName } = req.params;
   const { noteIndex, updatedText } = req.body; 
@@ -523,103 +524,11 @@ app.get('/notes/:category/:filename', verifyToken, async (req, res) => {
   }
 });
 
-//folder edit
-// app.post('/playlistSchedule/:folder/add', verifyToken, async (req, res) => {
-//   const { folder } = req.params;
-//   const { item } = req.body;
-
-//   if (!item) {
-//     return res.status(400).json({ message: 'Item is required' });
-//   }
-
-//   try {
-//     const playlistSchedule = await PlaylistSchedule.findOne({ folder });
-//     if (!playlistSchedule) {
-//       return res.status(404).json({ message: 'Playlist schedule not found' });
-//     }
-
-//     playlistSchedule.items.push(item);
-//     await playlistSchedule.save();
-
-//     res.json(playlistSchedule);
-//   } catch (error) {
-//     console.error('Error adding item to playlist schedule:', error);
-//     res.status(500).json({ message: 'Internal server error' });
-//   }
-// });
-
-// app.delete('/playlistSchedule/:folder/:item', verifyToken, async (req, res) => {
-//   const { folder, item } = req.params;
-//   console.log(folder, item)
-
-//   try {
-//     const decodedItem = decodeURIComponent(item);
-//     console.log(`Decoded item: ${decodedItem}`); // Log the decoded item name
-
-//     const playlistSchedule = await PlaylistSchedule.findOne({ folder });
-//     if (!playlistSchedule) {
-//       return res.status(404).json({ message: 'Playlist schedule not found' });
-//     }
-
-//     console.log(`Current items before deletion: ${playlistSchedule.items}`);
-
-//     playlistSchedule.items = playlistSchedule.items.filter(i => i !== decodedItem);
-//     await playlistSchedule.save();
-
-//     console.log(`Updated items after deletion: ${playlistSchedule.items}`);
-
-//     res.json(playlistSchedule);
-//   } catch (error) {
-//     console.error('Error deleting item from playlist schedule:', error);
-//     res.status(500).json({ message: 'Internal server error' });
-//   }
-// })
-
-// app.post('/playlistSchedule/:folder/move', verifyToken, async (req, res) => {
-//   const { folder } = req.params;
-//   const { item, direction } = req.body;
-
-//   if (!item || !direction) {
-//     return res.status(400).json({ message: 'Item and direction are required' });
-//   }
-
-//   try {
-//     const playlistSchedule = await PlaylistSchedule.findOne({ folder });
-//     if (!playlistSchedule) {
-//       return res.status(404).json({ message: 'Playlist schedule not found' });
-//     }
-
-//     const index = playlistSchedule.items.indexOf(item);
-//     if (index === -1) {
-//       return res.status(404).json({ message: 'Item not found in the playlist schedule' });
-//     }
-
-//     if (direction === 'up' && index > 0) {
-//       const temp = playlistSchedule.items[index - 1];
-//       playlistSchedule.items[index - 1] = playlistSchedule.items[index];
-//       playlistSchedule.items[index] = temp;
-//     } else if (direction === 'down' && index < playlistSchedule.items.length - 1) {
-//       const temp = playlistSchedule.items[index + 1];
-//       playlistSchedule.items[index + 1] = playlistSchedule.items[index];
-//       playlistSchedule.items[index] = temp;
-//     } else {
-//       return res.status(400).json({ message: 'Invalid move operation' });
-//     }
-
-//     await playlistSchedule.save();
-
-//     res.json(playlistSchedule);
-//   } catch (error) {
-//     console.error('Error moving item in playlist schedule:', error);
-//     res.status(500).json({ message: 'Internal server error' });
-//   }
-// });
-
+//folder backend alters
 const getModel = (scheduleType) => {
   return scheduleType === 'Playlist Schedule' ? PlaylistSchedule : AdsSchedule;
 };
 
-// Add item to schedule
 app.post('/:scheduleType/:folder/add', verifyToken, async (req, res) => {
   const { scheduleType, folder } = req.params;
   const { item } = req.body;
@@ -646,13 +555,12 @@ app.post('/:scheduleType/:folder/add', verifyToken, async (req, res) => {
   }
 });
 
-// Delete item from schedule
 app.delete('/:scheduleType/:folder/:item', verifyToken, async (req, res) => {
   const { scheduleType, folder, item } = req.params;
   console.log(scheduleType, folder, item);
 
   const decodedItem = decodeURIComponent(item);
-  console.log(`Decoded item: ${decodedItem}`); // Log the decoded item name
+  console.log(`Decoded item: ${decodedItem}`); 
 
   const Model = getModel(scheduleType);
 
@@ -676,7 +584,6 @@ app.delete('/:scheduleType/:folder/:item', verifyToken, async (req, res) => {
   }
 });
 
-// Move item in schedule
 app.post('/:scheduleType/:folder/move', verifyToken, async (req, res) => {
   const { scheduleType, folder } = req.params;
   const { item, direction } = req.body;
@@ -719,206 +626,3 @@ app.post('/:scheduleType/:folder/move', verifyToken, async (req, res) => {
   }
 });
 
-async function notifyExpiringItemsAcrossModels(modelMap) {
-  const currentDate = new Date();
-  const formattedDate = currentDate.toISOString().split('T')[0];
-  const dateIn3Days = new Date();
-  dateIn3Days.setDate(dateIn3Days.getDate() + 1);
-  dateIn3Days.setHours(0, 0, 0, 0);
-  const dateIn7Days = new Date();
-  dateIn7Days.setDate(dateIn7Days.getDate() + 7);
-  dateIn7Days.setHours(23, 59, 59, 999);
-
-  let allExpiringItems = [];
-
-  for (const [modelName, model] of Object.entries(modelMap)) {
-    const expiringItems = await model.find({
-      Expiry: { $gte: dateIn3Days, $lte: dateIn7Days }
-    });
-
-    if (expiringItems.length > 0) {
-      let modelItemsHtml = expiringItems.map(item =>
-        `${modelName} - ${item.FileName}: ${item.Expiry.toDateString()}`
-      ).join('<br>');  // Use '<br>' here to avoid double line breaks
-      allExpiringItems.push(modelItemsHtml);
-    }
-  }
-
-  if (allExpiringItems.length > 0) {
-    const itemListHtml = allExpiringItems.join('<br>');  // Changed from '<br><br>' to '<br>'
-    // List of email recipients
-    const recipients = [
-      'tom@commersive.ca',
-      'remi@commersive.ca',
-      'richard@commersive.ca'
-    ];
-    const msg = {
-      personalizations: [{
-        to: recipients.map(email => ({ email }))
-      }],
-      from: process.env.EMAIL_USERNAME,
-      subject: `Expiration Notice ${formattedDate}`,
-      html: `<strong>The following items are set to expire soon:</strong><br>${itemListHtml}<br>Any deletions or altering of this data must be with a administrator's account.`
-    };
-
-    try {
-      await sgMail.send(msg);
-      console.log("Email sent to notify about expiring items across categories.");
-    } catch (error) {
-      console.log("email = ", process.env.EMAIL_USERNAME);
-      console.error('Failed to send email:', error.response.body);
-    }
-  } else {
-    console.log("No items expiring within 1 to 7 days across all categories.");
-  }
-}
-
-const modelMap = {
-  Playlist: Playlist,
-  Ads: Ads,
-};
-
-cron.schedule('0 0 * * *', async () => {
-  console.log('Daily check for expiring items started.');
-  notifyExpiringItemsAcrossModels(modelMap);
-});
-
-// const checkDataChanges = async () => {
-//   // Check for new uploads for the day 
-//   const newUploadPlaylists = await Playlist.find({ createdAt: { $gte: new Date().setHours(0, 0, 0, 0) } });
-//   const newUploadAds = await Ads.find({ createdAt: { $gte: new Date().setHours(0, 0, 0, 0) } });
-
-//   // Check for deletions 
-//   const deletedPlaylistItems = await Playlist.find({ deletedAt: { $gte: new Date().setHours(0, 0, 0, 0) } });
-//   const deletedAdsItems = await Ads.find({ deletedAt: { $gte: new Date().setHours(0, 0, 0, 0) } });
-//   // Check for extended expiry
-//   const extendedExpiryPlaylistItems = await Playlist.find({ Expiry: { $gte: new Date().setHours(0, 0, 0, 0) } });
-//   const extendedExpiryAdsItems = await Ads.find({ Expiry: { $gte: new Date().setHours(0, 0, 0, 0) } });
-//   // Check for note changes
-//   const updatedPlaylistNotes = await Playlist.find({ 'notes.updatedAt': { $gte: new Date().setHours(0, 0, 0, 0) } });
-//   const updatedAdsNotes = await Ads.find({ 'notes.updatedAt': { $gte: new Date().setHours(0, 0, 0, 0) } });
-  
-
-//   let emailContent = '';
- 
-//   if (newUploadPlaylists.length > 0 || newUploadAds.length > 0) {
-//     emailContent += 'New Uploads:\n';
-//     if (newUploadPlaylists.length > 0) {
-//       newUploadPlaylists.forEach(upload => {
-//         emailContent += `- ${upload.FileName} has been added to the playlist on ${upload.createdAt}\n`;
-//       });
-//     }
-//     if (newUploadAds.length > 0) {
-//       newUploadAds.forEach(upload => {
-//         emailContent += `- ${upload.FileName} has been added to the ads on ${upload.createdAt}\n`;
-//       });
-//     }
-//     emailContent += '\n';
-//   }
-
-//   if (deletedPlaylistItems.length > 0) {
-//     emailContent += 'Deleted Items:\n';
-//     deletedPlaylistItems.forEach(item => {
-//       emailContent += `- ${item.FileName} has been deleted from the playlist on ${item.deletedAt}\n`;
-//     });
-//     deletedAdsItems.forEach(item => {
-//       emailContent += `- ${item.FileName} has been deleted from the ads on ${item.deletedAt}\n`;
-//     });
-//     deletedArchivedItems.forEach(item => {
-//       emailContent += `- ${item.FileName} has been deleted from the archived on ${item.deletedAt}\n`;
-//     });
-//     emailContent += '\n';
-//   }
-
-//   if (extendedExpiryPlaylistItems.length > 0 || extendedExpiryAdsItems.length > 0 || extendedExpiryArchivedItems.length > 0) {
-//     emailContent += 'Extended Expiry Items:\n';
-//     if(extendedExpiryPlaylistItems.length > 0){
-//       extendedExpiryPlaylistItems.forEach(item => {
-//         emailContent += `- ${item.FileName} from playlists has had its expiry date extended to ${item.Expiry}\n`;
-//       });
-//     }
-//     if(extendedExpiryAdsItems.length > 0){
-//       extendedExpiryAdsItems.forEach(item => {
-//         emailContent += `- ${item.FileName} from ads has had its expiry date extended to ${item.Expiry}\n`;
-//       });
-//     }
-//     if(extendedExpiryArchivedItems.length > 0){
-//       extendedExpiryArchivedItems.forEach(item => {
-//         emailContent += `- ${item.FileName} from archived has had its expiry date extended to ${item.Expiry}\n`;
-//       });
-//     }
-//     emailContent += '\n';
-//   }
-
-//   if (updatedPlaylistNotes.length > 0) {
-//     emailContent += 'Updated Notes:\n';
-//     updatedPlaylistNotes.forEach(item => {
-//       item.notes.forEach(note => {
-//         if (note.updatedAt >= new Date().setHours(0, 0, 0, 0)) {
-//           if (note.addedOn === note.updatedAt) {
-//             emailContent += `- ${item.FileName} - Note: ${note.text} (Added)\n`;
-//           } else if (note.text === '') {
-//             emailContent += `- ${item.FileName} - Note: ${note.text} (Deleted)\n`;
-//           } else {
-//             emailContent += `- ${item.FileName} - Note: ${note.text} (Updated)\n`;
-//           }
-//         }
-//       });
-//     });
-//     emailContent += '\n';
-//   }else if(updatedAdsNotes.length > 0){
-//     updatedAdsNotes.forEach(item => {
-//       item.notes.forEach(note => {
-//         if (note.updatedAt >= new Date().setHours(0, 0, 0, 0)) {
-//           if (note.addedOn === note.updatedAt) {
-//             emailContent += `- ${item.FileName} - Note: ${note.text} (Added)\n`;
-//           } else if (note.text === '') {
-//             emailContent += `- ${item.FileName} - Note: ${note.text} (Deleted)\n`;
-//           } else {
-//             emailContent += `- ${item.FileName} - Note: ${note.text} (Updated)\n`;
-//           }
-//         }
-//       });
-//     });
-//     emailContent += '\n';
-//   }else if(updatedArchivedNotes.length > 0){
-//     updatedArchivedNotes.forEach(item => {
-//       item.notes.forEach(note => {
-//         if (note.updatedAt >= new Date().setHours(0, 0, 0, 0)) {
-//           if (note.addedOn === note.updatedAt) {
-//             emailContent += `- ${item.FileName} - Note: ${note.text} (Added)\n`;
-//           } else if (note.text === '') {
-//             emailContent += `- ${item.FileName} - Note: ${note.text} (Deleted)\n`;
-//           } else {
-//             emailContent += `- ${item.FileName} - Note: ${note.text} (Updated)\n`;
-//           }
-//         }
-//       });
-//     });
-//     emailContent += '\n';
-//   }
-
-//   const msg = {
-//     to: 'rzhou1997@gmail.com',
-//     from: process.env.EMAIL_USERNAME_TEST,
-//     subject: 'Data Changes Notification',
-//     text: emailContent
-//   };
-
-//   try {
-//     await transporter.sendMail(msg);
-//     console.log('Data changes notification email sent successfully.');
-//   } catch (error) {
-//     console.error('Failed to send data changes notification email:', error);
-//   }
-// };
-
-//need to make it every 5 minutes for testing purposes
-// cron.schedule('0 0 * * *', async () => {
-//  console.log('Checking for data changes and sending email notification.');
-//  await checkDataChanges();
-// });
-// cron.schedule('0 23 * * *', async () => {
-//   console.log('Checking for data changes and sending email notification.');
-//   await checkDataChanges();
-// });

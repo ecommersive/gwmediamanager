@@ -408,8 +408,14 @@ const DataPage = () => {
   };
   const addItemToPlaylistSchedule = async (itemToAdd) => {
     let baseUrl = process.env.REACT_APP_API_URL;
+    let alterValue;
+    if (currentData === 'Playlist Schedule') {
+      alterValue = 'playlistSchedule';
+    } else if (currentData === 'Ads Schedule') {
+      alterValue = 'adsSchedule';
+    }
   
-    const url = `${baseUrl}/playlistSchedule/${folderViewNum}/add`;
+    const url = `${baseUrl}/${alterValue}/${folderViewNum}/add`;
   
     try {
       const response = await axios.post(url, { item: itemToAdd }, {
@@ -431,7 +437,13 @@ const DataPage = () => {
   const deleteItemPlaylistSchedule = async (itemToDelete) => {
     let baseUrl = process.env.REACT_APP_API_URL;
     const encodedFileName = encodeURIComponent(itemToDelete);
-    const url = `${baseUrl}/playlistSchedule/${folderViewNum}/${encodedFileName}`;
+    let alterValue;
+    if (currentData === 'Playlist Schedule') {
+      alterValue = 'playlistSchedule';
+    } else if (currentData === 'Ads Schedule') {
+      alterValue = 'adsSchedule';
+    }
+    const url = `${baseUrl}/${alterValue}/${folderViewNum}/${encodedFileName}`;
     try {
       const response = await axios.delete(url, {
         headers: {
@@ -448,6 +460,35 @@ const DataPage = () => {
     } catch (error) {
       console.error('Error deleting item:', error.response ? error.response.data : error);
     }
+  };
+
+  const moveItemPlaylistSchedule = async (itemToMove, direction) => {
+    let baseUrl = process.env.REACT_APP_API_URL;
+    let alterValue;
+    if (currentData === 'Playlist Schedule') {
+      alterValue = 'playlistSchedule';
+    } else if (currentData === 'Ads Schedule') {
+      alterValue = 'adsSchedule';
+    }
+
+    const url = `${baseUrl}/${alterValue}/${folderViewNum}/move`;
+
+  try {
+    const response = await axios.post(url, { item: itemToMove, direction }, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      }
+    });
+    if (response.status === 200) {
+      console.log('Item moved successfully');
+      fetchData();
+    } else {
+      throw new Error('Failed to move the item');
+    }
+  } catch (error) {
+    console.error('Error moving item:', error.response ? error.response.data : error);
+  }
   };
   
   

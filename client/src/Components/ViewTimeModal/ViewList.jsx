@@ -1,7 +1,7 @@
 import React from 'react';
 import SearchInput from '../SearchInput';
 
-const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchTerm, modalFilteredData, itemExists, state, setState, deleteItemPlaylistSchedule, addItemToPlaylistSchedule }) => {
+const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchTerm, modalFilteredData, itemExists, state, setState, deleteItemPlaylistSchedule, addItemToPlaylistSchedule, moveItemPlaylistSchedule  }) => {
   
   
 
@@ -59,8 +59,8 @@ const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchT
                         )}
                         {state === 'Move' && (
                           <>
-                            {index !== 0 && <button className='action-button' onClick={() => console.log('MoveUp', item)}>Up</button>}
-                            {index !== data.items.length - 1 && <button className='action-button' onClick={() => console.log('MoveDown', item)}>Down</button>}
+                            {index !== 0 && <button className='action-button' onClick={() => moveItemPlaylistSchedule(item, 'up')}>Up</button>}
+                            {index !== data.items.length - 1 && <button className='action-button' onClick={() => moveItemPlaylistSchedule(item, 'down')}>Down</button>}
                           </>
                         )}
                       </li>

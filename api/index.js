@@ -577,7 +577,7 @@ app.get('/notes/:category/:filename', verifyToken, async (req, res) => {
 
 //folder backend alters
 const getModel = (scheduleType) => {
-  return scheduleType === 'Playlist Schedule' ? PlaylistSchedule : AdsSchedule;
+  return scheduleType === 'playlistSchedule' ? PlaylistSchedule : AdsSchedule;
 };
 
 app.post('/:scheduleType/:folder/add', verifyToken, async (req, res) => {
@@ -644,6 +644,9 @@ app.post('/:scheduleType/:folder/move', verifyToken, async (req, res) => {
   }
 
   const Model = getModel(scheduleType);
+  if (!Model) {
+    return res.status(400).json({ message: 'Invalid schedule type' });
+  }
 
   try {
     const schedule = await Model.findOne({ folder });

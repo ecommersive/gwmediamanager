@@ -8,6 +8,7 @@ const User = require('./models/Users');
 const Playlist = require('./models/Playlist');
 const Ads = require('./models/Ads');
 const AdsSchedule = require('./models/AdsSchedule');
+const Request = require('./models/Request');
 const PlaylistSchedule = require('./models/PlaylistSchedule');
 const sgMail = require('@sendgrid/mail')
 const cron = require('node-cron');
@@ -626,3 +627,10 @@ app.post('/:scheduleType/:folder/move', verifyToken, async (req, res) => {
   }
 });
 
+//request 
+
+//add request 
+
+//view request 
+
+//delete request 

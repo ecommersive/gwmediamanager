@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 const RequestDetails = ({ catData, state, setState }) => {
     const section = (
@@ -22,7 +22,6 @@ const RequestDetails = ({ catData, state, setState }) => {
                 <>
                 <p>Date of Request - by user</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    
                     <p>Request</p>
                     <div>
                     <input type="checkbox" id="finished" name="status"/>

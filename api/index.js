@@ -172,23 +172,19 @@ app.post('/playlistSchedule/:folder/add', verifyToken, async (req, res) => {
 
 app.delete('/playlistSchedule/:folder/:item', verifyToken, async (req, res) => {
   const { folder, item } = req.params;
-  console.log(folder, item)
 
   try {
     const decodedItem = decodeURIComponent(item);
-    console.log(`Decoded item: ${decodedItem}`); // Log the decoded item name
 
     const playlistSchedule = await PlaylistSchedule.findOne({ folder });
     if (!playlistSchedule) {
       return res.status(404).json({ message: 'Playlist schedule not found' });
     }
 
-    console.log(`Current items before deletion: ${playlistSchedule.items}`);
 
     playlistSchedule.items = playlistSchedule.items.filter(i => i !== decodedItem);
     await playlistSchedule.save();
 
-    console.log(`Updated items after deletion: ${playlistSchedule.items}`);
 
     res.json(playlistSchedule);
   } catch (error) {
@@ -356,7 +352,6 @@ app.delete('/deleteData/:category/:fileName', verifyToken, async (req, res) => {
   try {
     const regex = new RegExp('^' + fileName + '$', 'i');
     const deletedDocument = await Model.findOneAndDelete({ FileName: regex });
-    console.log('deleted = ', deletedDocument);
     if (!deletedDocument) {
       return res.status(404).send({ error: 'File not found' });
     }
@@ -608,10 +603,8 @@ app.post('/:scheduleType/:folder/add', verifyToken, async (req, res) => {
 
 app.delete('/:scheduleType/:folder/:item', verifyToken, async (req, res) => {
   const { scheduleType, folder, item } = req.params;
-  console.log(scheduleType, folder, item);
 
   const decodedItem = decodeURIComponent(item);
-  console.log(`Decoded item: ${decodedItem}`); 
 
   const Model = getModel(scheduleType);
 
@@ -621,12 +614,10 @@ app.delete('/:scheduleType/:folder/:item', verifyToken, async (req, res) => {
       return res.status(404).json({ message: 'Schedule not found' });
     }
 
-    console.log(`Current items before deletion: ${schedule.items}`);
 
     schedule.items = schedule.items.filter(i => i !== decodedItem);
     await schedule.save();
 
-    console.log(`Updated items after deletion: ${schedule.items}`);
 
     res.json(schedule);
   } catch (error) {

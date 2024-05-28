@@ -406,6 +406,28 @@ const DataPage = () => {
       setItem([])
     }
   };
+  const addItemToPlaylistSchedule = async (itemToAdd) => {
+    let baseUrl = process.env.REACT_APP_API_URL;
+  
+    const url = `${baseUrl}/playlistSchedule/${folderViewNum}/add`;
+  
+    try {
+      const response = await axios.post(url, { item: itemToAdd }, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (response.status === 200) {
+        console.log('Item added successfully');
+        fetchData();
+      } else {
+        throw new Error('Failed to add the item');
+      }
+    } catch (error) {
+      console.error('Error adding item:', error.response ? error.response.data : error);
+    }
+  };
   const deleteItemPlaylistSchedule = async (itemToDelete) => {
     let baseUrl = process.env.REACT_APP_API_URL;
     const encodedFileName = encodeURIComponent(itemToDelete);
@@ -466,7 +488,7 @@ const DataPage = () => {
             </form>
             <NotesForm catData={catData} fileName={fileName} notes={notes} editingNoteId={editingNoteId} editingNoteText={editingNoteText} handleUpdateNoteText={handleUpdateNoteText} handleDoneEditNote={handleDoneEditNote} handleEditNote={handleEditNote} handleDeleteNote={handleDeleteNote} handleAddNoteSubmit={handleAddNoteSubmit} newNote={newNote} setNewNote={setNewNote}/>
             <SetCreation catData={catData} setShowModal={setShowModal} handleSubmitSetModal={handleSubmitSetModal} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} handleAddToSet={handleAddToSet} item={item}/>
-            <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} state={state} setState={setState} deleteItemPlaylistSchedule={deleteItemPlaylistSchedule}/>
+            <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} state={state} setState={setState} deleteItemPlaylistSchedule={deleteItemPlaylistSchedule} addItemToPlaylistSchedule={addItemToPlaylistSchedule}/>
           </>
         }
         

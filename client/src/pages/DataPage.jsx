@@ -428,6 +428,7 @@ const DataPage = () => {
     }
   };
   
+  
   useEffect(() => {
     if (item.length > 0) {
       console.log('item updated:', item);

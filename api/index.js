@@ -145,6 +145,30 @@ app.get('/playlistSchedule/:folder', verifyToken, async (req, res) => {
   }
 });
 
+app.post('/playlistSchedule/:folder/add', verifyToken, async (req, res) => {
+  const { folder } = req.params;
+  const { item } = req.body;
+
+  if (!item) {
+    return res.status(400).json({ message: 'Item is required' });
+  }
+
+  try {
+    const playlistSchedule = await PlaylistSchedule.findOne({ folder });
+    if (!playlistSchedule) {
+      return res.status(404).json({ message: 'Playlist schedule not found' });
+    }
+
+    playlistSchedule.items.push(item);
+    await playlistSchedule.save();
+
+    res.json(playlistSchedule);
+  } catch (error) {
+    console.error('Error adding item to playlist schedule:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 
 app.delete('/playlistSchedule/:folder/:item', verifyToken, async (req, res) => {
   const { folder, item } = req.params;

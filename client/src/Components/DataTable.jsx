@@ -36,7 +36,7 @@ const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileNa
               </tr>
               :
               <tr>
-                <th>Photo</th>
+                {/* <th>Photo</th> */}
                 <th>File Name</th>
                 <th>File Type</th>
                 <th>Tag</th>
@@ -52,7 +52,7 @@ const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileNa
             if ((currentData === 'Playlist' || currentData === 'Ads')) {
               return (
                 <tr key={index} style={{ backgroundColor: index % 2 === 0 ? 'transparent' : '#f0f0f0' }}>
-                  <td><img src={item.PhotoUrl} alt="Data" style={{ width: '50px', height: '50px' }} /></td>
+                  {/* <td><img src={item.PhotoUrl} alt="Data" style={{ width: '50px', height: '50px' }} /></td> */}
                   <td>{item.FileName}</td>
                   <td>{item.Type}</td>
                   <td>{item.Tag}</td>

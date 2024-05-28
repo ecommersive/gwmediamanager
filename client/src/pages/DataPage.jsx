@@ -15,6 +15,7 @@ import { useNavigate } from 'react-router-dom';
 import '../styles/datapage.css';
 import axios from 'axios';
 import ViewList from '../Components/ViewTimeModal/ViewList';
+import RequestDetails from '../Components/RequestModal/RequestDetails';
 const DataPage = () => {
   const [folderViewNum, setfolderViewNum] = useState(0)
   const [mode, setMode] = useState('');
@@ -530,7 +531,7 @@ const DataPage = () => {
             <NotesForm catData={catData} fileName={fileName} notes={notes} editingNoteId={editingNoteId} editingNoteText={editingNoteText} handleUpdateNoteText={handleUpdateNoteText} handleDoneEditNote={handleDoneEditNote} handleEditNote={handleEditNote} handleDeleteNote={handleDeleteNote} handleAddNoteSubmit={handleAddNoteSubmit} newNote={newNote} setNewNote={setNewNote}/>
             <SetCreation catData={catData} setShowModal={setShowModal} handleSubmitSetModal={handleSubmitSetModal} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} handleAddToSet={handleAddToSet} item={item}/>
             <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} state={state} setState={setState} deleteItemPlaylistSchedule={deleteItemPlaylistSchedule} addItemToPlaylistSchedule={addItemToPlaylistSchedule} moveItemPlaylistSchedule={moveItemPlaylistSchedule}/>
-      
+            <RequestDetails catData={catData} state={state} setState={setState}/>
           </>
         }
         

@@ -7,6 +7,7 @@ const app = express();
 const User = require('./models/Users');
 const Playlist = require('./models/Playlist');
 const Ads = require('./models/Ads');
+const Request = require('./models/Request');
 const AdsSchedule = require('./models/AdsSchedule');
 const PlaylistSchedule = require('./models/PlaylistSchedule');
 const sgMail = require('@sendgrid/mail')

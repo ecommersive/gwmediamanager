@@ -11,7 +11,6 @@ const HomePage = () => {
     const handleSignIn = async (event) => {
       event.preventDefault(); // Prevent form submission
       let baseUrl = process.env.REACT_APP_API_URL
-      console.log("login = ", );
       try {
         const response = await fetch(`${baseUrl}/login`, {
           method: 'POST',
@@ -23,12 +22,11 @@ const HomePage = () => {
 
         if (response.ok) {
           const data = await response.json();
-          localStorage.setItem('token', data.token);  // Store the JWT token in localStorage
+          localStorage.setItem('token', data.token);  
           localStorage.setItem('isAdmin', data.isAdmin);
           navigate('/home');
         } else {
-          // Handle errors, e.g., show message for wrong credentials
-          const errorText = await response.text(); // Or .json() if your server responds with JSON
+          const errorText = await response.text(); 
           setErrorMessage(errorText);
         }
       } catch (error) {

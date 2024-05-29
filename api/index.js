@@ -447,7 +447,7 @@ app.listen(PORT, () => {
 //notes for files
 app.post('/notes/add/:category/:fileName', verifyToken, async (req, res) => {
   const { category, fileName } = req.params;
-  const { text, addedOn } = req.body; 
+  const { text, addedOn, user } = req.body; 
 
   const categoryModelMap = {
     playlist: Playlist,
@@ -462,7 +462,7 @@ app.post('/notes/add/:category/:fileName', verifyToken, async (req, res) => {
   try {
     const result = await Model.findOneAndUpdate(
       { FileName: new RegExp(`^${fileName}$`, 'i') }, 
-      { $push: { notes: { text, addedOn: new Date(addedOn) } } }, 
+      { $push: { notes: { text, addedOn: new Date(addedOn), user } } }, 
       { new: true, runValidators: true }
     );
 
@@ -477,7 +477,6 @@ app.post('/notes/add/:category/:fileName', verifyToken, async (req, res) => {
   }
 });
 
-//notes backend
 app.put('/notes/update/:category/:fileName', verifyToken, async (req, res) => {
   const { category, fileName } = req.params;
   const { noteIndex, updatedText } = req.body; 

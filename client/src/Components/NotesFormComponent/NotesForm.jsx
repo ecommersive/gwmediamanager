@@ -1,4 +1,4 @@
-const NotesForm = ({ catData, fileName, notes, editingNoteId, editingNoteText, handleUpdateNoteText, handleEditNote,handleDoneEditNote, handleDeleteNote, handleAddNoteSubmit, newNote, setNewNote={setNewNote}, setCatData}) => {
+const NotesForm = ({ catData, fileName, notes, editingNoteId, editingNoteText, handleUpdateNoteText, handleEditNote,handleDoneEditNote, handleDeleteNote, handleAddNoteSubmit, newNote, setNewNote={setNewNote}, setCatData, username, isAdmin}) => {
     const shouldRenderNotes = catData === 'viewNotes' || catData === 'UpdateNote'
     return (
       <>
@@ -18,9 +18,9 @@ const NotesForm = ({ catData, fileName, notes, editingNoteId, editingNoteText, h
                       </>
                     ) : (
                       <div style={{display: 'flex'}}>
-                        <p>{note.text} - <small>Added on {new Date(note.addedOn).toLocaleDateString()}</small></p>
-                        <button onClick={() => { handleEditNote(index, note.text); setCatData('UpdateNote') }}>Edit</button>
-                        <button onClick={() => handleDeleteNote(index, fileName)}>Delete</button>
+                        <p>{note.text} - <small>Added on {new Date(note.addedOn).toLocaleDateString()} by {username}</small></p>
+                        {(note.username === username || isAdmin) ? <button onClick={() => { handleEditNote(index, note.text); setCatData('UpdateNote') }}>Edit</button> : ''}
+                        {(note.username === username || isAdmin) ? <button onClick={() => handleDeleteNote(index, fileName)}>Delete</button>: ''}
                       </div>
                     )}
                   </li>

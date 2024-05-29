@@ -37,7 +37,7 @@ const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileNa
                 <th>Run Time</th>
                 <th>Type</th>
                 <th>Expiry</th>
-                <th>Comments</th>
+                {isAdmin && <th>Comments</th>}
               </tr>
           }
         </thead>

@@ -12,14 +12,18 @@ const HeaderButtons = ({ currentData, isAdmin, handleModal, setMode, setCatData,
           </>
         )
       ) : (
-        (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') && isAdmin && (
+        (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') && (
           <>
-            <button className="action-button" onClick={() => { handleModal(true); setMode('configureData'); setCatData(currentData === 'Playlist Schedule' ? 'playlistSchedule' : 'adsSchedule'); }}>
-              {currentData === 'Playlist Schedule' ? 'Configure Playlist Schedule' : 'Configure Ads Schedule'}
-            </button>
+            { 
+            isAdmin && (
+              <button className="action-button" onClick={() => { handleModal(true); setMode('configureData'); setCatData(currentData === 'Playlist Schedule' ? 'playlistSchedule' : 'adsSchedule'); }}>
+                {currentData === 'Playlist Schedule' ? 'Configure Playlist Schedule' : 'Configure Ads Schedule'}
+              </button>)
+            }
             <button className="action-button" onClick={() => { handleModal(true); setMode('configureData'); setCatData('requests'); }}>Requests</button>
           </>
         )
+        
       )}
       
       <button className="action-button" onClick={handleLogout}>Logout</button>

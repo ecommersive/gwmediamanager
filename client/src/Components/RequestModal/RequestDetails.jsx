@@ -1,7 +1,6 @@
 import React from 'react';
 
 const RequestDetails = ({ catData, state, setState, handleAddRequest, newRequestDescription, setNewRequestDescription, error, requests, handleToggleStatus, handleSaveSection }) => {
-    console.log('requests = ', requests);
     const section = (
         <>
             {state === 'makerequest' && <button className='action-button' onClick={() => { handleAddRequest(); setState('') }} disabled={!newRequestDescription}>Submit Request</button>}

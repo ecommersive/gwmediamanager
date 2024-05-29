@@ -1,5 +1,5 @@
-const NotesForm = ({ catData, fileName, notes, editingNoteId, editingNoteText, handleUpdateNoteText, handleEditNote,handleDoneEditNote, handleDeleteNote, handleAddNoteSubmit, newNote, setNewNote={setNewNote}}) => {
-    const shouldRenderNotes = catData === 'viewNotes' || catData === 'AddNote' || catData === 'UpdateNote' || catData === 'DeleteNote';
+const NotesForm = ({ catData, fileName, notes, editingNoteId, editingNoteText, handleUpdateNoteText, handleEditNote,handleDoneEditNote, handleDeleteNote, handleAddNoteSubmit, newNote, setNewNote={setNewNote}, setCatData}) => {
+    const shouldRenderNotes = catData === 'viewNotes' || catData === 'UpdateNote'
     return (
       <>
         {shouldRenderNotes && (
@@ -11,17 +11,17 @@ const NotesForm = ({ catData, fileName, notes, editingNoteId, editingNoteText, h
               {Array.isArray(notes) && notes.length > 0 ? (
                 notes.map((note, index) => (
                   <li key={index}>
-                    {catData === 'UpdateNote' && editingNoteId === index ? (
+                    {catData === 'UpdateNote' && (editingNoteId === index) ? (
                       <>
                         <input type="text" value={editingNoteText} onChange={handleUpdateNoteText} />
                         <button onClick={() => handleDoneEditNote(index)}>Done</button>
                       </>
                     ) : (
-                      <>
-                        {note.text} - <small>Added on {new Date(note.addedOn).toLocaleDateString()}</small>
-                        {catData === 'UpdateNote' && <button onClick={() => handleEditNote(index, note.text)}>Edit</button>}
-                        {catData === 'DeleteNote' && <button onClick={() => handleDeleteNote(index, fileName)}>Delete</button>}
-                      </>
+                      <div style={{display: 'flex'}}>
+                        <p>{note.text} - <small>Added on {new Date(note.addedOn).toLocaleDateString()}</small></p>
+                        <button onClick={() => { handleEditNote(index, note.text); setCatData('UpdateNote') }}>Edit</button>
+                        <button onClick={() => handleDeleteNote(index, fileName)}>Delete</button>
+                      </div>
                     )}
                   </li>
                 ))
@@ -31,7 +31,6 @@ const NotesForm = ({ catData, fileName, notes, editingNoteId, editingNoteText, h
               )}
             </ul>
             <br />
-            {catData === 'AddNote' && (
               <>
                 <textarea
                   value={newNote}
@@ -41,9 +40,8 @@ const NotesForm = ({ catData, fileName, notes, editingNoteId, editingNoteText, h
                 />
                 <br />
                 <br />
-                <button type="submit" onClick={(e) => handleAddNoteSubmit(e, fileName)}>Submit Note</button>
+                <button onClick={(e) => handleAddNoteSubmit(e, fileName)} onChange={handleUpdateNoteText} >Submit Note</button>
               </>
-            )}
             <br />
           </>
         )}

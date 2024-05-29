@@ -25,6 +25,8 @@ const DataPage = () => {
   const [data, setData] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [currentData, setCurrentData] = useState('Playlist');
+  const [newRequestDescription, setNewRequestDescription] = useState('');
+  const [requestError, setRequestError] = useState('');
   const [fileName, setFileName] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
   const [type, setType] = useState('Video');
@@ -36,6 +38,7 @@ const DataPage = () => {
   const [selectedCategory, setSelectedCategory] = useState('Playlist');
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
+  const username = localStorage.getItem('username');
   const [modalSearchTerm, setModalSearchTerm] = useState('');
   const [modalData, setModalData] = useState([]);
   const [item, setItem] = useState([]);
@@ -44,6 +47,7 @@ const DataPage = () => {
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [editingNoteText, setEditingNoteText] = useState('');
   const [state, setState] = useState('');
+  const [requests, setRequests] = useState([]);
   const handleModal = () => {
     setShowModal(!showModal);
   }
@@ -492,12 +496,105 @@ const DataPage = () => {
   }
   };
   
+
+  //connect to endpoint to grab request data 
+  const fetchRequests = async () => {
+    let baseUrl = process.env.REACT_APP_API_URL;
+    const url = `${baseUrl}/requests`;
+
+    try {
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (response.status === 200) {
+        setRequests(response.data);
+
+      } else {
+        throw new Error('Failed to fetch requests');
+      }
+    } catch (error) {
+      console.error('Error fetching requests:', error.response ? error.response.data : error);
+    }
+  };
+    //request data
+    const handleAddRequest = async () => {
+      let baseUrl = process.env.REACT_APP_API_URL;
+      const url = `${baseUrl}/request`;
+  
+      try {
+        const response = await axios.post(url, {
+          description: newRequestDescription,
+          username // Pass the username from localStorage
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          }
+        });
+  
+        if (response.status === 201) {
+          console.log('Request added successfully');
+          setNewRequestDescription('');
+          fetchRequests();
+        } else {
+          throw new Error('Failed to add request');
+        }
+      } catch (error) {
+        console.error('Error adding request:', error.response ? error.response.data : error);
+        setRequestError('An error occurred. Please try again.');
+      }
+    };
+  const handleSaveSection = async () => {
+    const completedRequests = requests.filter(request => request.status === 'completed');
+    
+    try {
+        await Promise.all(completedRequests.map(async (request) => {
+            const baseUrl = process.env.REACT_APP_API_URL;
+            const url = `${baseUrl}/requests/${request._id}`;
+            await axios.delete(url, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                }
+            });
+        }));
+        fetchRequests();
+    } catch (error) {
+        console.error('Error deleting completed requests:', error);
+    }
+  };
+
+  const handleToggleStatus = async (request) => {
+    const newStatus = request.status === 'unfinished' ? 'completed' : 'unfinished';
+    try {
+        const baseUrl = process.env.REACT_APP_API_URL;
+        const url = `${baseUrl}/requests/${request._id}/status`;
+        await axios.put(url, { status: newStatus }, {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+            }
+        });
+        fetchRequests();
+    } catch (error) {
+        console.error('Error updating request status:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchRequests();
+  }, [catData === 'requests']);
+  
   
   useEffect(() => {
     if (item.length > 0) {
       console.log('item updated:', item);
     }
   }, [item]);
+  
+
   function handleAddToSet(event, fileName) {
     event.preventDefault();
     setItem(prevItem => [...prevItem, { FileName: fileName }]);
@@ -531,7 +628,7 @@ const DataPage = () => {
             <NotesForm catData={catData} fileName={fileName} notes={notes} editingNoteId={editingNoteId} editingNoteText={editingNoteText} handleUpdateNoteText={handleUpdateNoteText} handleDoneEditNote={handleDoneEditNote} handleEditNote={handleEditNote} handleDeleteNote={handleDeleteNote} handleAddNoteSubmit={handleAddNoteSubmit} newNote={newNote} setNewNote={setNewNote}/>
             <SetCreation catData={catData} setShowModal={setShowModal} handleSubmitSetModal={handleSubmitSetModal} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} handleAddToSet={handleAddToSet} item={item}/>
             <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} state={state} setState={setState} deleteItemPlaylistSchedule={deleteItemPlaylistSchedule} addItemToPlaylistSchedule={addItemToPlaylistSchedule} moveItemPlaylistSchedule={moveItemPlaylistSchedule}/>
-            <RequestDetails catData={catData} state={state} setState={setState}/>
+            <RequestDetails catData={catData} state={state} setState={setState} handleAddRequest={handleAddRequest} newRequestDescription={newRequestDescription} setNewRequestDescription={setNewRequestDescription} error={requestError} requests={requests} handleToggleStatus={handleToggleStatus} handleSaveSection={handleSaveSection}/>
           </>
         }
         

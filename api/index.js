@@ -671,3 +671,77 @@ app.post('/:scheduleType/:folder/move', verifyToken, async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
+//requests
+app.post('/request', verifyToken, async (req, res) => {
+  const { description, username } = req.body;
+
+  if (!description || !username) {
+    return res.status(400).json({ message: 'Description and username are required' });
+  }
+
+  try {
+    const newRequest = new Request({
+      description,
+      user: username, // Store the username provided in the request
+    });
+
+    await newRequest.save();
+
+    res.status(201).json(newRequest);
+  } catch (error) {
+    console.error('Error creating request:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+//need to view all request data
+app.get('/requests', verifyToken, async (req, res) => {
+  try {
+    const requests = await Request.find({});
+    res.json(requests);
+  } catch (error) {
+    console.error('Error fetching requests:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+//updating status
+app.put('/requests/:id/status', verifyToken, async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  if (!status) {
+      return res.status(400).json({ message: 'Status is required' });
+  }
+
+  try {
+      const updatedRequest = await Request.findByIdAndUpdate(id, { status }, { new: true });
+      if (!updatedRequest) {
+          return res.status(404).json({ message: 'Request not found' });
+      }
+
+      res.status(200).json(updatedRequest);
+  } catch (error) {
+      console.error('Error updating request status:', error);
+      res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+//need to be able to delete the request
+app.delete('/requests/:id', verifyToken, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+      const deletedRequest = await Request.findByIdAndDelete(id);
+      if (!deletedRequest) {
+          return res.status(404).json({ message: 'Request not found' });
+      }
+
+      res.status(200).json({ message: 'Request deleted successfully' });
+  } catch (error) {
+      console.error('Error deleting request:', error);
+      res.status(500).json({ message: 'Internal server error' });
+  }
+});
+

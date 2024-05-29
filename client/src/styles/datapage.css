@@ -189,9 +189,6 @@ tbody tr.hide td{
     gap: 10px; /* Adjust the gap as needed */
   }
 
-
-
-
 .date-inputs{
     display: flex;
     gap: 1rem;
@@ -202,4 +199,14 @@ tbody tr.hide td{
     display: flex;
     gap: 1rem;
     align-items: center;
+}
+
+.request-list {
+    list-style-type: none; /* Remove bullet points */
+    padding: 0; /* Remove default padding */
+    margin: 0; /* Remove default margin */
+}
+
+.request-item {
+    margin-bottom: 1rem; /* Add some spacing between list items */
 }

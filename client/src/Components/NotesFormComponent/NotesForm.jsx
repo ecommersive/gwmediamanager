@@ -1,13 +1,12 @@
 const NotesForm = ({ catData, fileName, notes, editingNoteId, editingNoteText, handleUpdateNoteText, handleEditNote,handleDoneEditNote, handleDeleteNote, handleAddNoteSubmit, newNote, setNewNote={setNewNote}}) => {
     const shouldRenderNotes = catData === 'viewNotes' || catData === 'AddNote' || catData === 'UpdateNote' || catData === 'DeleteNote';
-  
     return (
       <>
         {shouldRenderNotes && (
           <>
             <p>Filename: {fileName}</p>
             <br />
-            <p>Notes:</p>
+            <p>Comments</p>
             <ul>
               {Array.isArray(notes) && notes.length > 0 ? (
                 notes.map((note, index) => (
@@ -27,7 +26,7 @@ const NotesForm = ({ catData, fileName, notes, editingNoteId, editingNoteText, h
                   </li>
                 ))
               ) : (
-                <p>No notes found for this folder.</p>
+                <p>No comments found for this File.</p>
 
               )}
             </ul>

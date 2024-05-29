@@ -15,9 +15,9 @@ const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileNa
     return `${adjustedHours}:${minutes} ${period}`;
   };
 
-  const notes = isAdmin ? <>
-    <th>Notes</th>
-    <th>Alter Notes</th>
+  const comments = isAdmin ? <>
+    <th>Comments</th>
+    {/* <th>Alter Notes</th> */}
     </> : null;
 
 
@@ -43,7 +43,7 @@ const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileNa
                 <th>Run Time</th>
                 <th>Type</th>
                 <th>Expiry</th>
-                {notes}
+                {comments}
               </tr>
           }
         </thead>
@@ -59,8 +59,8 @@ const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileNa
                   <td>{item.Run_Time}</td>
                   <td>{item.Content}</td>
                   <td>{item.Expiry}</td>
-                  {isAdmin && <td><button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setCatData('viewNotes'); setMode('configureData')}}>View</button></td>}
-                  {isAdmin &&
+                  {isAdmin && <td><button className='action-button' onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setCatData('viewNotes'); setMode('configureData')}}>Comments</button></td>}
+                  {/* {isAdmin &&
                     <td>
                       <button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setCatData('AddNote'); setMode('configureData'); }}>Add Notes</button>
                       <br />
@@ -68,7 +68,7 @@ const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileNa
                       <br />
                       <button onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes);  setCatData('DeleteNote'); setMode('configureData'); }}>Delete Notes</button>
                     </td>
-                  }
+                  } */}
                 </tr>
               );
             } else if (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') {

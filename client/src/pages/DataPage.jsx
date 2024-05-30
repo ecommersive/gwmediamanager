@@ -414,13 +414,13 @@ const DataPage = () => {
             Authorization: `Bearer ${token}`
           }
         });
-        // Reset changeLogMessage after successfully logging the change
         setChangeLogMessage('');
       } catch (error) {
         console.log('Failed to log change:', error);
       }
     }
   };
+  //finished handlesubmit
   const handleSubmitSetModal = async (event, startDate, endDate, item, startTime, endTime) => {
     event.preventDefault();
     let baseUrl = process.env.REACT_APP_API_URL;
@@ -444,7 +444,6 @@ const DataPage = () => {
       endTime: endTime.endTime         // Ensure it's a string
     };
   
-    console.log('Request data:', requestData);
   
     try {
       const response = await axios.post(url, requestData, {
@@ -454,13 +453,22 @@ const DataPage = () => {
         }
       });
   
-      if (response.status === 201) {
+      if (response.status === 201 || response.status === 200) {
         console.log('Schedule created successfully');
         setData(prevData => [...prevData, response.data]);
         setfolderViewNum(response.data.folder);
-        const itemNames = item.map(i => i.FileName).join(', ');
-      // Set change log message
-        changeLogMessage = `${username} has created a new ${currentData === 'Playlist Schedule' ? 'Playlist Set' : 'Ads Set'}: \nStart Date: ${requestData.startDate}\nEnd Date: ${requestData.endDate}\nItems: ${itemNames}\nDuration of ${currentData === 'Playlist Schedule' ? 'Playlist Set' : 'Ads Set'}: ${requestData.startTime} - ${requestData.endTime}`;
+        const itemsStringValues = requestData.items.map((i, index) => `${index + 1}.) ${i.FileName}`).join('\n');
+        const logMessage = `${username} has created a new ${currentData === 'Playlist Schedule' ? 'Playlist Set' : 'Ads Set'}: \nStart Date: ${requestData.startDate}\nEnd Date: ${requestData.endDate}\nItems:\n${itemsStringValues}\nDuration of ${currentData === 'Playlist Schedule' ? 'Playlist Set' : 'Ads Set'}: ${requestData.startTime} - ${requestData.endTime}`;
+      try {
+        await axios.post(`${baseUrl}/changelog`, { message: logMessage }, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+      } catch (error) {
+        console.log('Failed to log change:', error);
+      }
         setItem([])
         setShowModal(false);
       } else {
@@ -469,20 +477,6 @@ const DataPage = () => {
     } catch (error) {
       console.log('Error occurred. Please try again = ', error);
       setItem([])
-    }
-    if (changeLogMessage) {
-      try {
-        await axios.post(`${baseUrl}/changelog`, { message: changeLogMessage }, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        // Reset changeLogMessage after successfully logging the change
-        setChangeLogMessage('');
-      } catch (error) {
-        console.log('Failed to log change:', error);
-      }
     }
   };
   const addItemToSchedule = async (itemToAdd) => {

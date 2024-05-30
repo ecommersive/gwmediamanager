@@ -458,9 +458,11 @@ const DataPage = () => {
         console.log('Schedule created successfully');
         setData(prevData => [...prevData, response.data]);
         setfolderViewNum(response.data.folder);
+        const itemNames = item.map(i => i.FileName).join(', ');
+      // Set change log message
+        changeLogMessage = `${username} has created a new ${currentData === 'Playlist Schedule' ? 'Playlist Set' : 'Ads Set'}: \nStart Date: ${requestData.startDate}\nEnd Date: ${requestData.endDate}\nItems: ${itemNames}\nDuration of ${currentData === 'Playlist Schedule' ? 'Playlist Set' : 'Ads Set'}: ${requestData.startTime} - ${requestData.endTime}`;
         setItem([])
         setShowModal(false);
-        setChangeLogMessage(`${username} has created a new ${currentData === 'Playlist Schedule' ? 'Playlist Set' : 'Ads Set'}: \nStart Date: ${requestData.startDate}\nEnd Date: ${requestData.endDate}\nItems: ${requestData.items}\nDuration of ${currentData === 'Playlist Schedule' ? 'Playlist Set' : 'Ads Set'}: ${requestData.startTime} - ${requestData.endTime}`)
       } else {
         throw new Error('Failed to create schedule');
       }

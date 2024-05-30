@@ -48,6 +48,7 @@ const DataPage = () => {
   const [editingNoteText, setEditingNoteText] = useState('');
   const [state, setState] = useState('');
   const [requests, setRequests] = useState([]);
+  const [changeLogMessage, setChangeLogMessage] = useState('');
   const handleModal = () => {
     setShowModal(!showModal);
   }
@@ -124,6 +125,7 @@ const DataPage = () => {
   };
   const handleSubmit = async (event) => {
     event.preventDefault();
+    let baseUrl = process.env.REACT_APP_API_URL;
     if (catData === 'addData') {
       const formData = {
         FileName: fileName,
@@ -142,7 +144,6 @@ const DataPage = () => {
         }));
       }
       const endpoint = selectedCategory === "Playlist" ? "uploadPlaylist" : "uploadAds";
-      let baseUrl = process.env.REACT_APP_API_URL;
       try {
         const response = await axios.post(`${baseUrl}/${endpoint}`, formData, {
           headers: {
@@ -153,8 +154,8 @@ const DataPage = () => {
 
         if (response.status === 201) {
           setShowModal(false);
+          setChangeLogMessage(`${username} has added ${formData.FileName} into ${selectedCategory} at ${new Date().toISOString()}`);
           fetchData();
-          console.log(`${selectedCategory} item added:`, response.data);
         } else {
           throw new Error(`Failed to add ${selectedCategory} item`);
         }
@@ -163,8 +164,6 @@ const DataPage = () => {
       }
     } else if (catData === 'ExtendExpiry') {
       const encodedFileName = encodeURIComponent(fileName);
-      let baseUrl = process.env.REACT_APP_API_URL;
-      console.log("Handle Set Expiry = ", baseUrl);
       try {
         const response = await axios.post(`${baseUrl}/setExpiry/${selectedCategory.toLowerCase()}/${encodedFileName}`, {
           newExpiryDate: expiry
@@ -175,6 +174,7 @@ const DataPage = () => {
           }
         });
         if (response.status === 200) {
+          setChangeLogMessage(`${username} has extended ${encodedFileName} in ${selectedCategory} to ${expiry}`);
           console.log('Expiry date set successfully');
           fetchData();
           setShowModal(false);
@@ -186,8 +186,6 @@ const DataPage = () => {
       }
     } else if (catData === 'DeleteData') {
       const encodedFileName = encodeURIComponent(fileName);
-      let baseUrl = process.env.REACT_APP_API_URL;
-      console.log("Handle Delete = ", baseUrl);
       try {
         const response = await axios.delete(`${baseUrl}/deleteData/${selectedCategory.toLowerCase()}/${encodedFileName}`, {
           headers: {
@@ -196,6 +194,7 @@ const DataPage = () => {
           }
         });
         if (response.status === 200) {
+          setChangeLogMessage(`${username} has deleted ${encodedFileName} in ${selectedCategory}`);
           console.log('Deletion successful');
           fetchData();
           setShowModal(false);
@@ -204,6 +203,19 @@ const DataPage = () => {
         }
       } catch (error) {
         console.log('An error occurred. Please try again.', error);
+      }
+    }
+    if (changeLogMessage) {
+      try {
+        await axios.post(`${baseUrl}/changelog`, { message: changeLogMessage }, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        setChangeLogMessage('');
+      } catch (error) {
+        console.log('Failed to log change:', error);
       }
     }
   };
@@ -295,12 +307,25 @@ const DataPage = () => {
       if (response.status === 200) {
         setNotes(prevNotes => [...prevNotes, noteToAdd]);
         fetchData();
-        
+        setChangeLogMessage(`${username} has added a comment saying "${noteToAdd.text}" in ${selectedCategory} to ${encodedFileName}`);
       } else {
         throw new Error('Failed to add note');
       }
     } catch (error) {
       console.error('Error adding note:', error);
+    }
+    if (changeLogMessage) {
+      try {
+        await axios.post(`${baseUrl}/changelog`, { message: changeLogMessage }, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        setChangeLogMessage('');
+      } catch (error) {
+        console.log('Failed to log change:', error);
+      }
     }
   };
   const handleEditNote = (noteId, text) => {
@@ -318,6 +343,7 @@ const DataPage = () => {
     const baseUrl = process.env.REACT_APP_API_URL;
     try {
       const encodedFileName = encodeURIComponent(fileName);
+      const oldComment = notes[noteIndex].text;
       const response = await axios.put(`${baseUrl}/notes/update/${selectedCategory.toLowerCase()}/${encodedFileName}`, {
         noteIndex,
         updatedText: editingNoteText
@@ -335,11 +361,25 @@ const DataPage = () => {
         setEditingNoteId(null);
         setEditingNoteText('');
         fetchData();
+        setChangeLogMessage(`${username} has updated a comment: "${oldComment}" to "${editingNoteText}" in ${selectedCategory} for ${encodedFileName}`);
       } else {
         throw new Error('Failed to update note');
       }
     } catch (error) {
       console.error('Error updating note:', error.response ? error.response.data : error);
+    }
+    if (changeLogMessage) {
+      try {
+        await axios.post(`${baseUrl}/changelog`, { message: changeLogMessage }, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        setChangeLogMessage('');
+      } catch (error) {
+        console.log('Failed to log change:', error);
+      }
     }
   };
   const handleDeleteNote = async (noteIndex, fileName) => {
@@ -348,6 +388,7 @@ const DataPage = () => {
     const category = selectedCategory.toLowerCase();
     const url = `${baseUrl}/notes/delete/${category}/${encodedFileName}/${noteIndex}`;
     try {
+      const oldComment = notes[noteIndex].text; // Capture the old comment
       const response = await axios.delete(url, {
         headers: {
           'Content-Type': 'application/json',
@@ -358,11 +399,26 @@ const DataPage = () => {
         console.log('Note deleted successfully');
         setNotes(notes.filter((_, index) => index !== noteIndex));
         fetchData();
+        setChangeLogMessage(`${username} has deleted comment: "${oldComment}" in ${selectedCategory} for ${encodedFileName}`);
       } else {
         throw new Error('Failed to delete the note');
       }
     } catch (error) {
       console.error('Error deleting note:', error.response ? error.response.data : error);
+    }
+    if (changeLogMessage) {
+      try {
+        await axios.post(`${baseUrl}/changelog`, { message: changeLogMessage }, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          }
+        });
+        // Reset changeLogMessage after successfully logging the change
+        setChangeLogMessage('');
+      } catch (error) {
+        console.log('Failed to log change:', error);
+      }
     }
   };
   const handleSubmitSetModal = async (event, startDate, endDate, item, startTime, endTime) => {
@@ -404,6 +460,7 @@ const DataPage = () => {
         setfolderViewNum(response.data.folder);
         setItem([])
         setShowModal(false);
+        setChangeLogMessage(`${username} has created a new ${currentData === 'Playlist Schedule' ? 'Playlist Set' : 'Ads Set'}: \nStart Date: ${requestData.startDate}\nEnd Date: ${requestData.endDate}\nItems: ${requestData.items}\nDuration of ${currentData === 'Playlist Schedule' ? 'Playlist Set' : 'Ads Set'}: ${requestData.startTime} - ${requestData.endTime}`)
       } else {
         throw new Error('Failed to create schedule');
       }
@@ -411,8 +468,22 @@ const DataPage = () => {
       console.log('Error occurred. Please try again = ', error);
       setItem([])
     }
+    if (changeLogMessage) {
+      try {
+        await axios.post(`${baseUrl}/changelog`, { message: changeLogMessage }, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        // Reset changeLogMessage after successfully logging the change
+        setChangeLogMessage('');
+      } catch (error) {
+        console.log('Failed to log change:', error);
+      }
+    }
   };
-  const addItemToPlaylistSchedule = async (itemToAdd) => {
+  const addItemToSchedule = async (itemToAdd) => {
     let baseUrl = process.env.REACT_APP_API_URL;
     let alterValue;
     if (currentData === 'Playlist Schedule') {
@@ -433,14 +504,30 @@ const DataPage = () => {
       if (response.status === 200) {
         console.log('Item added successfully');
         fetchData();
+        setChangeLogMessage(`${username} has added ${itemToAdd} to ${currentData} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum}`);
       } else {
         throw new Error('Failed to add the item');
       }
     } catch (error) {
       console.error('Error adding item:', error.response ? error.response.data : error);
     }
+
+    if (changeLogMessage) {
+      try {
+        await axios.post(`${baseUrl}/changelog`, { message: changeLogMessage }, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          }
+        });
+        // Reset changeLogMessage after successfully logging the change
+        setChangeLogMessage('');
+      } catch (error) {
+        console.log('Failed to log change:', error);
+      }
+    }
   };
-  const deleteItemPlaylistSchedule = async (itemToDelete) => {
+  const deleteItemFromSchedule = async (itemToDelete) => {
     let baseUrl = process.env.REACT_APP_API_URL;
     const encodedFileName = encodeURIComponent(itemToDelete);
     let alterValue;
@@ -460,11 +547,27 @@ const DataPage = () => {
       if (response.status === 200) {
         console.log('Item deleted successfully');
         fetchData();
+        setChangeLogMessage(`${username} has deleted ${itemToDelete} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum}`)
       } else {
         throw new Error('Failed to delete the item');
       }
     } catch (error) {
       console.error('Error deleting item:', error.response ? error.response.data : error);
+    }
+
+    if (changeLogMessage) {
+      try {
+        await axios.post(`${baseUrl}/changelog`, { message: changeLogMessage }, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          }
+        });
+        // Reset changeLogMessage after successfully logging the change
+        setChangeLogMessage('');
+      } catch (error) {
+        console.log('Failed to log change:', error);
+      }
     }
   };
 
@@ -628,7 +731,7 @@ const DataPage = () => {
             </form>
             <NotesForm catData={catData} fileName={fileName} notes={notes} editingNoteId={editingNoteId} editingNoteText={editingNoteText} handleUpdateNoteText={handleUpdateNoteText} handleDoneEditNote={handleDoneEditNote} handleEditNote={handleEditNote} handleDeleteNote={handleDeleteNote} handleAddNoteSubmit={handleAddNoteSubmit} newNote={newNote} setNewNote={setNewNote} username={username} setCatData={setCatData} isAdmin={isAdmin}/>
             <SetCreation catData={catData} setShowModal={setShowModal} handleSubmitSetModal={handleSubmitSetModal} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} handleAddToSet={handleAddToSet} item={item}/>
-            <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} state={state} setState={setState} deleteItemPlaylistSchedule={deleteItemPlaylistSchedule} addItemToPlaylistSchedule={addItemToPlaylistSchedule} moveItemPlaylistSchedule={moveItemPlaylistSchedule}/>
+            <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} state={state} setState={setState} deleteItemFromSchedule={deleteItemFromSchedule} addItemToSchedule={addItemToSchedule} moveItemPlaylistSchedule={moveItemPlaylistSchedule}/>
             <RequestDetails catData={catData} state={state} setState={setState} handleAddRequest={handleAddRequest} newRequestDescription={newRequestDescription} setNewRequestDescription={setNewRequestDescription} error={requestError} requests={requests} handleToggleStatus={handleToggleStatus} handleSaveSection={handleSaveSection} isAdmin={isAdmin} username={username}/>
           </>
         }

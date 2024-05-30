@@ -1,7 +1,7 @@
 import React from 'react';
 import SearchInput from '../SearchInput';
 
-const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchTerm, modalFilteredData, itemExists, state, setState, deleteItemPlaylistSchedule, addItemToPlaylistSchedule, moveItemPlaylistSchedule  }) => {
+const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchTerm, modalFilteredData, itemExists, state, setState, deleteItemFromSchedule, addItemToSchedule, moveItemPlaylistSchedule  }) => {
   
   
 
@@ -19,7 +19,7 @@ const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchT
                   modalFilteredData.filter(modalItem => !itemExists(modalItem.FileName)).map((modalItem, index) => (
                     <div key={index}>
                       <span>{modalItem.FileName}</span>
-                      <button onClick={() => addItemToPlaylistSchedule(modalItem.FileName)}>Add</button>                    
+                      <button onClick={() => addItemToSchedule(modalItem.FileName)}>Add</button>                    
                     </div>
                   ))
                 ) : (
@@ -55,7 +55,7 @@ const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchT
                       <li key={index}>
                         {item}
                         {state === 'Delete' && (
-                          <button className='action-button' onClick={() => deleteItemPlaylistSchedule(item)}>Delete</button>
+                          <button className='action-button' onClick={() => deleteItemFromSchedule(item)}>Delete</button>
                         )}
                         {state === 'Move' && (
                           <>

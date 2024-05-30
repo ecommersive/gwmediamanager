@@ -10,6 +10,7 @@ const Ads = require('./models/Ads');
 const Request = require('./models/Request');
 const AdsSchedule = require('./models/AdsSchedule');
 const PlaylistSchedule = require('./models/PlaylistSchedule');
+const ChangeLog = require('./models/Changelog');
 const sgMail = require('@sendgrid/mail')
 const cron = require('node-cron');
 const path = require('path');
@@ -94,7 +95,7 @@ app.get('/playlistSchedule', async (req, res) => {
 });
 
 app.post('/createPlaylistSchedule', verifyToken, async (req, res) => {
-  const { items, startDate, endDate, startTime, endTime, notes } = req.body;
+  const { items, startDate, endDate, startTime, endTime, notes  } = req.body;
 
   // Ensure items is defined and not empty
   if (!items || items.length === 0) {
@@ -124,6 +125,7 @@ app.post('/createPlaylistSchedule', verifyToken, async (req, res) => {
     });
 
     const savedSchedule = await newPlaylistSchedule.save();
+     
     res.status(201).json(savedSchedule);
   } catch (err) {
     console.error('Error saving new playlist schedule:', err);
@@ -744,3 +746,20 @@ app.delete('/requests/:id', verifyToken, async (req, res) => {
   }
 });
 
+//changelog
+app.post('/changelog', async (req, res) => {
+  try {
+    const { message } = req.body;
+
+    if (!message) {
+      return res.status(400).send('Message is required');
+    }
+
+    const changeLog = new ChangeLog({ message });
+    await changeLog.save();
+
+    res.status(201).send(changeLog);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});

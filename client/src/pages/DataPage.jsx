@@ -48,7 +48,7 @@ const DataPage = () => {
   const [editingNoteText, setEditingNoteText] = useState('');
   const [state, setState] = useState('');
   const [requests, setRequests] = useState([]);
-  const [changeLogMessage, setChangeLogMessage] = useState('');
+  // const [changeLogMessage, setChangeLogMessage] = useState('');
   const handleModal = () => {
     setShowModal(!showModal);
   }
@@ -126,6 +126,7 @@ const DataPage = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     let baseUrl = process.env.REACT_APP_API_URL;
+    let logChange = ''
     if (catData === 'addData') {
       const formData = {
         FileName: fileName,
@@ -154,7 +155,7 @@ const DataPage = () => {
 
         if (response.status === 201) {
           setShowModal(false);
-          setChangeLogMessage(`${username} has added ${formData.FileName} into ${selectedCategory} at ${new Date().toISOString()}`);
+          logChange = `${username} has added ${formData.FileName} into ${selectedCategory} at ${new Date().toISOString()}`;
           fetchData();
         } else {
           throw new Error(`Failed to add ${selectedCategory} item`);
@@ -174,7 +175,7 @@ const DataPage = () => {
           }
         });
         if (response.status === 200) {
-          setChangeLogMessage(`${username} has extended ${encodedFileName} in ${selectedCategory} to ${expiry}`);
+          logChange = `${username} has extended ${encodedFileName} in ${selectedCategory} to ${expiry}`;
           console.log('Expiry date set successfully');
           fetchData();
           setShowModal(false);
@@ -194,7 +195,7 @@ const DataPage = () => {
           }
         });
         if (response.status === 200) {
-          setChangeLogMessage(`${username} has deleted ${encodedFileName} in ${selectedCategory}`);
+          logChange = `${username} has deleted ${encodedFileName} in ${selectedCategory}`;
           console.log('Deletion successful');
           fetchData();
           setShowModal(false);
@@ -205,15 +206,14 @@ const DataPage = () => {
         console.log('An error occurred. Please try again.', error);
       }
     }
-    if (changeLogMessage) {
+    if (logChange) {
       try {
-        await axios.post(`${baseUrl}/changelog`, { message: changeLogMessage }, {
+        await axios.post(`${baseUrl}/changelog`, { message: logChange }, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         });
-        setChangeLogMessage('');
       } catch (error) {
         console.log('Failed to log change:', error);
       }
@@ -287,6 +287,7 @@ const DataPage = () => {
     localStorage.removeItem('isAdmin');
     navigate('/');
   }
+  //finished handleAddNoteSubmit
   const handleAddNoteSubmit = async (event, fileName) => {
     event.preventDefault();
     const noteToAdd = {
@@ -307,25 +308,22 @@ const DataPage = () => {
       if (response.status === 200) {
         setNotes(prevNotes => [...prevNotes, noteToAdd]);
         fetchData();
-        setChangeLogMessage(`${username} has added a comment saying "${noteToAdd.text}" in ${selectedCategory} to ${encodedFileName}`);
+        const logMessage = `${username} has added a comment saying "${noteToAdd.text}" in ${selectedCategory} to ${encodedFileName}`;
+        try {
+          await axios.post(`${baseUrl}/changelog`, { message: logMessage }, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+        } catch (error) {
+          console.log('Failed to log change:', error);
+        }
       } else {
         throw new Error('Failed to add note');
       }
     } catch (error) {
       console.error('Error adding note:', error);
-    }
-    if (changeLogMessage) {
-      try {
-        await axios.post(`${baseUrl}/changelog`, { message: changeLogMessage }, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        setChangeLogMessage('');
-      } catch (error) {
-        console.log('Failed to log change:', error);
-      }
     }
   };
   const handleEditNote = (noteId, text) => {
@@ -335,6 +333,7 @@ const DataPage = () => {
   const handleUpdateNoteText = (event) => {
     setEditingNoteText(event.target.value);
   };
+  //finished handleDoneEditNote
   const handleDoneEditNote = async (noteIndex) => {
     if (editingNoteId === null || editingNoteText.trim() === '') {
       alert('You must provide updated note text.');
@@ -361,27 +360,25 @@ const DataPage = () => {
         setEditingNoteId(null);
         setEditingNoteText('');
         fetchData();
-        setChangeLogMessage(`${username} has updated a comment: "${oldComment}" to "${editingNoteText}" in ${selectedCategory} for ${encodedFileName}`);
+        const logMessage = `${username} has updated a comment: "${oldComment}" to "${editingNoteText}" in ${selectedCategory} for ${encodedFileName}`;
+        try {
+          await axios.post(`${baseUrl}/changelog`, { message: logMessage }, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+        } catch (error) {
+          console.log('Failed to log change:', error);
+        }
       } else {
         throw new Error('Failed to update note');
       }
     } catch (error) {
       console.error('Error updating note:', error.response ? error.response.data : error);
     }
-    if (changeLogMessage) {
-      try {
-        await axios.post(`${baseUrl}/changelog`, { message: changeLogMessage }, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        setChangeLogMessage('');
-      } catch (error) {
-        console.log('Failed to log change:', error);
-      }
-    }
   };
+  //finished handleDeleteNote
   const handleDeleteNote = async (noteIndex, fileName) => {
     const baseUrl = process.env.REACT_APP_API_URL;
     const encodedFileName = encodeURIComponent(fileName);
@@ -399,25 +396,22 @@ const DataPage = () => {
         console.log('Note deleted successfully');
         setNotes(notes.filter((_, index) => index !== noteIndex));
         fetchData();
-        setChangeLogMessage(`${username} has deleted comment: "${oldComment}" in ${selectedCategory} for ${encodedFileName}`);
+        const logMessage = `${username} has deleted comment: "${oldComment}" in ${selectedCategory} for ${encodedFileName}`;
+        try {
+          await axios.post(`${baseUrl}/changelog`, { message: logMessage }, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+        } catch (error) {
+          console.log('Failed to log change:', error);
+        }
       } else {
         throw new Error('Failed to delete the note');
       }
     } catch (error) {
       console.error('Error deleting note:', error.response ? error.response.data : error);
-    }
-    if (changeLogMessage) {
-      try {
-        await axios.post(`${baseUrl}/changelog`, { message: changeLogMessage }, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          }
-        });
-        setChangeLogMessage('');
-      } catch (error) {
-        console.log('Failed to log change:', error);
-      }
     }
   };
   //finished handlesubmit
@@ -557,22 +551,8 @@ const DataPage = () => {
     } catch (error) {
       console.error('Error deleting item:', error.response ? error.response.data : error);
     }
-
-    if (changeLogMessage) {
-      try {
-        await axios.post(`${baseUrl}/changelog`, { message: changeLogMessage }, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          }
-        });
-        // Reset changeLogMessage after successfully logging the change
-        setChangeLogMessage('');
-      } catch (error) {
-        console.log('Failed to log change:', error);
-      }
-    }
   };
+  //finished MoveItem
   const moveItemPlaylistSchedule = async (itemToMove, direction) => {
     let baseUrl = process.env.REACT_APP_API_URL;
     let alterValue;
@@ -594,26 +574,22 @@ const DataPage = () => {
     if (response.status === 200) {
       console.log('Item moved successfully');
       fetchData();
-      setChangeLogMessage(`${username} has moved ${itemToMove} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum} ${direction}`)
+      const logMessage = `${username} has moved ${itemToMove} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum} ${direction}`
+      try {
+        await axios.post(`${baseUrl}/changelog`, { message: logMessage }, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+      } catch (error) {
+        console.log('Failed to log change:', error);
+      }
     } else {
       throw new Error('Failed to move the item');
     }
   } catch (error) {
     console.error('Error moving item:', error.response ? error.response.data : error);
-  }
-  if (changeLogMessage) {
-    try {
-      await axios.post(`${baseUrl}/changelog`, { message: changeLogMessage }, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        }
-      });
-      // Reset changeLogMessage after successfully logging the change
-      setChangeLogMessage('');
-    } catch (error) {
-      console.log('Failed to log change:', error);
-    }
   }
   };
   
@@ -639,6 +615,7 @@ const DataPage = () => {
       console.error('Error fetching requests:', error.response ? error.response.data : error);
     }
   };
+  //finished handleAddRequest
   const handleAddRequest = async () => {
       let baseUrl = process.env.REACT_APP_API_URL;
       const url = `${baseUrl}/request`;
@@ -658,7 +635,17 @@ const DataPage = () => {
           console.log('Request added successfully');
           setNewRequestDescription('');
           fetchRequests();
-          setChangeLogMessage(`${username} has added a new request:\n${newRequestDescription} `)
+          const logMessage = `${username} has added a new request:\n${newRequestDescription}`
+          try {
+            await axios.post(`${baseUrl}/changelog`, { message: logMessage }, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              }
+            });
+          } catch (error) {
+            console.log('Failed to log change:', error);
+          }
         } else {
           throw new Error('Failed to add request');
         }
@@ -666,22 +653,10 @@ const DataPage = () => {
         console.error('Error adding request:', error.response ? error.response.data : error);
         setRequestError('An error occurred. Please try again.');
       }
-      if (changeLogMessage) {
-        try {
-          await axios.post(`${baseUrl}/changelog`, { message: changeLogMessage }, {
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`
-            }
-          });
-          // Reset changeLogMessage after successfully logging the change
-          setChangeLogMessage('');
-        } catch (error) {
-          console.log('Failed to log change:', error);
-        }
-      }
   };
+  //finished handleSaveSection
   const handleSaveSection = async () => {
+    const baseUrl = process.env.REACT_APP_API_URL;
     const completedRequests = requests.filter(request => request.status === 'completed');
     const unfinishedRequests = requests.filter(request => request.status === 'unfinished');
     try {
@@ -696,23 +671,19 @@ const DataPage = () => {
             });
         }));
         fetchRequests();
-        setChangeLogMessage(`Following requests finished:\n${completedRequests.map(req => req.description).join('\n')}\nFollowing requests unfinished:\n${unfinishedRequests.map(req => req.description).join('\n')}`);
-    } catch (error) {
-        console.error('Error deleting completed requests:', error);
-    }
-    if (changeLogMessage) {
-      try {
-        const baseUrl = process.env.REACT_APP_API_URL;
-        await axios.post(`${baseUrl}/changelog`, { message: changeLogMessage }, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          }
-        });
-        setChangeLogMessage('');
+        const logMessage = `Following requests finished:\n${completedRequests.map(req => req.description).join('\n')}\nFollowing requests unfinished:\n${unfinishedRequests.map(req => req.description).join('\n')}`;
+        try {
+          await axios.post(`${baseUrl}/changelog`, { message: logMessage }, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+        } catch (error) {
+          console.log('Failed to log change:', error);
+        }
       } catch (error) {
-        console.log('Failed to log change:', error);
-      }
+        console.error('Error deleting completed requests:', error);
     }
   };
 

@@ -570,7 +570,6 @@ const DataPage = () => {
       }
     }
   };
-
   const moveItemPlaylistSchedule = async (itemToMove, direction) => {
     let baseUrl = process.env.REACT_APP_API_URL;
     let alterValue;
@@ -592,11 +591,26 @@ const DataPage = () => {
     if (response.status === 200) {
       console.log('Item moved successfully');
       fetchData();
+      setChangeLogMessage(`${username} has moved ${itemToMove} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum} ${direction}`)
     } else {
       throw new Error('Failed to move the item');
     }
   } catch (error) {
     console.error('Error moving item:', error.response ? error.response.data : error);
+  }
+  if (changeLogMessage) {
+    try {
+      await axios.post(`${baseUrl}/changelog`, { message: changeLogMessage }, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      });
+      // Reset changeLogMessage after successfully logging the change
+      setChangeLogMessage('');
+    } catch (error) {
+      console.log('Failed to log change:', error);
+    }
   }
   };
   
@@ -622,8 +636,7 @@ const DataPage = () => {
       console.error('Error fetching requests:', error.response ? error.response.data : error);
     }
   };
-    //request data
-    const handleAddRequest = async () => {
+  const handleAddRequest = async () => {
       let baseUrl = process.env.REACT_APP_API_URL;
       const url = `${baseUrl}/request`;
   
@@ -642,6 +655,7 @@ const DataPage = () => {
           console.log('Request added successfully');
           setNewRequestDescription('');
           fetchRequests();
+          setChangeLogMessage(`${username} has added a new request:\n${newRequestDescription} `)
         } else {
           throw new Error('Failed to add request');
         }
@@ -649,10 +663,24 @@ const DataPage = () => {
         console.error('Error adding request:', error.response ? error.response.data : error);
         setRequestError('An error occurred. Please try again.');
       }
-    };
+      if (changeLogMessage) {
+        try {
+          await axios.post(`${baseUrl}/changelog`, { message: changeLogMessage }, {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            }
+          });
+          // Reset changeLogMessage after successfully logging the change
+          setChangeLogMessage('');
+        } catch (error) {
+          console.log('Failed to log change:', error);
+        }
+      }
+  };
   const handleSaveSection = async () => {
     const completedRequests = requests.filter(request => request.status === 'completed');
-    
+    const unfinishedRequests = requests.filter(request => request.status === 'unfinished');
     try {
         await Promise.all(completedRequests.map(async (request) => {
             const baseUrl = process.env.REACT_APP_API_URL;
@@ -665,8 +693,23 @@ const DataPage = () => {
             });
         }));
         fetchRequests();
+        setChangeLogMessage(`Following requests finished:\n${completedRequests.map(req => req.description).join('\n')}\nFollowing requests unfinished:\n${unfinishedRequests.map(req => req.description).join('\n')}`);
     } catch (error) {
         console.error('Error deleting completed requests:', error);
+    }
+    if (changeLogMessage) {
+      try {
+        const baseUrl = process.env.REACT_APP_API_URL;
+        await axios.post(`${baseUrl}/changelog`, { message: changeLogMessage }, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          }
+        });
+        setChangeLogMessage('');
+      } catch (error) {
+        console.log('Failed to log change:', error);
+      }
     }
   };
 

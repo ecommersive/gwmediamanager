@@ -459,16 +459,16 @@ const DataPage = () => {
         setfolderViewNum(response.data.folder);
         const itemsStringValues = requestData.items.map((i, index) => `${index + 1}.) ${i.FileName}`).join('\n');
         const logMessage = `${username} has created a new ${currentData === 'Playlist Schedule' ? 'Playlist Set' : 'Ads Set'}: \nStart Date: ${requestData.startDate}\nEnd Date: ${requestData.endDate}\nItems:\n${itemsStringValues}\nDuration of ${currentData === 'Playlist Schedule' ? 'Playlist Set' : 'Ads Set'}: ${requestData.startTime} - ${requestData.endTime}`;
-      try {
-        await axios.post(`${baseUrl}/changelog`, { message: logMessage }, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-      } catch (error) {
-        console.log('Failed to log change:', error);
-      }
+        try {
+          await axios.post(`${baseUrl}/changelog`, { message: logMessage }, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+        } catch (error) {
+          console.log('Failed to log change:', error);
+        }
         setItem([])
         setShowModal(false);
       } else {
@@ -479,6 +479,7 @@ const DataPage = () => {
       setItem([])
     }
   };
+  //finished addItemToSchedule
   const addItemToSchedule = async (itemToAdd) => {
     let baseUrl = process.env.REACT_APP_API_URL;
     let alterValue;
@@ -500,29 +501,25 @@ const DataPage = () => {
       if (response.status === 200) {
         console.log('Item added successfully');
         fetchData();
-        setChangeLogMessage(`${username} has added ${itemToAdd} to ${currentData} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum}`);
+        const logMessage = `${username} has added ${itemToAdd} to ${currentData} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum}`;
+        try {
+          await axios.post(`${baseUrl}/changelog`, { message: logMessage }, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+        } catch (error) {
+          console.log('Failed to log change:', error);
+        }
       } else {
         throw new Error('Failed to add the item');
       }
     } catch (error) {
       console.error('Error adding item:', error.response ? error.response.data : error);
     }
-
-    if (changeLogMessage) {
-      try {
-        await axios.post(`${baseUrl}/changelog`, { message: changeLogMessage }, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          }
-        });
-        // Reset changeLogMessage after successfully logging the change
-        setChangeLogMessage('');
-      } catch (error) {
-        console.log('Failed to log change:', error);
-      }
-    }
   };
+  //finished addItemToScheule
   const deleteItemFromSchedule = async (itemToDelete) => {
     let baseUrl = process.env.REACT_APP_API_URL;
     const encodedFileName = encodeURIComponent(itemToDelete);
@@ -543,7 +540,17 @@ const DataPage = () => {
       if (response.status === 200) {
         console.log('Item deleted successfully');
         fetchData();
-        setChangeLogMessage(`${username} has deleted ${itemToDelete} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum}`)
+        const logMessage = `${username} has deleted ${itemToDelete} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum}`
+        try {
+          await axios.post(`${baseUrl}/changelog`, { message: logMessage }, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+        } catch (error) {
+          console.log('Failed to log change:', error);
+        }
       } else {
         throw new Error('Failed to delete the item');
       }

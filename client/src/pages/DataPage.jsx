@@ -16,6 +16,7 @@ import '../styles/datapage.css';
 import axios from 'axios';
 import ViewList from '../Components/ViewTimeModal/ViewList';
 import RequestDetails from '../Components/RequestModal/RequestDetails';
+import Test from '../Components/TestAddModal/Test';
 const DataPage = () => {
   const [folderViewNum, setfolderViewNum] = useState(0)
   const [mode, setMode] = useState('');
@@ -48,6 +49,8 @@ const DataPage = () => {
   const [editingNoteText, setEditingNoteText] = useState('');
   const [state, setState] = useState('');
   const [requests, setRequests] = useState([]);
+  const [file, setFile] = useState(null);
+  const [metadata, setMetadata] = useState(null);
   const handleModal = () => {
     setShowModal(!showModal);
   }
@@ -749,6 +752,7 @@ const DataPage = () => {
             <SetCreation catData={catData} setShowModal={setShowModal} handleSubmitSetModal={handleSubmitSetModal} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} handleAddToSet={handleAddToSet} item={item}/>
             <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} state={state} setState={setState} deleteItemFromSchedule={deleteItemFromSchedule} addItemToSchedule={addItemToSchedule} moveItemPlaylistSchedule={moveItemPlaylistSchedule}/>
             <RequestDetails catData={catData} state={state} setState={setState} handleAddRequest={handleAddRequest} newRequestDescription={newRequestDescription} setNewRequestDescription={setNewRequestDescription} error={requestError} requests={requests} handleToggleStatus={handleToggleStatus} handleSaveSection={handleSaveSection} isAdmin={isAdmin} username={username}/>
+            <Test catData={catData} file={file} setFile={setFile} metadata={metadata} setMetadata={setMetadata}/>
           </>
         }
         

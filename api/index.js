@@ -16,6 +16,7 @@ const cron = require('node-cron');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const xlsx = require('xlsx');
 const {verifyToken} = require('./middleware/authmiddleware');
 
 app.use(express.json());
@@ -749,17 +750,158 @@ app.delete('/requests/:id', verifyToken, async (req, res) => {
 //changelog
 app.post('/changelog', async (req, res) => {
   try {
-    const { message } = req.body;
+    const { user,message } = req.body;
 
     if (!message) {
       return res.status(400).send('Message is required');
     }
 
-    const changeLog = new ChangeLog({ message });
+    if(!message){
+      return res.status(400).send('User is required')
+    }
+
+    const changeLog = new ChangeLog({ user, message });
     await changeLog.save();
 
     res.status(201).send(changeLog);
   } catch (error) {
     res.status(500).send(error.message);
   }
+});
+
+const sendChangeLogEmail = async () => {
+  try {
+    // Get the current date at midnight to use as a filter
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    // Fetch change logs for the current day
+    const logs = await ChangeLog.find({
+      timestamp: { $gte: startOfDay, $lt: endOfDay }
+    });
+
+    if (logs.length === 0) {
+      console.log('No change logs to send.');
+      return;
+    }
+
+    // Get current date for the email subject
+    const currentDate = new Date().toLocaleDateString();
+
+    // Helper function to format date
+    const formatDate = (date) => {
+      const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+      return date.toLocaleDateString('en-CA', options); // Format: yyyy-mm-dd
+    };
+
+    // Helper function to format time
+    const formatTime = (date) => {
+      const hours = date.getHours();
+      const minutes = date.getMinutes();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const formattedHours = hours % 12 || 12; // Convert to 12-hour format
+      const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
+      return `${formattedHours}:${formattedMinutes} ${ampm}`;
+    };
+
+    // Format the email body as a table
+    const emailBody = `
+      <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Date</th>
+            <th>Message</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${logs.map(log => `
+            <tr>
+              <td>${log.user}</td>
+              <td>${formatDate(new Date(log.timestamp))}</td>
+              <td>${log.message}</td>
+              <td>${formatTime(new Date(log.timestamp))}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+
+    // Create a workbook and add the logs to it
+    const wb = xlsx.utils.book_new();
+    const wsData = [
+      ["User", "Date", "Message", "Time"],
+      ...logs.map(log => [
+        log.user,
+        formatDate(new Date(log.timestamp)),
+        log.message,
+        formatTime(new Date(log.timestamp))
+      ])
+    ];
+    const ws = xlsx.utils.aoa_to_sheet(wsData);
+    xlsx.utils.book_append_sheet(wb, ws, "Logs");
+
+    // Generate the Excel file in memory and convert to base64
+    const wbOpts = { bookType: 'xlsx', type: 'base64' };
+    const base64Excel = xlsx.write(wb, wbOpts);
+    //need to also be able to send my email to multiple people
+    ['tom@commersive.ca', 'remi@commersive.ca', 'richard@commersive.ca']
+    // Email details
+    const msg = {
+      to: 'richard@commersive.ca', // Replace with recipient's email
+      from: process.env.EMAIL_USERNAME, // Your verified sender email
+      subject: `Change Log - ${currentDate}`,
+      text: logs.map(log => `User: ${log.user}\nDate: ${formatDate(new Date(log.timestamp))}\nMessage: ${log.message}\nTime: ${formatTime(new Date(log.timestamp))}`).join('\n\n'),
+      html: emailBody,
+      attachments: [
+        {
+          content: base64Excel,
+          filename: `${currentDate}.xlsx`,
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          disposition: 'attachment'
+        }
+      ]
+    };
+
+    // Send email
+    await sgMail.send(msg);
+    console.log('Change log email sent successfully.');
+  } catch (error) {
+    console.error('Error sending change log email:', error);
+  }
+};
+//checks for logs every 7 days to delete it to prevent our db from cluttering up with logs that don't need to be viewed anymore
+const deleteOldLogs = async () => {
+  try {
+    // Get the current date at midnight
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    // Calculate the date 7 days ago
+    const sevenDaysAgo = new Date(now);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    // Delete logs older than 7 days, excluding today's logs
+    const result = await ChangeLog.deleteMany({
+      timestamp: { $lt: sevenDaysAgo }
+    });
+
+    console.log(`Deleted ${result.deletedCount} old logs.`);
+  } catch (error) {
+    console.error('Error deleting old logs:', error);
+  }
+};
+
+cron.schedule('0 */23 * * *', () => {
+  console.log('Running change log email task...');
+  sendChangeLogEmail();
+});
+// Schedule the cleanup task to run once a day at midnight
+cron.schedule('0 0 * * *', () => {
+  console.log('Running old logs cleanup task...');
+  deleteOldLogs();
 });

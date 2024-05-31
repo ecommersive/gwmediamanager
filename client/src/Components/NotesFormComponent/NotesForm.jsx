@@ -14,7 +14,7 @@ const NotesForm = ({ catData, fileName, notes, editingNoteId, editingNoteText, h
                   {catData === 'UpdateNote' && (editingNoteId === index) ? (
                     <>
                       <input type="text" value={editingNoteText} onChange={handleUpdateNoteText} />
-                      <button onClick={() => handleDoneEditNote(index)}>Done</button>
+                      <button onClick={() => handleDoneEditNote(index, fileName)}>Done</button>
                     </>
                   ) : (
                     <div style={{ display: 'flex' }}>

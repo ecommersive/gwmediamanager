@@ -48,7 +48,6 @@ const DataPage = () => {
   const [editingNoteText, setEditingNoteText] = useState('');
   const [state, setState] = useState('');
   const [requests, setRequests] = useState([]);
-  // const [changeLogMessage, setChangeLogMessage] = useState('');
   const handleModal = () => {
     setShowModal(!showModal);
   }
@@ -155,7 +154,7 @@ const DataPage = () => {
 
         if (response.status === 201) {
           setShowModal(false);
-          logChange = `${username} has added ${formData.FileName} into ${selectedCategory} at ${new Date().toISOString()}`;
+          logChange = `${username} has added ${formData.FileName} into ${selectedCategory === 'Playlist' ? ' the Content Pool' : selectedCategory === 'Ads' ? 'Ads' : (selectedCategory === 'Playlist Schedule' || selectedCategory === 'Ads Schedule') ? selectedCategory : ''}.`;
           fetchData();
         } else {
           throw new Error(`Failed to add ${selectedCategory} item`);
@@ -175,7 +174,7 @@ const DataPage = () => {
           }
         });
         if (response.status === 200) {
-          logChange = `${username} has extended ${encodedFileName} in ${selectedCategory} to ${expiry}`;
+          logChange = `${username} has extended ${encodedFileName} in ${selectedCategory === 'Playlist' ? ' the Content Pool' : selectedCategory === 'Ads' ? 'Ads' : (selectedCategory === 'Playlist Schedule' || selectedCategory === 'Ads Schedule') ? selectedCategory : ''} to ${expiry}.`;
           console.log('Expiry date set successfully');
           fetchData();
           setShowModal(false);
@@ -195,7 +194,7 @@ const DataPage = () => {
           }
         });
         if (response.status === 200) {
-          logChange = `${username} has deleted ${encodedFileName} in ${selectedCategory}`;
+          logChange = `${username} has deleted ${encodedFileName} in ${selectedCategory === 'Playlist' ? ' the Content Pool' : selectedCategory === 'Ads' ? 'Ads' : (selectedCategory === 'Playlist Schedule' || selectedCategory === 'Ads Schedule') ? selectedCategory : ''}.`;
           console.log('Deletion successful');
           fetchData();
           setShowModal(false);
@@ -208,7 +207,7 @@ const DataPage = () => {
     }
     if (logChange) {
       try {
-        await axios.post(`${baseUrl}/changelog`, { message: logChange }, {
+        await axios.post(`${baseUrl}/changelog`, { user:username, message: logChange }, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -308,9 +307,9 @@ const DataPage = () => {
       if (response.status === 200) {
         setNotes(prevNotes => [...prevNotes, noteToAdd]);
         fetchData();
-        const logMessage = `${username} has added a comment saying "${noteToAdd.text}" in ${selectedCategory} to ${encodedFileName}`;
+        const logMessage = `${username} has added a comment saying "${noteToAdd.text}" in ${selectedCategory === 'Playlist' ? ' the Content Pool' : selectedCategory === 'Ads' ? 'Ads' : (selectedCategory === 'Playlist Schedule' || selectedCategory === 'Ads Schedule') ? selectedCategory : ''} to ${fileName}.`;
         try {
-          await axios.post(`${baseUrl}/changelog`, { message: logMessage }, {
+          await axios.post(`${baseUrl}/changelog`, { user:username, message: logMessage }, {
             headers: {
               Authorization: `Bearer ${token}`,
               'Content-Type': 'application/json'
@@ -334,7 +333,7 @@ const DataPage = () => {
     setEditingNoteText(event.target.value);
   };
   //finished handleDoneEditNote
-  const handleDoneEditNote = async (noteIndex) => {
+  const handleDoneEditNote = async (noteIndex, fileName) => {
     if (editingNoteId === null || editingNoteText.trim() === '') {
       alert('You must provide updated note text.');
       return;
@@ -360,9 +359,9 @@ const DataPage = () => {
         setEditingNoteId(null);
         setEditingNoteText('');
         fetchData();
-        const logMessage = `${username} has updated a comment: "${oldComment}" to "${editingNoteText}" in ${selectedCategory} for ${encodedFileName}`;
+        const logMessage = `${username} has updated a comment: "${oldComment}" to "${editingNoteText}" in ${selectedCategory === 'Playlist' ? ' the Content Pool' : selectedCategory === 'Ads' ? 'Ads' : (selectedCategory === 'Playlist Schedule' || selectedCategory === 'Ads Schedule') ? selectedCategory : ''} for ${fileName}.`;
         try {
-          await axios.post(`${baseUrl}/changelog`, { message: logMessage }, {
+          await axios.post(`${baseUrl}/changelog`, {user: username,message: logMessage }, {
             headers: {
               Authorization: `Bearer ${token}`,
               'Content-Type': 'application/json'
@@ -396,9 +395,9 @@ const DataPage = () => {
         console.log('Note deleted successfully');
         setNotes(notes.filter((_, index) => index !== noteIndex));
         fetchData();
-        const logMessage = `${username} has deleted comment: "${oldComment}" in ${selectedCategory} for ${encodedFileName}`;
+        const logMessage = `${username} has deleted comment: "${oldComment}" in ${selectedCategory === 'Playlist' ? ' the Content Pool' : selectedCategory === 'Ads' ? 'Ads' : (selectedCategory === 'Playlist Schedule' || selectedCategory === 'Ads Schedule') ? selectedCategory : ''} for ${fileName}`;
         try {
-          await axios.post(`${baseUrl}/changelog`, { message: logMessage }, {
+          await axios.post(`${baseUrl}/changelog`, { user:username, message: logMessage }, {
             headers: {
               Authorization: `Bearer ${token}`,
               'Content-Type': 'application/json'
@@ -454,7 +453,7 @@ const DataPage = () => {
         const itemsStringValues = requestData.items.map((i, index) => `${index + 1}.) ${i.FileName}`).join('\n');
         const logMessage = `${username} has created a new ${currentData === 'Playlist Schedule' ? 'Playlist Set' : 'Ads Set'}: \nStart Date: ${requestData.startDate}\nEnd Date: ${requestData.endDate}\nItems:\n${itemsStringValues}\nDuration of ${currentData === 'Playlist Schedule' ? 'Playlist Set' : 'Ads Set'}: ${requestData.startTime} - ${requestData.endTime}`;
         try {
-          await axios.post(`${baseUrl}/changelog`, { message: logMessage }, {
+          await axios.post(`${baseUrl}/changelog`, { user:username, message: logMessage }, {
             headers: {
               Authorization: `Bearer ${token}`,
               'Content-Type': 'application/json'
@@ -497,7 +496,7 @@ const DataPage = () => {
         fetchData();
         const logMessage = `${username} has added ${itemToAdd} to ${currentData} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum}`;
         try {
-          await axios.post(`${baseUrl}/changelog`, { message: logMessage }, {
+          await axios.post(`${baseUrl}/changelog`, { user:username, message: logMessage }, {
             headers: {
               Authorization: `Bearer ${token}`,
               'Content-Type': 'application/json'
@@ -534,9 +533,9 @@ const DataPage = () => {
       if (response.status === 200) {
         console.log('Item deleted successfully');
         fetchData();
-        const logMessage = `${username} has deleted ${itemToDelete} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum}`
+        const logMessage = `${username} has deleted ${itemToDelete} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum}.`
         try {
-          await axios.post(`${baseUrl}/changelog`, { message: logMessage }, {
+          await axios.post(`${baseUrl}/changelog`, { user:username, message: logMessage }, {
             headers: {
               Authorization: `Bearer ${token}`,
               'Content-Type': 'application/json'
@@ -574,9 +573,9 @@ const DataPage = () => {
     if (response.status === 200) {
       console.log('Item moved successfully');
       fetchData();
-      const logMessage = `${username} has moved ${itemToMove} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum} ${direction}`
+      const logMessage = `${username} has moved ${itemToMove} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum} ${direction}.`
       try {
-        await axios.post(`${baseUrl}/changelog`, { message: logMessage }, {
+        await axios.post(`${baseUrl}/changelog`, { user:username, message: logMessage }, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -635,9 +634,9 @@ const DataPage = () => {
           console.log('Request added successfully');
           setNewRequestDescription('');
           fetchRequests();
-          const logMessage = `${username} has added a new request:\n${newRequestDescription}`
+          const logMessage = `${username} has added a new request:\n${newRequestDescription}.`
           try {
-            await axios.post(`${baseUrl}/changelog`, { message: logMessage }, {
+            await axios.post(`${baseUrl}/changelog`, { user:username, message: logMessage }, {
               headers: {
                 Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json'
@@ -673,7 +672,7 @@ const DataPage = () => {
         fetchRequests();
         const logMessage = `Following requests finished:\n${completedRequests.map(req => req.description).join('\n')}\nFollowing requests unfinished:\n${unfinishedRequests.map(req => req.description).join('\n')}`;
         try {
-          await axios.post(`${baseUrl}/changelog`, { message: logMessage }, {
+          await axios.post(`${baseUrl}/changelog`, { user:username, message: logMessage }, {
             headers: {
               Authorization: `Bearer ${token}`,
               'Content-Type': 'application/json'

@@ -5,6 +5,10 @@ const changeLogSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
+  user:{
+    type:String,
+    required:true
+  },
   message: {
     type: String,
     required: true

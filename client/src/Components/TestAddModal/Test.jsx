@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 const Test = ({ catData, file, setFile, metadata, setMetadata}) => {
-
+  const audioRef = useRef(null);
+  console.log('time',file.lastModifiedDate.getSeconds());
   useEffect(() => {
     if (file) {
       const reader = new FileReader();
@@ -16,6 +17,13 @@ const Test = ({ catData, file, setFile, metadata, setMetadata}) => {
           type: fileType,
           mtime: fileModifiedDate,
         });
+
+        if (fileType.startsWith('audio/')) {
+          const audio = new Audio(reader.result);
+          audio.addEventListener('loadedmetadata', () => {
+            setMetadata(prevMetadata => ({ ...prevMetadata, duration: audio.duration }));
+          });
+        }
       };
       reader.readAsArrayBuffer(file);
     }
@@ -26,7 +34,7 @@ const Test = ({ catData, file, setFile, metadata, setMetadata}) => {
     const droppedFile = event.dataTransfer.files[0];
     setFile(droppedFile);
   };
-
+  console.log('metadata = ', metadata);
   return (
     <div
       onDrop={handleFileDrop}
@@ -41,8 +49,10 @@ const Test = ({ catData, file, setFile, metadata, setMetadata}) => {
               <p>File size: {metadata.size} bytes</p>
               <p>File type: {metadata.type}</p>
               <p>Last modified: {metadata.mtime.toLocaleString()}</p>
+              {metadata.duration && <p>Duration: {metadata.duration} seconds</p>}
             </div>
           )}
+          {audioRef.current && <audio ref={audioRef} src={file} />}
         </>
       )}
     </div>

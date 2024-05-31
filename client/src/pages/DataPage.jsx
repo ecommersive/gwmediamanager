@@ -58,6 +58,8 @@ const DataPage = () => {
     setItem([]);
     setState('');
     setShowModal(false);
+    setMetadata(null);
+    setFile(null);
   }
   const fetchData = useCallback(async () => {
     let baseUrl = process.env.REACT_APP_API_URL

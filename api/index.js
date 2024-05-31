@@ -872,34 +872,24 @@ const sendChangeLogEmail = async () => {
     console.error('Error sending change log email:', error);
   }
 };
-//checks for logs every 7 days to delete it to prevent our db from cluttering up with logs that don't need to be viewed anymore
-const deleteOldLogs = async () => {
+//deletes all logs, will schedule this every sunday
+const deleteAllLogs = async () => {
   try {
-    // Get the current date at midnight
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
+    // Delete all logs
+    const result = await ChangeLog.deleteMany({});
 
-    // Calculate the date 7 days ago
-    const sevenDaysAgo = new Date(now);
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-    // Delete logs older than 7 days, excluding today's logs
-    const result = await ChangeLog.deleteMany({
-      timestamp: { $lt: sevenDaysAgo }
-    });
-
-    console.log(`Deleted ${result.deletedCount} old logs.`);
+    console.log(`Deleted ${result.deletedCount} logs.`);
   } catch (error) {
-    console.error('Error deleting old logs:', error);
+    console.error('Error deleting logs:', error);
   }
 };
 
-cron.schedule('0 */23 * * *', () => {
+// Schedule the sendChangeLogEmail function to run every day at 10 PM
+cron.schedule('0 22 * * *', () => {
   console.log('Running change log email task...');
   sendChangeLogEmail();
 });
 // Schedule the cleanup task to run once a day at midnight
-cron.schedule('0 0 * * *', () => {
-  console.log('Running old logs cleanup task...');
-  deleteOldLogs();
+cron.schedule('0 0 * * 0', () => {
+  deleteAllLogs();
 });

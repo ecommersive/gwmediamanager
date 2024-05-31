@@ -848,12 +848,10 @@ const sendChangeLogEmail = async () => {
     // Generate the Excel file in memory and convert to base64
     const wbOpts = { bookType: 'xlsx', type: 'base64' };
     const base64Excel = xlsx.write(wb, wbOpts);
-    //need to also be able to send my email to multiple people
-    ['tom@commersive.ca', 'remi@commersive.ca', 'richard@commersive.ca']
-    // Email details
+    const recipients = ['tom@commersive.ca', 'remi@commersive.ca', 'richard@commersive.ca'];
     const msg = {
-      to: 'richard@commersive.ca', // Replace with recipient's email
-      from: process.env.EMAIL_USERNAME, // Your verified sender email
+      to: recipients,
+      from: process.env.EMAIL_USERNAME, 
       subject: `Change Log - ${currentDate}`,
       text: logs.map(log => `User: ${log.user}\nDate: ${formatDate(new Date(log.timestamp))}\nMessage: ${log.message}\nTime: ${formatTime(new Date(log.timestamp))}`).join('\n\n'),
       html: emailBody,

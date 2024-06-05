@@ -42,7 +42,13 @@ app.get(['/', '/home'], (req, res) => {
   res.sendFile(path.join(__dirname, '../client/build/index.html'));
 });
 
-
+app.use(express.static('public', {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.wasm')) {
+      res.setHeader('Content-Type', 'application/wasm');
+    }
+  }
+}));
 const checkFileExistence = async (fileName) => {
   const regex = new RegExp('^' + fileName + '$', 'i');  // Case insensitive search
   const playlistExists = await Playlist.findOne({ FileName: regex });

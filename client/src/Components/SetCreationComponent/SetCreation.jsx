@@ -79,9 +79,7 @@ const SetCreation = ({
             modalFilteredData.filter(modalItem => !itemExists(modalItem.FileName)).map((modalItem, index) => (
               <div key={index}>
                 <span>{modalItem.FileName}</span>
-                <button onClick={(event) => handleAddToSet(event, modalItem.FileName)}>
-                  Add
-                </button>
+                <button onClick={(event) => handleAddToSet(event, modalItem.FileName)}>Add</button>
               </div>
             ))
           ) : (

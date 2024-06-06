@@ -5,7 +5,10 @@ const playlistScheduleSchema = new mongoose.Schema({
     folder: {
         type: Number
     },
-    items: [String],
+    items: [{
+        FileName: { type: String },
+        FileID: { type: mongoose.Schema.Types.ObjectId, ref: 'YourFileModel' }
+    }],
     startDate: {
         type: Date,
         required: true

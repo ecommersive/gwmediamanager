@@ -91,6 +91,7 @@ const DataPage = () => {
       }
       const data = await response.json();
       setData(data);
+      console.log('Data = ', data);
     } catch (error) {
       console.error(`Error fetching data from ${url}:`, error);
     }
@@ -305,19 +306,20 @@ const DataPage = () => {
   }, [searchTerm, data, currentData]);
   const fetchDataModals = async () => {
     let baseUrl = process.env.REACT_APP_API_URL;
-    let playlistUrl = `${baseUrl}/playlists`;
-    let adsUrl = `${baseUrl}/ads`;
+    if(currentData === 'Playlist Schedule'){
+      baseUrl += '/playlists';
+    }else if(currentData === 'Ads Schedule'){
+      baseUrl += '/ads';
+    }
     try {
-      const playlistResponse = await fetch(playlistUrl);
-      const adsResponse = await fetch(adsUrl);
-      if (!playlistResponse.ok || !adsResponse.ok) {
-        throw new Error(`HTTP error! Status: ${playlistResponse.status}, ${adsResponse.status}`);
+      const response = await fetch(baseUrl);
+      if (!response) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
       }
-      const playlistData = await playlistResponse.json();
-      const adsData = await adsResponse.json();
-      setModalData([...playlistData, ...adsData]);
+      const data = await response.json();
+      setModalData([...data]);
     } catch (error) {
-      console.error(`Error fetching data from ${playlistUrl} and ${adsUrl}:`, error);
+      console.error(`Error fetching data from ${baseUrl}`, error);
     }
   };
   const modalFilteredData = useMemo(() => {
@@ -491,7 +493,7 @@ const DataPage = () => {
     const requestData = {
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
-      items: item, // Extract FileName
+      items: item.map(item => ({ FileName: item.FileName, FileID: item.FileID })),
       startTime: startTime.startTime, // Ensure it's a string
       endTime: endTime.endTime         // Ensure it's a string
     };
@@ -774,9 +776,9 @@ const DataPage = () => {
   }, [item]);
   
 
-  function handleAddToSet(event, fileName) {
+  function handleAddToSet(event, fileName, fileID) {
     event.preventDefault();
-    setItem(prevItem => [...prevItem, { FileName: fileName }]);
+    setItem(prevItem => [...prevItem, { FileName: fileName, FileID: fileID }]);
     console.log('item', item);
   }
   const itemExists = (fileName) => {
@@ -805,8 +807,8 @@ const DataPage = () => {
               <FormButton catData={catData} fileName={fileName} photoUrl={photoUrl} type={type} runTime={runTime} content={content} handleSubmit={handleSubmit} />
             </form>
             <NotesForm catData={catData} fileName={fileName} notes={notes} editingNoteId={editingNoteId} editingNoteText={editingNoteText} handleUpdateNoteText={handleUpdateNoteText} handleDoneEditNote={handleDoneEditNote} handleEditNote={handleEditNote} handleDeleteNote={handleDeleteNote} handleAddNoteSubmit={handleAddNoteSubmit} newNote={newNote} setNewNote={setNewNote} username={username} setCatData={setCatData} isAdmin={isAdmin}/>
-            <SetCreation catData={catData} setShowModal={setShowModal} handleSubmitSetModal={handleSubmitSetModal} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} handleAddToSet={handleAddToSet} item={item}/>
-            <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} state={state} setState={setState} deleteItemFromSchedule={deleteItemFromSchedule} addItemToSchedule={addItemToSchedule} moveItemPlaylistSchedule={moveItemPlaylistSchedule}/>
+            <SetCreation catData={catData} setShowModal={setShowModal} handleSubmitSetModal={handleSubmitSetModal}  modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} handleAddToSet={handleAddToSet} item={item}/>
+            <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)}  modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} state={state} setState={setState} deleteItemFromSchedule={deleteItemFromSchedule} addItemToSchedule={addItemToSchedule} moveItemPlaylistSchedule={moveItemPlaylistSchedule}/>
             <RequestDetails catData={catData} state={state} setState={setState} handleAddRequest={handleAddRequest} newRequestDescription={newRequestDescription} setNewRequestDescription={setNewRequestDescription} error={requestError} requests={requests} handleToggleStatus={handleToggleStatus} handleSaveSection={handleSaveSection} isAdmin={isAdmin} username={username}/>
           </>
         }

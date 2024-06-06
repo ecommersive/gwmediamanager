@@ -7,6 +7,7 @@ const SetCreation = ({
   handleSubmitSetModal,
   modalSearchTerm,
   setModalSearchTerm,
+
   modalFilteredData,
   itemExists,
   handleAddToSet,
@@ -17,6 +18,8 @@ const SetCreation = ({
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [error, setError] = useState('');
+  
+  
 
   const handleStartDateChange = (event) => {
     const newStartDate = new Date(event.target.value);
@@ -73,13 +76,14 @@ const SetCreation = ({
     (catData === 'playlistSchedule' || catData === 'adsSchedule') && (
       <>
         <SearchInput searchTerm={modalSearchTerm} setSearchTerm={setModalSearchTerm} />
+
         <br />
         {modalSearchTerm.length > 0 ? (
           modalFilteredData.length > 0 ? (
             modalFilteredData.filter(modalItem => !itemExists(modalItem.FileName)).map((modalItem, index) => (
               <div key={index}>
                 <span>{modalItem.FileName}</span>
-                <button onClick={(event) => handleAddToSet(event, modalItem.FileName)}>Add</button>
+                <button onClick={(event) => handleAddToSet(event, modalItem.FileName,  modalItem._id)}>Add</button>
               </div>
             ))
           ) : (

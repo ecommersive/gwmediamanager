@@ -2,9 +2,7 @@ import React, {useEffect} from 'react';
 import SearchInput from '../SearchInput';
 
 const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchTerm, modalFilteredData, itemExists, state, setState, deleteItemFromSchedule, addItemToSchedule, moveItemPlaylistSchedule  }) => {
-  useEffect(() => {
-    console.log('STATEEEEEEEEEEEEEEE = ', state);
-  }, [state])
+
   
   return (
     <>

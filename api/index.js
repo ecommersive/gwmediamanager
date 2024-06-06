@@ -102,7 +102,7 @@ app.get('/playlistSchedule', async (req, res) => {
 });
 
 app.post('/createPlaylistSchedule', verifyToken, async (req, res) => {
-  const { items, startDate, endDate, startTime, endTime, notes  } = req.body;
+  const { items, startDate, endDate, startTime, endTime, notes } = req.body;
 
   // Ensure items is defined and not empty
   if (!items || items.length === 0) {
@@ -114,7 +114,7 @@ app.post('/createPlaylistSchedule', verifyToken, async (req, res) => {
     return res.status(400).json({ message: 'Start time must be earlier than end time.' });
   }
 
-  const itemsFileNames = items.map(item => item.FileName);
+  const itemsFileNamesAndIDs = items.map(item => ({ FileName: item.FileName, FileID: item.FileID }));
 
   try {
     // Improved folder number calculation
@@ -123,7 +123,7 @@ app.post('/createPlaylistSchedule', verifyToken, async (req, res) => {
 
     const newPlaylistSchedule = new PlaylistSchedule({
       folder: folderNumber,
-      items: itemsFileNames,
+      items: itemsFileNamesAndIDs,
       startDate,
       endDate,
       startTime,
@@ -139,7 +139,6 @@ app.post('/createPlaylistSchedule', verifyToken, async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 });
-
 
 app.get('/playlistSchedule/:folder', verifyToken, async (req, res) => {
   const { folder } = req.params;

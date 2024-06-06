@@ -1,16 +1,17 @@
+import React, {useEffect} from 'react'
 const FormAllDataBody = ({ catData, currentData, handleSelectedCategoryChange, fileName, handleFileNameChange }) => {
     const shouldRenderCategory = catData === 'addData' || catData === 'ExtendExpiry' || catData === 'DeleteData';
   
+    useEffect(() => {
+      handleSelectedCategoryChange({target: {value: currentData}})
+    }, [])
+    
     return (
       <>
         {shouldRenderCategory && (
           <>
             <label>
-              Category:
-              <select value={currentData} onChange={handleSelectedCategoryChange}>
-                <option value="Playlist">Playlist</option>
-                <option value="Ads">Ads</option>
-              </select>
+              Category: {currentData}
             </label>
             <br />
 

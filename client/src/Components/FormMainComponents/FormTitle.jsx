@@ -12,7 +12,7 @@ const FormTitle = ({ catData }) => {
     playlistSchedule: 'Create Playlist Set',
     adsSchedule: 'Create Ads Set',
     //test modal will be change eventually
-    TestModal: 'Add New Data'
+    addData: 'Add New Data'
   };
   const formTitle = catToFormTitle[catData] || '';
   return <h2>{formTitle}</h2>;

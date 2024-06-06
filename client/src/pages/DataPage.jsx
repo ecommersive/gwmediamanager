@@ -16,7 +16,8 @@ import '../styles/datapage.css';
 import axios from 'axios';
 import ViewList from '../Components/ViewTimeModal/ViewList';
 import RequestDetails from '../Components/RequestModal/RequestDetails';
-import Test from '../Components/TestAddModal/Test';
+import mediaInfoFactory from 'mediainfo.js';
+
 const DataPage = () => {
   const [folderViewNum, setfolderViewNum] = useState(0)
   const [mode, setMode] = useState('');
@@ -47,6 +48,10 @@ const DataPage = () => {
   const [editingNoteText, setEditingNoteText] = useState('');
   const [state, setState] = useState('');
   const [requests, setRequests] = useState([]);
+  const [file, setFile] = useState(null);
+  const [mediaInfo,setMediaInfo] = useState(null);
+  const [result, setResult] = useState(null)
+  
   const handleModal = () => {
     setShowModal(!showModal);
   }
@@ -54,7 +59,8 @@ const DataPage = () => {
     setItem([]);
     setState('');
     setShowModal(false);
-
+    resetAll()
+    setFile('')
   }
   const fetchData = useCallback(async () => {
     let baseUrl = process.env.REACT_APP_API_URL
@@ -120,6 +126,63 @@ const DataPage = () => {
   const handleSelectedCategoryChange = (event) => {
     setCurrentData(event.target.value);
   };
+
+  const handleDrop = async (event) => {
+    event.preventDefault();
+    const file = event.dataTransfer.files[0];
+    setFile(file);
+
+    try {
+      const mediaInfoInstance = await mediaInfoFactory({ locateFile: () => '/MediaInfoModule.wasm' });
+      setMediaInfo(mediaInfoInstance);
+
+      const fileSize = file.size;
+      const readChunk = async (chunkSize, offset) => {
+        const buffer = await file.slice(offset, offset + chunkSize).arrayBuffer();
+        return new Uint8Array(buffer);
+      };
+
+      const result = await mediaInfoInstance.analyzeData(fileSize, readChunk);
+      setResult(result);
+      console.log('result:', result);
+
+      handleFileNameChange({ target: { value: file.name } });
+      handleSelectedCategoryChange({ target: { value: currentData } });
+      handlePhotoUrlChange({ target: { value: file.name } });
+
+      if (result) {
+        const videoInfo = result.media.track.find((track) => track['@type'] === 'Video');
+        if (videoInfo) {
+          handleRunTimeChange({ target: { value: formatDuration(videoInfo.Duration) } });
+        } else {
+          handleRunTimeChange({ target: { value: '0:00' } });
+        }
+      }
+    } catch (error) {
+      console.error('Error analyzing file:', error);
+    }
+  };
+
+  const handleDragOver = (event) => {
+    event.preventDefault();
+  };
+
+  const formatDuration = (duration) => {
+    const seconds = Math.floor(duration);
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+  const resetAll = () =>{
+    setFileName('')
+    setContent('')
+    setTag('')
+    setPhotoUrl('')
+    setContent('')
+    setRunTime('')
+    setExpiry('')
+  }
   const handleSubmit = async (event) => {
     event.preventDefault();
     let baseUrl = process.env.REACT_APP_API_URL;
@@ -153,6 +216,7 @@ const DataPage = () => {
           setShowModal(false);
           logChange = `${username} has added ${formData.FileName} into ${currentData === 'Playlist' ? ' the Content Pool' : currentData === 'Ads' ? 'Ads' : (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? currentData : ''}.`;
           fetchData();
+          
         } else {
           throw new Error(`Failed to add ${currentData} item`);
         }
@@ -214,6 +278,8 @@ const DataPage = () => {
         console.log('Failed to log change:', error);
       }
     }
+    resetAll()
+    setFile('')
   };
   const filteredData = useMemo(() => {
     
@@ -735,8 +801,8 @@ const DataPage = () => {
           <>
             <form onSubmit={handleSubmit}>
               <FormTitle catData={catData} />
+              <FormAddDataBody catData={catData} currentData={currentData} handleFileNameChange={handleFileNameChange} handleSelectedCategoryChange={handleSelectedCategoryChange} handlePhotoUrlChange={handlePhotoUrlChange} handleRunTimeChange={handleRunTimeChange} tag={tag} handleTagChange={handleTagChange} content={content} handleContentChange={handleContentChange} expiry={expiry} handleExpiryChange={handleExpiryChange} fileName={fileName} photoUrl={photoUrl} type={type} runTime={runTime} handleDrop={handleDrop} handleDragOver={handleDragOver} file={file} result={result} />
               <FormAllDataBody catData={catData} currentData={currentData} handleSelectedCategoryChange={handleSelectedCategoryChange} fileName={fileName} handleFileNameChange={handleFileNameChange} />
-              <FormAddDataBody catData={catData} type={type} handleTypeChange={handleTypeChange} tag={tag} handleTagChange={handleTagChange} photoUrl={photoUrl} handlePhotoUrlChange={handlePhotoUrlChange} runTime={runTime} handleRunTimeChange={handleRunTimeChange} content={content} handleContentChange={handleContentChange} />
               <FormExpiry catData={catData} expiry={expiry} handleExpiryChange={handleExpiryChange} />
               <FormButton catData={catData} fileName={fileName} photoUrl={photoUrl} type={type} runTime={runTime} content={content} handleSubmit={handleSubmit} />
             </form>
@@ -744,7 +810,6 @@ const DataPage = () => {
             <SetCreation catData={catData} setShowModal={setShowModal} handleSubmitSetModal={handleSubmitSetModal} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} handleAddToSet={handleAddToSet} item={item}/>
             <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} state={state} setState={setState} deleteItemFromSchedule={deleteItemFromSchedule} addItemToSchedule={addItemToSchedule} moveItemPlaylistSchedule={moveItemPlaylistSchedule}/>
             <RequestDetails catData={catData} state={state} setState={setState} handleAddRequest={handleAddRequest} newRequestDescription={newRequestDescription} setNewRequestDescription={setNewRequestDescription} error={requestError} requests={requests} handleToggleStatus={handleToggleStatus} handleSaveSection={handleSaveSection} isAdmin={isAdmin} username={username}/>
-            <Test catData={catData} currentData={currentData} handleSelectedCategoryChange={handleSelectedCategoryChange} tag={tag} handleTagChange={handleTagChange} content={content} handleContentChange={handleContentChange} expiry={expiry} handleExpiryChange={handleExpiryChange}/>
           </>
         }
         

@@ -53,6 +53,7 @@ const FormAddDataBody = ({ catData, currentData, tag, handleTagChange, content, 
 
   return (
     catData === 'addData' && (
+      <>
       <div
         onDrop={handleDrop}
         onDragOver={handleDragOver}
@@ -89,6 +90,8 @@ const FormAddDataBody = ({ catData, currentData, tag, handleTagChange, content, 
           <p>Drag and drop a file here</p>
         )}
       </div>
+      <br />
+      </>
     )
   );
 };

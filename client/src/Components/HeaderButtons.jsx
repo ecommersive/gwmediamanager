@@ -26,7 +26,7 @@ const HeaderButtons = ({ currentData, isAdmin, handleModal, setMode, setCatData,
         )
         
       )}
-      {!isAdmin && <button className="action-button" onClick={() => { handleModal(true); setMode('configureData'); setCatData('TestModal'); }}>Add Data</button>}
+      {isAdmin && <button className="action-button" onClick={() => { handleModal(true); setMode('configureData'); setCatData('TestModal'); }}>Add Data</button>}
       <button className="action-button" onClick={handleLogout}>Logout</button>
     </div>
   );

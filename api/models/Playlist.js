@@ -13,7 +13,7 @@ const playlistSchema = new mongoose.Schema({
   Type: {
     type: String,
     required: true,
-    enum: ['JPG', 'Video', 'PNG'] 
+    enum: ['JPG', 'Video', 'PNG','JPEG'] 
   },  
   Tag: String,
   Run_Time: {

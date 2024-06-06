@@ -1,9 +1,9 @@
-const FormButton = ({ catData, fileName, photoUrl, type, runTime, content, videoUrl, handleSubmit }) => {
+const FormButton = ({ catData, fileName, photoUrl, type, runTime, content, handleSubmit }) => {
     const shouldRenderButton = catData === 'addData' || catData === 'DeleteData' || catData === 'ExtendExpiry';
   
     const isButtonDisabled =
       catData === 'addData'
-        ? !fileName || !photoUrl || !type || !runTime || !content || !videoUrl
+        ? !fileName || !photoUrl || !type || !runTime || !content
         : catData === 'DeleteData' || catData === 'ExtendExpiry'
         ? !fileName
         : null;

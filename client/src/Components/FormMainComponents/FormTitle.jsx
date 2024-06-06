@@ -11,6 +11,8 @@ const FormTitle = ({ catData }) => {
     DeleteNote: 'Delete Note',
     playlistSchedule: 'Create Playlist Set',
     adsSchedule: 'Create Ads Set',
+    //test modal will be change eventually
+    TestModal: 'Add New Data'
   };
   const formTitle = catToFormTitle[catData] || '';
   return <h2>{formTitle}</h2>;

@@ -34,9 +34,7 @@ const DataPage = () => {
   const [tag, setTag] = useState('');
   const [runTime, setRunTime] = useState('');
   const [content, setContent] = useState('');
-  const [videoUrl, setVideoUrl] = useState('');
   const [expiry, setExpiry] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Playlist');
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
   const username = localStorage.getItem('username');
@@ -115,14 +113,12 @@ const DataPage = () => {
   const handleContentChange = (event) => {
     setContent(event.target.value);
   };
-  const handleVideoUrlChange = (event) => {
-    setVideoUrl(event.target.value);
-  };
+
   const handleExpiryChange = (event) => {
     setExpiry(event.target.value);
   };
   const handleSelectedCategoryChange = (event) => {
-    setSelectedCategory(event.target.value);
+    setCurrentData(event.target.value);
   };
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -136,7 +132,6 @@ const DataPage = () => {
         Tag: tag,
         Run_Time: runTime,
         Content: content,
-        videoUrl: videoUrl,
         Expiry: expiry
       };
       if (notes.length > 0) {
@@ -145,7 +140,7 @@ const DataPage = () => {
           addedOn: new Date()
         }));
       }
-      const endpoint = selectedCategory === "Playlist" ? "uploadPlaylist" : "uploadAds";
+      const endpoint = currentData === "Playlist" ? "uploadPlaylist" : "uploadAds";
       try {
         const response = await axios.post(`${baseUrl}/${endpoint}`, formData, {
           headers: {
@@ -156,10 +151,10 @@ const DataPage = () => {
 
         if (response.status === 201) {
           setShowModal(false);
-          logChange = `${username} has added ${formData.FileName} into ${selectedCategory === 'Playlist' ? ' the Content Pool' : selectedCategory === 'Ads' ? 'Ads' : (selectedCategory === 'Playlist Schedule' || selectedCategory === 'Ads Schedule') ? selectedCategory : ''}.`;
+          logChange = `${username} has added ${formData.FileName} into ${currentData === 'Playlist' ? ' the Content Pool' : currentData === 'Ads' ? 'Ads' : (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? currentData : ''}.`;
           fetchData();
         } else {
-          throw new Error(`Failed to add ${selectedCategory} item`);
+          throw new Error(`Failed to add ${currentData} item`);
         }
       } catch (error) {
         console.log('An error occurred. Please try again.', error);
@@ -167,7 +162,7 @@ const DataPage = () => {
     } else if (catData === 'ExtendExpiry') {
       const encodedFileName = encodeURIComponent(fileName);
       try {
-        const response = await axios.post(`${baseUrl}/setExpiry/${selectedCategory.toLowerCase()}/${encodedFileName}`, {
+        const response = await axios.post(`${baseUrl}/setExpiry/${currentData.toLowerCase()}/${encodedFileName}`, {
           newExpiryDate: expiry
         }, {
           headers: {
@@ -176,12 +171,12 @@ const DataPage = () => {
           }
         });
         if (response.status === 200) {
-          logChange = `${username} has extended ${encodedFileName} in ${selectedCategory === 'Playlist' ? ' the Content Pool' : selectedCategory === 'Ads' ? 'Ads' : (selectedCategory === 'Playlist Schedule' || selectedCategory === 'Ads Schedule') ? selectedCategory : ''} to ${expiry}.`;
+          logChange = `${username} has extended ${encodedFileName} in ${currentData === 'Playlist' ? ' the Content Pool' : currentData === 'Ads' ? 'Ads' : (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? currentData : ''} to ${expiry}.`;
           console.log('Expiry date set successfully');
           fetchData();
           setShowModal(false);
         } else {
-          throw new Error(`Failed to set expiry date for ${selectedCategory} item`);
+          throw new Error(`Failed to set expiry date for ${currentData} item`);
         }
       } catch (error) {
         console.log('An error occurred. Please try again.', error);
@@ -189,19 +184,19 @@ const DataPage = () => {
     } else if (catData === 'DeleteData') {
       const encodedFileName = encodeURIComponent(fileName);
       try {
-        const response = await axios.delete(`${baseUrl}/deleteData/${selectedCategory.toLowerCase()}/${encodedFileName}`, {
+        const response = await axios.delete(`${baseUrl}/deleteData/${currentData.toLowerCase()}/${encodedFileName}`, {
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`
           }
         });
         if (response.status === 200) {
-          logChange = `${username} has deleted ${encodedFileName} in ${selectedCategory === 'Playlist' ? ' the Content Pool' : selectedCategory === 'Ads' ? 'Ads' : (selectedCategory === 'Playlist Schedule' || selectedCategory === 'Ads Schedule') ? selectedCategory : ''}.`;
+          logChange = `${username} has deleted ${encodedFileName} in ${currentData === 'Playlist' ? ' the Content Pool' : currentData === 'Ads' ? 'Ads' : (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? currentData : ''}.`;
           console.log('Deletion successful');
           fetchData();
           setShowModal(false);
         } else {
-          throw new Error(`Failed to delete ${selectedCategory} item`);
+          throw new Error(`Failed to delete ${currentData} item`);
         }
       } catch (error) {
         console.log('An error occurred. Please try again.', error);
@@ -230,7 +225,6 @@ const DataPage = () => {
             item.Tag?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             item.Run_Time?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             item.Content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.videoUrl?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             item.Expiry?.toLowerCase().includes(searchTerm.toLowerCase())
           );
         }else if(currentData === 'Playlist Schedule' || currentData === 'Ads Schedule'){
@@ -269,7 +263,6 @@ const DataPage = () => {
       item.Tag?.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
       item.Run_Time?.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
       item.Content?.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
-      item.videoUrl?.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
       item.Expiry?.toLowerCase().includes(modalSearchTerm.toLowerCase())
     );
   }, [modalSearchTerm, modalData]);
@@ -281,7 +274,7 @@ const DataPage = () => {
   }, [modalSearchTerm]);
   const handleDataSelection = (e) => {
     setCurrentData(e.target.value);
-    setSelectedCategory(e.target.value);
+    setCurrentData(e.target.value);
   };
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -299,7 +292,7 @@ const DataPage = () => {
     let baseUrl = process.env.REACT_APP_API_URL;
     try {
       const encodedFileName = encodeURIComponent(fileName);
-      const endpoint = `${baseUrl}/notes/add/${selectedCategory.toLowerCase()}/${encodedFileName}`;
+      const endpoint = `${baseUrl}/notes/add/${currentData.toLowerCase()}/${encodedFileName}`;
       const response = await axios.post(endpoint, noteToAdd, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -309,7 +302,7 @@ const DataPage = () => {
       if (response.status === 200) {
         setNotes(prevNotes => [...prevNotes, noteToAdd]);
         fetchData();
-        const logMessage = `${username} has added a comment saying "${noteToAdd.text}" in ${selectedCategory === 'Playlist' ? ' the Content Pool' : selectedCategory === 'Ads' ? 'Ads' : (selectedCategory === 'Playlist Schedule' || selectedCategory === 'Ads Schedule') ? selectedCategory : ''} to ${fileName}.`;
+        const logMessage = `${username} has added a comment saying "${noteToAdd.text}" in ${currentData === 'Playlist' ? ' the Content Pool' : currentData === 'Ads' ? 'Ads' : (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? currentData : ''} to ${fileName}.`;
         try {
           await axios.post(`${baseUrl}/changelog`, { user:username, message: logMessage }, {
             headers: {
@@ -344,7 +337,7 @@ const DataPage = () => {
     try {
       const encodedFileName = encodeURIComponent(fileName);
       const oldComment = notes[noteIndex].text;
-      const response = await axios.put(`${baseUrl}/notes/update/${selectedCategory.toLowerCase()}/${encodedFileName}`, {
+      const response = await axios.put(`${baseUrl}/notes/update/${currentData.toLowerCase()}/${encodedFileName}`, {
         noteIndex,
         updatedText: editingNoteText
       }, {
@@ -361,7 +354,7 @@ const DataPage = () => {
         setEditingNoteId(null);
         setEditingNoteText('');
         fetchData();
-        const logMessage = `${username} has updated a comment: "${oldComment}" to "${editingNoteText}" in ${selectedCategory === 'Playlist' ? ' the Content Pool' : selectedCategory === 'Ads' ? 'Ads' : (selectedCategory === 'Playlist Schedule' || selectedCategory === 'Ads Schedule') ? selectedCategory : ''} for ${fileName}.`;
+        const logMessage = `${username} has updated a comment: "${oldComment}" to "${editingNoteText}" in ${currentData === 'Playlist' ? ' the Content Pool' : currentData === 'Ads' ? 'Ads' : (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? currentData : ''} for ${fileName}.`;
         try {
           await axios.post(`${baseUrl}/changelog`, {user: username,message: logMessage }, {
             headers: {
@@ -383,7 +376,7 @@ const DataPage = () => {
   const handleDeleteNote = async (noteIndex, fileName) => {
     const baseUrl = process.env.REACT_APP_API_URL;
     const encodedFileName = encodeURIComponent(fileName);
-    const category = selectedCategory.toLowerCase();
+    const category = currentData.toLowerCase();
     const url = `${baseUrl}/notes/delete/${category}/${encodedFileName}/${noteIndex}`;
     try {
       const oldComment = notes[noteIndex].text; // Capture the old comment
@@ -397,7 +390,7 @@ const DataPage = () => {
         console.log('Note deleted successfully');
         setNotes(notes.filter((_, index) => index !== noteIndex));
         fetchData();
-        const logMessage = `${username} has deleted comment: "${oldComment}" in ${selectedCategory === 'Playlist' ? ' the Content Pool' : selectedCategory === 'Ads' ? 'Ads' : (selectedCategory === 'Playlist Schedule' || selectedCategory === 'Ads Schedule') ? selectedCategory : ''} for ${fileName}`;
+        const logMessage = `${username} has deleted comment: "${oldComment}" in ${currentData === 'Playlist' ? ' the Content Pool' : currentData === 'Ads' ? 'Ads' : (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? currentData : ''} for ${fileName}`;
         try {
           await axios.post(`${baseUrl}/changelog`, { user:username, message: logMessage }, {
             headers: {
@@ -742,16 +735,16 @@ const DataPage = () => {
           <>
             <form onSubmit={handleSubmit}>
               <FormTitle catData={catData} />
-              <FormAllDataBody catData={catData} selectedCategory={selectedCategory} handleSelectedCategoryChange={handleSelectedCategoryChange} fileName={fileName} handleFileNameChange={handleFileNameChange} />
-              <FormAddDataBody catData={catData} type={type} handleTypeChange={handleTypeChange} tag={tag} handleTagChange={handleTagChange} photoUrl={photoUrl} handlePhotoUrlChange={handlePhotoUrlChange} runTime={runTime} handleRunTimeChange={handleRunTimeChange} content={content} handleContentChange={handleContentChange} videoUrl={videoUrl} handleVideoUrlChange={handleVideoUrlChange} />
+              <FormAllDataBody catData={catData} currentData={currentData} handleSelectedCategoryChange={handleSelectedCategoryChange} fileName={fileName} handleFileNameChange={handleFileNameChange} />
+              <FormAddDataBody catData={catData} type={type} handleTypeChange={handleTypeChange} tag={tag} handleTagChange={handleTagChange} photoUrl={photoUrl} handlePhotoUrlChange={handlePhotoUrlChange} runTime={runTime} handleRunTimeChange={handleRunTimeChange} content={content} handleContentChange={handleContentChange} />
               <FormExpiry catData={catData} expiry={expiry} handleExpiryChange={handleExpiryChange} />
-              <FormButton catData={catData} fileName={fileName} photoUrl={photoUrl} type={type} runTime={runTime} content={content} videoUrl={videoUrl} handleSubmit={handleSubmit} />
+              <FormButton catData={catData} fileName={fileName} photoUrl={photoUrl} type={type} runTime={runTime} content={content} handleSubmit={handleSubmit} />
             </form>
             <NotesForm catData={catData} fileName={fileName} notes={notes} editingNoteId={editingNoteId} editingNoteText={editingNoteText} handleUpdateNoteText={handleUpdateNoteText} handleDoneEditNote={handleDoneEditNote} handleEditNote={handleEditNote} handleDeleteNote={handleDeleteNote} handleAddNoteSubmit={handleAddNoteSubmit} newNote={newNote} setNewNote={setNewNote} username={username} setCatData={setCatData} isAdmin={isAdmin}/>
             <SetCreation catData={catData} setShowModal={setShowModal} handleSubmitSetModal={handleSubmitSetModal} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} handleAddToSet={handleAddToSet} item={item}/>
             <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} state={state} setState={setState} deleteItemFromSchedule={deleteItemFromSchedule} addItemToSchedule={addItemToSchedule} moveItemPlaylistSchedule={moveItemPlaylistSchedule}/>
             <RequestDetails catData={catData} state={state} setState={setState} handleAddRequest={handleAddRequest} newRequestDescription={newRequestDescription} setNewRequestDescription={setNewRequestDescription} error={requestError} requests={requests} handleToggleStatus={handleToggleStatus} handleSaveSection={handleSaveSection} isAdmin={isAdmin} username={username}/>
-            <Test catData={catData}/>
+            <Test catData={catData} currentData={currentData} handleSelectedCategoryChange={handleSelectedCategoryChange} tag={tag} handleTagChange={handleTagChange} content={content} handleContentChange={handleContentChange} expiry={expiry} handleExpiryChange={handleExpiryChange}/>
           </>
         }
         

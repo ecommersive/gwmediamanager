@@ -1,6 +1,6 @@
 import React from 'react';
 
-const FormAddDataBody = ({ catData, type, handleTypeChange, tag, handleTagChange, photoUrl, handlePhotoUrlChange, runTime, handleRunTimeChange, content, handleContentChange, videoUrl, handleVideoUrlChange }) => {
+const FormAddDataBody = ({ catData, type, handleTypeChange, tag, handleTagChange, photoUrl, handlePhotoUrlChange, runTime, handleRunTimeChange, content, handleContentChange}) => {
     return (        
         <>
             {catData === 'addData' && (
@@ -32,11 +32,6 @@ const FormAddDataBody = ({ catData, type, handleTypeChange, tag, handleTagChange
                     <label>
                         Type:
                         <input type="text" name="content" value={content} onChange={handleContentChange} required />
-                    </label>
-                    <br />
-                    <label>
-                        Video URL:
-                        <input type="text" name="videoUrl" value={videoUrl} onChange={handleVideoUrlChange} required />
                     </label>
                     <br />
                 </>

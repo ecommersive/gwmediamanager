@@ -107,9 +107,7 @@ const DataPage = () => {
   const handlePhotoUrlChange = (event) => {
     setPhotoUrl(event.target.value);
   };
-  const handleTypeChange = (event) => {
-    setType(event.target.value);
-  };
+
   const handleTagChange = (event) => {
     setTag(event.target.value);
   };

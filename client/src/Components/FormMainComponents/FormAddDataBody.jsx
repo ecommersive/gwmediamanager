@@ -51,18 +51,6 @@ const FormAddDataBody = ({ catData, currentData, tag, handleTagChange, content, 
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  const buttonCheck = () => {
-    console.log('button clicked')
-    console.log('CURRENTDATA =========== ', currentData);
-    console.log('FILENAME==========', fileName);
-    console.log('PHOTOURL==========', photoUrl);
-    console.log('TYPE=============', type);
-    console.log('TAG==========', tag);
-    console.log('RUNTIME==========', runTime);
-    console.log('CONTENT==========', content);
-    console.log('EXPIRY==========', expiry);
-  }
-
   return (
     catData === 'addData' && (
       <div
@@ -94,7 +82,6 @@ const FormAddDataBody = ({ catData, currentData, tag, handleTagChange, content, 
                     <input type="date" name="expiryDate" value={expiry} onChange={handleExpiryChange} />
                   </label>
                 </div>
-                <button onClick={buttonCheck}>CLICK HERE</button>
               </>
             )}
           </div>

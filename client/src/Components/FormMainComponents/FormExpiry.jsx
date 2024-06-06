@@ -1,12 +1,12 @@
 const FormExpiry = ({ catData, expiry, handleExpiryChange }) => {
-    const shouldRenderExpiry = catData === 'addData' || catData === 'ExtendExpiry';
+
   
     return (
       <>
-        {shouldRenderExpiry && (
+        {catData === 'ExtendExpiry' && (
           <>
             <label>
-              {catData === 'addData' ? 'Expiry Date:' : catData === 'ExtendExpiry' ? 'New Expiry Date:' : ''}
+              Extend Expiry: 
               <input type="date" name="expiryDate" value={expiry} onChange={handleExpiryChange} />
             </label>
             <br />

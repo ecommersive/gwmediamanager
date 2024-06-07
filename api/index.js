@@ -226,6 +226,7 @@ app.get('/adsSchedule/:folder', verifyToken, async (req, res) => {
 
 
 
+
 app.post('/uploadPlaylist',verifyToken, async (req, res) => {
   const { FileName, PhotoUrl, Type, Tag, Run_Time, Content,  Expiry, notes } = req.body;
   const foundIn = await checkFileExistence(FileName);
@@ -648,6 +649,25 @@ app.post('/:scheduleType/:folder/move', verifyToken, async (req, res) => {
   }
 });
 
+app.delete('/:scheduleType/:folder', verifyToken, async (req, res) => {
+  const { scheduleType, folder } = req.params;
+  const Model = getModel(scheduleType);
+
+  if (!Model) {
+    return res.status(400).json({ message: 'Category not found' });
+  }
+
+  try {
+    const deletedSchedule = await Model.findOneAndDelete({ folder });
+    if (!deletedSchedule) {
+      return res.status(404).json({ message: 'Schedule not found' });
+    }
+    res.json({ message: 'Schedule deleted successfully', deletedSchedule });
+  } catch (error) {
+    console.error('Error deleting schedule:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 //requests
 app.post('/request', verifyToken, async (req, res) => {
   const { description, username } = req.body;

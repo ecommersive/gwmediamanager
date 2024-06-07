@@ -264,6 +264,27 @@ const DataPage = () => {
       } catch (error) {
         console.log('An error occurred. Please try again.', error);
       }
+    }else if(catData === 'deleteScheduleData'){
+      const scheduleType = currentData === 'Playlist Schedule' ? 'playlistSchedule' : 'adsSchedule';
+      const folderNumber = fileName; 
+      try {
+        const response = await axios.delete(`${baseUrl}/${scheduleType}/${folderNumber}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          }
+        });
+        if (response.status === 200) {
+          logChange = `${username} has deleted ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderNumber}.`;
+          console.log('Deletion successful');
+          fetchData();
+          setShowModal(false);
+        } else {
+          throw new Error(`Failed to delete ${currentData} item`);
+        }
+      } catch (error) {
+        console.log('An error occurred. Please try again.', error);
+      }
     }
     if (logChange) {
       try {
@@ -829,7 +850,7 @@ const DataPage = () => {
             <form onSubmit={handleSubmit}>
               <FormTitle catData={catData} />
               <FormAddDataBody catData={catData} currentData={currentData} handleFileNameChange={handleFileNameChange} handleSelectedCategoryChange={handleSelectedCategoryChange} handlePhotoUrlChange={handlePhotoUrlChange} handleRunTimeChange={handleRunTimeChange} tag={tag} handleTagChange={handleTagChange} content={content} handleContentChange={handleContentChange} expiry={expiry} handleExpiryChange={handleExpiryChange} fileName={fileName} photoUrl={photoUrl} type={type} runTime={runTime} handleDrop={handleDrop} handleDragOver={handleDragOver} file={file} result={result} />
-              <FormAllDataBody catData={catData} currentData={currentData} handleSelectedCategoryChange={handleSelectedCategoryChange} fileName={fileName} handleFileNameChange={handleFileNameChange} />
+              <FormAllDataBody catData={catData} currentData={currentData} handleSelectedCategoryChange={handleSelectedCategoryChange} fileName={fileName} handleFileNameChange={handleFileNameChange}  ModalClose={ModalClose}/>
               <FormExpiry catData={catData} expiry={expiry} handleExpiryChange={handleExpiryChange} />
               <FormButton catData={catData} fileName={fileName} photoUrl={photoUrl} type={type} runTime={runTime} content={content} handleSubmit={handleSubmit} />
             </form>

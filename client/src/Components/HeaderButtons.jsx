@@ -17,9 +17,13 @@ const HeaderButtons = ({ currentData, isAdmin, handleModal, setMode, setCatData,
           <>
             { 
             isAdmin && (
-              <button className="action-button" onClick={() => { handleModal(true); setMode('configureData'); setCatData(currentData === 'Playlist Schedule' ? 'playlistSchedule' : 'adsSchedule'); }}>
-                {currentData === 'Playlist Schedule' ? 'Configure Playlist Schedule' : 'Configure Ads Schedule'}
-              </button>)
+              <>
+                <button className="action-button" onClick={() => { handleModal(true); setMode('configureData'); setCatData(currentData === 'Playlist Schedule' ? 'playlistSchedule' : 'adsSchedule'); }}>
+                  {currentData === 'Playlist Schedule' ? 'Configure Playlist Schedule' : 'Configure Ads Schedule'}
+                </button>
+                <button className="action-button" onClick={()=>{console.log('BUTTON CLICKED'); handleModal(true); setMode('configureData'); setCatData('deleteScheduleData');}}>Delete {currentData}</button>
+              </>
+              )
             }
             <button className="action-button" onClick={() => { handleModal(true); setMode('configureData'); setCatData('requests'); }}>Requests</button>
           </>

@@ -141,7 +141,8 @@ const DataPage = () => {
     setFile(file);
 
     try {
-      const mediaInfoInstance = await mediaInfoFactory({ locateFile: () => '/MediaInfoModule.wasm' });
+      const mediaInfoInstance = await mediaInfoFactory({ locateFile: () => '/mnt/data/image.png' });
+      console.log('LOCATE', mediaInfoInstance);
       setMediaInfo(mediaInfoInstance);
 
       const fileSize = file.size;

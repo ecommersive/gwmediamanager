@@ -64,7 +64,7 @@ const FormAddDataBody = ({ catData, currentData, tag, handleTagChange, content, 
             {result && (
               <>
                 <div>
-                  <p>Category: {currentData}</p>
+                  <p>Category: {currentData === 'Playlist' ? 'Content' : currentData === 'Ads' ? 'Ads' :''}</p>
                   <p>File name: {file.name}</p>
                   {renderResult(result)}
                   <label>

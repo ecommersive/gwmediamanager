@@ -11,7 +11,7 @@ const FormAllDataBody = ({ catData, currentData, handleSelectedCategoryChange, f
         {shouldRenderCategory && (
           <>
             <label>
-              Category: {currentData}
+              Category: {currentData === 'Playlist' ? 'Content' : currentData === 'Ads' ? 'Ads' :''}
             </label>
             <br />
 

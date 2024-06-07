@@ -7,7 +7,7 @@ const FormTitle = ({ catData }) => {
     DeleteData: 'Delete Data',
     viewNotes: 'View Notes',
     AddNote: 'Add Note',
-    UpdateNote: 'Update Note',
+    Comments: 'Comments',
     DeleteNote: 'Delete Note',
     playlistSchedule: 'Create Playlist Set',
     adsSchedule: 'Create Ads Set',

@@ -59,27 +59,49 @@ const checkFileExistence = async (fileName) => {
   if (adsExists) foundIn.push('Ads');
   return foundIn;
 };
-app.get('/playlists' , async (req, res) => {
+app.get('/playlists', async (req, res) => {
   try {
     const playlists = await Playlist.find({});
-    res.json(playlists);
+    
+    const playlistSchedules = await PlaylistSchedule.find({});
+    
+    const scheduledItems = new Set(
+      playlistSchedules.flatMap(schedule => 
+        schedule.items
+          .filter(item => item.FileID)  // Ensure FileID is defined
+          .map(item => item.FileID.toString())
+      )
+    );
+    
+    const filteredPlaylists = playlists.filter(playlist => playlist._id && !scheduledItems.has(playlist._id.toString()));
+    
+    res.json(filteredPlaylists);
   } catch (err) {
     console.error('Error fetching playlists:', err);
     res.status(500).send('Internal Server Error');
   }
 });
+
 
 app.get('/ads', async (req, res) => {
   try {
     const ads = await Ads.find({});
-    res.json(ads);
+    const adsSchedules = await AdsSchedule.find({})
+    const scheduledItems = new Set(
+      adsSchedules.flatMap(schedule => 
+        schedule.items
+          .filter(item => item.FileID)  // Ensure FileID is defined
+          .map(item => item.FileID.toString())
+      )
+    )
+    const filteredAds = ads.filter(ads => ads._id && !scheduledItems.has(ads._id.toString()))
+    res.json(filteredAds);
   } catch (err) {
     console.error('Error fetching playlists:', err);
     res.status(500).send('Internal Server Error');
   }
 });
 
-//create endpoint to get adsSchedule
 app.get('/adsSchedule', async (req, res) => {
   try {
     const adsSchedule = await AdsSchedule.find({});
@@ -90,7 +112,6 @@ app.get('/adsSchedule', async (req, res) => {
   }
 });
 
-//create endpoint to get playlistSchedule
 app.get('/playlistSchedule', async (req, res) => {
   try {
     const playlistSchedule = await PlaylistSchedule.find({});

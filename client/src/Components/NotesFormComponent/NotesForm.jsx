@@ -1,5 +1,5 @@
 const NotesForm = ({ catData, fileName, notes, editingNoteId, editingNoteText, handleUpdateNoteText, handleEditNote, handleDoneEditNote, handleDeleteNote, handleAddNoteSubmit, newNote, setNewNote = { setNewNote }, setCatData, username, isAdmin }) => {
-  const shouldRenderNotes = catData === 'viewNotes' || catData === 'UpdateNote'
+  const shouldRenderNotes = catData === 'viewNotes' || catData === 'Comments'
   return (
     <>
       {shouldRenderNotes && (
@@ -11,7 +11,7 @@ const NotesForm = ({ catData, fileName, notes, editingNoteId, editingNoteText, h
             {Array.isArray(notes) && notes.length > 0 ? (
               notes.map((note, index) => (
                 <li key={index}>
-                  {catData === 'UpdateNote' && (editingNoteId === index) ? (
+                  {catData === 'Comments' && (editingNoteId === index) ? (
                     <>
                       <input type="text" value={editingNoteText} onChange={handleUpdateNoteText} />
                       <button onClick={() => handleDoneEditNote(index, fileName)}>Done</button>
@@ -21,7 +21,7 @@ const NotesForm = ({ catData, fileName, notes, editingNoteId, editingNoteText, h
                       <p>{note.text} - <small>Added on {new Date(note.addedOn).toLocaleDateString()} by {username}</small></p>
                       {(note.username === username || isAdmin) && (
                         <div>
-                          <button style={{ marginLeft: '1rem' }} onClick={() => { handleEditNote(index, note.text); setCatData('UpdateNote'); }}>Edit</button>
+                          <button style={{ marginLeft: '1rem' }} onClick={() => { handleEditNote(index, note.text) }}>Edit</button>
                           <button style={{ marginLeft: '1rem' }} onClick={() => handleDeleteNote(index, fileName)}>Delete</button>
                         </div>
                       )}

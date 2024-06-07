@@ -51,14 +51,15 @@ const DataPage = () => {
   const [file, setFile] = useState(null);
   const [mediaInfo,setMediaInfo] = useState(null);
   const [result, setResult] = useState(null)
-  
+  const [addedItems, setAddedItems] = useState([]);
   const handleModal = () => {
     setShowModal(!showModal);
   }
   const ModalClose = () => {
-    setItem([]);
-    setState('');
-    setShowModal(false);
+    setItem([])
+    setAddedItems([])
+    setState('')
+    setShowModal(false)
     resetAll()
     setFile('')
   }
@@ -321,16 +322,24 @@ const DataPage = () => {
       console.error(`Error fetching data from ${baseUrl}`, error);
     }
   };
+  const handleAddItem = async (modalItem, id) => {
+    await addItemToSchedule(modalItem, id);
+    setAddedItems(prevItems => [...prevItems, id]);  // Update the added items state
+  };
   const modalFilteredData = useMemo(() => {
     return modalData.filter(item =>
-      item.FileName?.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
-      item.Type?.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
-      item.Tag?.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
-      item.Run_Time?.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
-      item.Content?.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
-      item.Expiry?.toLowerCase().includes(modalSearchTerm.toLowerCase())
+      !addedItems.includes(item._id) &&  // Exclude added items
+      (
+        item.FileName?.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
+        item.Type?.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
+        item.Tag?.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
+        item.Run_Time?.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
+        item.Content?.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
+        item.Expiry?.toLowerCase().includes(modalSearchTerm.toLowerCase())
+      )
     );
-  }, [modalSearchTerm, modalData]);
+  }, [modalSearchTerm, modalData, addedItems]);
+  
 
   useEffect(() => {
     if (modalSearchTerm.length > 0) {
@@ -523,6 +532,7 @@ const DataPage = () => {
           console.log('Failed to log change:', error);
         }
         setItem([])
+        setAddedItems([])
         setShowModal(false);
       } else {
         throw new Error('Failed to create schedule');
@@ -530,6 +540,7 @@ const DataPage = () => {
     } catch (error) {
       console.log('Error occurred. Please try again = ', error);
       setItem([])
+      setAddedItems([])
     }
   };
   //finished addItemToSchedule
@@ -785,6 +796,7 @@ const DataPage = () => {
     setItem(prevItem => [...prevItem, { FileName: fileName, FileID: _id }]);
     console.log('item', item);
   }
+
   const itemExists = (fileName) => {
     return item.some(item => item.FileName === fileName);
   };
@@ -812,7 +824,7 @@ const DataPage = () => {
             </form>
             <NotesForm catData={catData} fileName={fileName} notes={notes} editingNoteId={editingNoteId} editingNoteText={editingNoteText} handleUpdateNoteText={handleUpdateNoteText} handleDoneEditNote={handleDoneEditNote} handleEditNote={handleEditNote} handleDeleteNote={handleDeleteNote} handleAddNoteSubmit={handleAddNoteSubmit} newNote={newNote} setNewNote={setNewNote} username={username} setCatData={setCatData} isAdmin={isAdmin}/>
             <SetCreation catData={catData} setShowModal={setShowModal} handleSubmitSetModal={handleSubmitSetModal}  modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} handleAddToSet={handleAddToSet} item={item}/>
-            <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)}  modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} state={state} setState={setState} deleteItemFromSchedule={deleteItemFromSchedule} addItemToSchedule={addItemToSchedule} handleAddToSet={handleAddToSet} moveItemPlaylistSchedule={moveItemPlaylistSchedule}/>
+            <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)}  modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} state={state} setState={setState} deleteItemFromSchedule={deleteItemFromSchedule} addItemToSchedule={addItemToSchedule} handleAddToSet={handleAddToSet} moveItemPlaylistSchedule={moveItemPlaylistSchedule} handleAddItem={handleAddItem} fetchData={fetchData}/>
             <RequestDetails catData={catData} state={state} setState={setState} handleAddRequest={handleAddRequest} newRequestDescription={newRequestDescription} setNewRequestDescription={setNewRequestDescription} error={requestError} requests={requests} handleToggleStatus={handleToggleStatus} handleSaveSection={handleSaveSection} isAdmin={isAdmin} username={username}/>
           </>
         }

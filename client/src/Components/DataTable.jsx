@@ -53,7 +53,7 @@ const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileNa
                   <td>{item.Run_Time}</td>
                   <td>{item.Content}</td>
                   <td>{item.Expiry}</td>
-                  {isAdmin && <td><button className='action-button' onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setCatData('viewNotes'); setMode('configureData')}}>Comments</button></td>}
+                  {isAdmin && <td><button className='action-button' onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setCatData('Comments'); setMode('configureData')}}>Comments</button></td>}
                 </tr>
               );
             } else if (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') {

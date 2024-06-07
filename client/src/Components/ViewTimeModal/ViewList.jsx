@@ -1,7 +1,7 @@
 import React from 'react';
 import SearchInput from '../SearchInput';
 
-const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchTerm, modalFilteredData, itemExists, state, setState, deleteItemFromSchedule, addItemToSchedule, moveItemPlaylistSchedule  }) => {
+const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchTerm, modalFilteredData, itemExists, state, setState, deleteItemFromSchedule, moveItemPlaylistSchedule, handleAddItem, fetchData  }) => {
 
   return (
     <>
@@ -14,10 +14,11 @@ const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchT
               <br />
               {modalSearchTerm.length > 0 ? (
                 modalFilteredData.length > 0 ? (
+                  
                   modalFilteredData.filter(modalItem => !itemExists(modalItem.FileName)).map((modalItem, index) => (
                     <div key={index}>
                       <span>{modalItem.FileName}</span>
-                      <button onClick={() => addItemToSchedule(modalItem, modalItem._id)}>Add</button>                    
+                      <button onClick={() => {handleAddItem(modalItem, modalItem._id)}}>Add</button>                    
                     </div>
                   ))
                 ) : (
@@ -68,7 +69,7 @@ const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchT
                 </div>
               )}
               {(state === 'Add' || state === 'Delete' || state === 'Move') && (
-                <button className='action-button' onClick={() => setState('')}>Exit</button>
+                <button className='action-button' onClick={() => {setState('');  setModalSearchTerm(''); fetchData()}}>Exit</button>
               )}
             </div>
           )}

@@ -17,6 +17,8 @@ const path = require('path');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const xlsx = require('xlsx');
+const moment = require('moment-timezone');
+
 const {verifyToken} = require('./middleware/authmiddleware');
 
 app.use(express.json());
@@ -796,11 +798,8 @@ app.post('/changelog', async (req, res) => {
 const sendChangeLogEmail = async () => {
   try {
     // Get the current date at midnight to use as a filter
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999);
+    const startOfDay = moment.tz('America/New_York').startOf('day').toDate();
+    const endOfDay = moment.tz('America/New_York').endOf('day').toDate();
 
     // Fetch change logs for the current day
     const logs = await ChangeLog.find({
@@ -813,22 +812,16 @@ const sendChangeLogEmail = async () => {
     }
 
     // Get current date for the email subject
-    const currentDate = new Date().toLocaleDateString();
+    const currentDate = moment.tz('America/New_York').format('YYYY-MM-DD');
 
     // Helper function to format date
     const formatDate = (date) => {
-      const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
-      return date.toLocaleDateString('en-CA', options); // Format: yyyy-mm-dd
+      return moment(date).tz('America/New_York').format('YYYY-MM-DD');
     };
 
     // Helper function to format time
     const formatTime = (date) => {
-      const hours = date.getHours();
-      const minutes = date.getMinutes();
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      const formattedHours = hours % 12 || 12; // Convert to 12-hour format
-      const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
-      return `${formattedHours}:${formattedMinutes} ${ampm}`;
+      return moment(date).tz('America/New_York').format('hh:mm A');
     };
 
     // Format the email body as a table
@@ -846,9 +839,9 @@ const sendChangeLogEmail = async () => {
           ${logs.map(log => `
             <tr>
               <td>${log.user}</td>
-              <td>${formatDate(new Date(log.timestamp))}</td>
+              <td>${formatDate(log.timestamp)}</td>
               <td>${log.message}</td>
-              <td>${formatTime(new Date(log.timestamp))}</td>
+              <td>${formatTime(log.timestamp)}</td>
             </tr>
           `).join('')}
         </tbody>
@@ -861,9 +854,9 @@ const sendChangeLogEmail = async () => {
       ["User", "Date", "Message", "Time"],
       ...logs.map(log => [
         log.user,
-        formatDate(new Date(log.timestamp)),
+        formatDate(log.timestamp),
         log.message,
-        formatTime(new Date(log.timestamp))
+        formatTime(log.timestamp)
       ])
     ];
     const ws = xlsx.utils.aoa_to_sheet(wsData);
@@ -875,9 +868,9 @@ const sendChangeLogEmail = async () => {
     const recipients = ['tom@commersive.ca', 'remi@commersive.ca', 'richard@commersive.ca'];
     const msg = {
       to: recipients,
-      from: process.env.EMAIL_USERNAME, 
+      from: process.env.EMAIL_USERNAME,
       subject: `Change Log - ${currentDate}`,
-      text: logs.map(log => `User: ${log.user}\nDate: ${formatDate(new Date(log.timestamp))}\nMessage: ${log.message}\nTime: ${formatTime(new Date(log.timestamp))}`).join('\n\n'),
+      text: logs.map(log => `User: ${log.user}\nDate: ${formatDate(log.timestamp)}\nMessage: ${log.message}\nTime: ${formatTime(log.timestamp)}`).join('\n\n'),
       html: emailBody,
       attachments: [
         {
@@ -896,24 +889,32 @@ const sendChangeLogEmail = async () => {
     console.error('Error sending change log email:', error);
   }
 };
-//deletes all logs, will schedule this every sunday
+
+// Deletes all logs, will schedule this every Sunday
 const deleteAllLogs = async () => {
   try {
     // Delete all logs
     const result = await ChangeLog.deleteMany({});
-
     console.log(`Deleted ${result.deletedCount} logs.`);
   } catch (error) {
     console.error('Error deleting logs:', error);
   }
 };
 
-// Schedule the sendChangeLogEmail function to run every day at 10 PM
+// Schedule the sendChangeLogEmail function to run every day at 10 PM Eastern Time
 cron.schedule('0 22 * * *', () => {
   console.log('Running change log email task...');
-  sendChangeLogEmail();
+  sendChangeLogEmail().catch(error => console.error('Error in scheduled email task:', error));
+}, {
+  scheduled: true,
+  timezone: "America/New_York"
 });
-// Schedule the cleanup task to run once a day at midnight
+
+// Schedule the cleanup task to run every Sunday at midnight Eastern Time
 cron.schedule('0 0 * * 0', () => {
-  deleteAllLogs();
+  console.log('Running delete all logs task...');
+  deleteAllLogs().catch(error => console.error('Error in scheduled delete logs task:', error));
+}, {
+  scheduled: true,
+  timezone: "America/New_York"
 });

@@ -154,66 +154,6 @@ app.get('/playlistSchedule/:folder', verifyToken, async (req, res) => {
   }
 });
 
-app.post('/playlistSchedule/:folder/add', verifyToken, async (req, res) => {
-  const { folder } = req.params;
-  const { item } = req.body;
-
-  if (!item) {
-    return res.status(400).json({ message: 'Item is required' });
-  }
-  if (!item.FileID){
-    return res.status(400).json({ message: 'ID is required' });
-  }
-
-  try {
-    const playlistSchedule = await PlaylistSchedule.findOne({ folder });
-    if (!playlistSchedule) {
-      return res.status(404).json({ message: 'Playlist schedule not found' });
-    }
-
-    playlistSchedule.items.push(item);
-    await playlistSchedule.save();
-
-    res.json(playlistSchedule);
-  } catch (error) {
-    console.error('Error adding item to playlist schedule:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-
-app.delete('/playlistSchedule/:folder/:item', verifyToken, async (req, res) => {
-  const { folder, item } = req.params;
-
-  try {
-    const decodedItem = JSON.parse(decodeURIComponent(item)); // Parse the item to JSON object
-    console.log('Decoded item:', decodedItem);
-    const playlistSchedule = await PlaylistSchedule.findOne({ folder });
-    if (!playlistSchedule) {
-      return res.status(404).json({ message: 'Playlist schedule not found' });
-    }
-    console.log('Playlist items before deletion:', playlistSchedule.items);
-
-    const originalItemCount = playlistSchedule.items.length;
-    playlistSchedule.items = playlistSchedule.items.filter(i => i.FileID.toString() !== decodedItem.FileID);
-    const newItemCount = playlistSchedule.items.length;
-    if (originalItemCount === newItemCount) {
-      console.log('Item not found for deletion.');
-    } else {
-      console.log('Item deleted successfully.');
-    }
-
-    console.log('Playlist items after deletion:', playlistSchedule.items);
-
-    await playlistSchedule.save();
-
-
-    res.json(playlistSchedule);
-  } catch (error) {
-    console.error('Error deleting item from playlist schedule:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-})
 
 app.post('/createAdsSchedule', verifyToken, async (req, res) => {
   const { items, startDate, endDate, startTime, endTime, notes } = req.body;
@@ -227,24 +167,24 @@ app.post('/createAdsSchedule', verifyToken, async (req, res) => {
     return res.status(400).json({ message: 'Start time must be earlier than end time.' });
   }
 
-  const itemsFileNames = items.map(item => item.FileName);
-  const folderNumber = await AdsSchedule.countDocuments() + 1;
-
-  const newAdsSchedule = new AdsSchedule({
-    folder: folderNumber,
-    items: itemsFileNames,
-    startDate,
-    endDate,
-    startTime,
-    endTime,
-    notes
-  });
-
+  const itemsFileNamesAndIDs = items.map(item => ({ FileName: item.FileName, FileID: item.FileID }));
+  
   try {
+    const latestSchedule = await AdsSchedule.findOne().sort({ folder: -1 }).exec();
+    const folderNumber = latestSchedule ? latestSchedule.folder + 1 : 1;
+    const newAdsSchedule = new AdsSchedule({
+      folder: folderNumber,
+      items: itemsFileNamesAndIDs,
+      startDate,
+      endDate,
+      startTime,
+      endTime,
+      notes
+    });
     const savedSchedule = await newAdsSchedule.save();
     res.status(201).json(savedSchedule);
-  } catch (err) {
-    console.error('Error saving new playlist schedule:', err);
+  } catch (error) {
+    console.error('Error saving new ads schedule:', err);
     res.status(500).send('Internal Server Error');
   }
 });
@@ -624,27 +564,22 @@ app.post('/:scheduleType/:folder/add', verifyToken, async (req, res) => {
 
 app.delete('/:scheduleType/:folder/:item', verifyToken, async (req, res) => {
   const { scheduleType, folder, item } = req.params;
-
-  const decodedItem = decodeURIComponent(item);
-
   const Model = getModel(scheduleType);
-
   try {
+    const decodedItem = JSON.parse(decodeURIComponent(item)); // Parse the item to JSON object
+    console.log('Decoded item:', decodedItem);
     const schedule = await Model.findOne({ folder });
     if (!schedule) {
       return res.status(404).json({ message: 'Schedule not found' });
     }
-
-
-    schedule.items = schedule.items.filter(i => i !== decodedItem);
+    schedule.items = schedule.items.filter(i => i.FileID.toString() !== decodedItem.FileID);
     await schedule.save();
-
-
     res.json(schedule);
   } catch (error) {
     console.error(`Error deleting item from ${scheduleType} schedule:`, error);
     res.status(500).json({ message: 'Internal server error' });
   }
+
 });
 
 app.post('/:scheduleType/:folder/move', verifyToken, async (req, res) => {

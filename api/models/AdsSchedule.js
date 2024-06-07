@@ -5,7 +5,10 @@ const adsScheduleSchema = new mongoose.Schema({
     folder: {
         type: Number,
     },
-    items: [String],
+    items: [{
+        FileName: { type: String },
+        FileID: { type: mongoose.Schema.Types.ObjectId, ref: 'Ads' }
+    }],
    
     startDate: {
         type: Date,

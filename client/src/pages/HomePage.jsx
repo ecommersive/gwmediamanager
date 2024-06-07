@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/homepage.css'
+import mediaInfoFactory from 'mediainfo.js';
+
 
 const HomePage = () => {
     const navigate = useNavigate();

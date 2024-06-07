@@ -16,7 +16,7 @@ import '../styles/datapage.css';
 import axios from 'axios';
 import ViewList from '../Components/ViewTimeModal/ViewList';
 import RequestDetails from '../Components/RequestModal/RequestDetails';
-import mediaInfoFactory from 'mediainfo.js';
+import { default as mediaInfoFactory } from 'mediainfo.js';
 
 const DataPage = () => {
   const [folderViewNum, setfolderViewNum] = useState(0)

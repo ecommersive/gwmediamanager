@@ -570,7 +570,7 @@ const DataPage = () => {
       if (response.status === 200) {
         console.log('Item added successfully');
         fetchData();
-        const logMessage = `${username} has added ${itemToAdd} to ${currentData} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum}`;
+        const logMessage = `${username} has added ${itemToAdd.FileName} to ${currentData} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum}`;
         try {
           await axios.post(`${baseUrl}/changelog`, { user:username, message: logMessage }, {
             headers: {
@@ -609,7 +609,7 @@ const DataPage = () => {
       if (response.status === 200) {
         console.log('Item deleted successfully');
         fetchData();
-        const logMessage = `${username} has deleted ${itemToDelete} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum}.`
+        const logMessage = `${username} has deleted ${itemToDelete.FileName} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum}.`
         try {
           await axios.post(`${baseUrl}/changelog`, { user:username, message: logMessage }, {
             headers: {
@@ -649,7 +649,7 @@ const DataPage = () => {
     if (response.status === 200) {
       console.log('Item moved successfully');
       fetchData();
-      const logMessage = `${username} has moved ${itemToMove} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum} ${direction}.`
+      const logMessage = `${username} has moved ${itemToMove.FileName} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum} ${direction}.`
       try {
         await axios.post(`${baseUrl}/changelog`, { user:username, message: logMessage }, {
           headers: {

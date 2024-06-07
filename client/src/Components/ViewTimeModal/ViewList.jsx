@@ -34,6 +34,7 @@ const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchT
               {state === '' && (catData === 'viewTimes' || catData === 'alterTable') && (
                 <p>
                   {currentData === 'Playlist Schedule' ? `Duration of Playlist ${data.folder}` : `Duration of Ads ${data.folder}`} : {new Date(data.startDate).toLocaleDateString()} - {new Date(data.endDate).toLocaleDateString()}
+                
                 </p>
               )}
               {state === '' && catData === 'alterTable' && (

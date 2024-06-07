@@ -82,7 +82,6 @@ app.get('/playlists', async (req, res) => {
   }
 });
 
-
 app.get('/ads', async (req, res) => {
   try {
     const ads = await Ads.find({});
@@ -668,6 +667,37 @@ app.delete('/:scheduleType/:folder', verifyToken, async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
+app.put('/:scheduleType/:folder/update', verifyToken, async (req, res) => {
+  const { scheduleType, folder } = req.params;
+  const { startDate, endDate, startTime, endTime } = req.body;
+  
+  const Model = getModel(scheduleType); // Utility function to get the model based on scheduleType
+  if (!Model) {
+    return res.status(400).json({ message: 'Invalid schedule type' });
+  }
+
+  try {
+    const schedule = await Model.findOne({ folder });
+    if (!schedule) {
+      return res.status(404).json({ message: 'Schedule not found' });
+    }
+
+    if (startDate) schedule.startDate = startDate;
+    if (endDate) schedule.endDate = endDate;
+    if (startTime) schedule.startTime = startTime;
+    if (endTime) schedule.endTime = endTime;
+
+    await schedule.save();
+
+    res.json(schedule);
+  } catch (error) {
+    console.error(`Error updating ${scheduleType} schedule:`, error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
 //requests
 app.post('/request', verifyToken, async (req, res) => {
   const { description, username } = req.body;

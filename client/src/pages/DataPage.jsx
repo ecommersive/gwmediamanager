@@ -52,6 +52,15 @@ const DataPage = () => {
   const [mediaInfo,setMediaInfo] = useState(null);
   const [result, setResult] = useState(null)
   const [addedItems, setAddedItems] = useState([]);
+
+  const [isEditingDuration, setIsEditingDuration] = useState(false);
+  const [isEditingTime, setIsEditingTime] = useState(false);
+  const [newStartDate, setNewStartDate] = useState('');
+  const [newEndDate, setNewEndDate] = useState('');
+  const [newStartTime, setNewStartTime] = useState('');
+  const [newEndTime, setNewEndTime] = useState('');
+
+
   const handleModal = () => {
     setShowModal(!showModal);
   }
@@ -689,7 +698,62 @@ const DataPage = () => {
   }
   };
   
-
+  const handleSave = async (field) => {
+    const baseUrl = process.env.REACT_APP_API_URL;
+    let alterValue = currentData === 'Playlist Schedule' ? 'playlistSchedule' : 'adsSchedule';
+    const url = `${baseUrl}/${alterValue}/${folderViewNum}/update`;
+    const updatedData = {};
+    let logMessage = '';
+  
+    if (field === 'duration') {
+      updatedData.startDate = newStartDate;
+      updatedData.endDate = newEndDate;
+      logMessage = `${username} has updated duration in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum} to ${formatDate(newStartDate)} - ${formatDate(newEndDate)}.`;
+    } else if (field === 'time') {
+      updatedData.startTime = newStartTime;
+      updatedData.endTime = newEndTime;
+      logMessage = `${username} has updated time in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum} to ${formatTime(newStartTime)} - ${formatTime(newEndTime)}.`;
+    }
+  
+    try {
+      const response = await axios.put(url, updatedData, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (response.status === 200) {
+        console.log('Schedule updated successfully');
+        fetchData();
+        if (field === 'duration') {
+          setNewStartDate('');
+          setNewEndDate('');
+          setIsEditingDuration(false);
+        } else if (field === 'time') {
+          setNewStartTime('');
+          setNewEndTime('');
+          setIsEditingTime(false);
+        }
+  
+        try {
+          await axios.post(`${baseUrl}/changelog`, { user: username, message: logMessage }, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+        } catch (error) {
+          console.log('Failed to log change:', error);
+        }
+      } else {
+        throw new Error('Failed to update schedule');
+      }
+    } catch (error) {
+      console.error('Error updating schedule:', error.response ? error.response.data : error);
+    }
+  };
+  
+  
   //connect to endpoint to grab request data 
   const fetchRequests = async () => {
     let baseUrl = process.env.REACT_APP_API_URL;
@@ -856,7 +920,7 @@ const DataPage = () => {
             </form>
             <NotesForm catData={catData} fileName={fileName} notes={notes} editingNoteId={editingNoteId} editingNoteText={editingNoteText} handleUpdateNoteText={handleUpdateNoteText} handleDoneEditNote={handleDoneEditNote} handleEditNote={handleEditNote} handleDeleteNote={handleDeleteNote} handleAddNoteSubmit={handleAddNoteSubmit} newNote={newNote} setNewNote={setNewNote} username={username} setCatData={setCatData} isAdmin={isAdmin}/>
             <SetCreation catData={catData} setShowModal={setShowModal} handleSubmitSetModal={handleSubmitSetModal}  modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} handleAddToSet={handleAddToSet} item={item}/>
-            <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)}  modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} state={state} setState={setState} deleteItemFromSchedule={deleteItemFromSchedule} addItemToSchedule={addItemToSchedule} handleAddToSet={handleAddToSet} moveItemPlaylistSchedule={moveItemPlaylistSchedule} handleAddItem={handleAddItem} fetchData={fetchData} formatDate={formatDate} formatTime={formatTime}/>
+            <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)}  modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} state={state} setState={setState} deleteItemFromSchedule={deleteItemFromSchedule} addItemToSchedule={addItemToSchedule} handleAddToSet={handleAddToSet} moveItemPlaylistSchedule={moveItemPlaylistSchedule} handleAddItem={handleAddItem} fetchData={fetchData} formatDate={formatDate} formatTime={formatTime} isEditingDuration={isEditingDuration} isEditingTime={isEditingTime} setNewStartDate={setNewStartDate} setNewEndDate={setNewEndDate} setNewStartTime={setNewStartTime} setNewEndTime={setNewEndTime} handleSave={handleSave} newStartDate={newStartDate} newEndDate={newEndDate} setIsEditingDuration={setIsEditingDuration} newStartTime={newStartTime} newEndTime={newEndTime} setIsEditingTime={setIsEditingTime}/>
             <RequestDetails catData={catData} state={state} setState={setState} handleAddRequest={handleAddRequest} newRequestDescription={newRequestDescription} setNewRequestDescription={setNewRequestDescription} error={requestError} requests={requests} handleToggleStatus={handleToggleStatus} handleSaveSection={handleSaveSection} isAdmin={isAdmin} username={username}/>
           </>
         }

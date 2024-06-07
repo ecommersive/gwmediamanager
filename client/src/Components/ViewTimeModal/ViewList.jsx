@@ -1,7 +1,7 @@
 import React from 'react';
 import SearchInput from '../SearchInput';
 
-const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchTerm, modalFilteredData, itemExists, state, setState, deleteItemFromSchedule, moveItemPlaylistSchedule, handleAddItem, fetchData, formatDate, formatTime  }) => {
+const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchTerm, modalFilteredData, itemExists, state, setState, deleteItemFromSchedule, moveItemPlaylistSchedule, handleAddItem, fetchData, formatDate, formatTime, isEditingDuration, isEditingTime, setNewStartDate, setNewEndDate, setNewStartTime, setNewEndTime, handleSave, newStartDate, newEndDate, setIsEditingDuration, newStartTime, newEndTime, setIsEditingTime}) => {
 
   return (
     <>
@@ -33,9 +33,36 @@ const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchT
             <div>
               {state === '' && (catData === 'viewTimes' || catData === 'alterTable') && (
                 <>
-                  <p>{currentData === 'Playlist Schedule' ? `Duration of Playlist ${data.folder}` : `Duration of Ads ${data.folder}`}: {formatDate(data.startDate)} - {formatDate(data.endDate)}</p>
-                  <p>{currentData === 'Playlist Schedule' ? `Times Playlist ${data.folder}` : `Times Ads ${data.folder}`} being played: {formatTime(data.startTime)} - {formatTime(data.endTime)}</p>
-                </>
+                <div>
+                  {isEditingDuration ? (
+                    <div>
+                      <input type="date" value={newStartDate} onChange={(e) => setNewStartDate(e.target.value)} />
+                      <input type="date" value={newEndDate} onChange={(e) => setNewEndDate(e.target.value)} />
+                      <button onClick={() => handleSave('duration')}>Done</button>
+                    </div>
+                  ) : (
+                    <div style={{display: 'flex', gap: '1rem'}}>
+                      <p>{currentData === 'Playlist Schedule' ? `Duration of Playlist ${data.folder}` : `Duration of Ads ${data.folder}`}: {formatDate(data.startDate)} - {formatDate(data.endDate)}</p>
+                      <button onClick={() => setIsEditingDuration(true)}>Change</button>
+                    </div>
+                  )}
+                </div>
+          
+                <div>
+                  {isEditingTime ? (
+                    <div>
+                      <input type="time" value={newStartTime} onChange={(e) => setNewStartTime(e.target.value)} />
+                      <input type="time" value={newEndTime} onChange={(e) => setNewEndTime(e.target.value)} />
+                      <button onClick={() => handleSave('time')}>Done</button>
+                    </div>
+                  ) : (
+                    <div style={{display: 'flex', gap: '1rem'}}>
+                      <p>{currentData === 'Playlist Schedule' ? `Times Playlist ${data.folder}` : `Times Ads ${data.folder}`} being played: {formatTime(data.startTime)} - {formatTime(data.endTime)}</p>
+                      <button onClick={() => setIsEditingTime(true)}>Change</button>
+                    </div>
+                  )}
+                </div>
+              </>
               )}
               {state === '' && catData === 'alterTable' && (
                 <>

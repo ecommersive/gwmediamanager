@@ -32,6 +32,6 @@ const adsScheduleSchema = new mongoose.Schema({
     }]
 });
 
-const PlaylistSchedule = mongoose.model('AdsSchedule', adsScheduleSchema);
+const AdsSchedule = mongoose.model('AdsSchedule', adsScheduleSchema);
 
-module.exports = PlaylistSchedule;
+module.exports = AdsSchedule;

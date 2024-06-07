@@ -91,7 +91,6 @@ const DataPage = () => {
       }
       const data = await response.json();
       setData(data);
-      console.log('Data = ', data);
     } catch (error) {
       console.error(`Error fetching data from ${url}:`, error);
     }
@@ -534,7 +533,7 @@ const DataPage = () => {
     }
   };
   //finished addItemToSchedule
-  const addItemToSchedule = async (itemToAdd) => {
+  const addItemToSchedule = async (itemToAdd, id) => {
     let baseUrl = process.env.REACT_APP_API_URL;
     let alterValue;
     if (currentData === 'Playlist Schedule') {
@@ -543,10 +542,15 @@ const DataPage = () => {
       alterValue = 'adsSchedule';
     }
   
+    const itemWithId = {
+      ...itemToAdd,
+      FileID: id, // Replace generateUniqueId with your method of generating IDs if needed
+    };
     const url = `${baseUrl}/${alterValue}/${folderViewNum}/add`;
+    
   
     try {
-      const response = await axios.post(url, { item: itemToAdd }, {
+      const response = await axios.post(url, { item: itemWithId }, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
@@ -576,7 +580,7 @@ const DataPage = () => {
   //finished addItemToScheule
   const deleteItemFromSchedule = async (itemToDelete) => {
     let baseUrl = process.env.REACT_APP_API_URL;
-    const encodedFileName = encodeURIComponent(itemToDelete);
+    const encodedFileName = encodeURIComponent(JSON.stringify(itemToDelete));
     let alterValue;
     if (currentData === 'Playlist Schedule') {
       alterValue = 'playlistSchedule';
@@ -776,9 +780,9 @@ const DataPage = () => {
   }, [item]);
   
 
-  function handleAddToSet(event, fileName, fileID) {
+  function handleAddToSet(event, fileName, _id) {
     event.preventDefault();
-    setItem(prevItem => [...prevItem, { FileName: fileName, FileID: fileID }]);
+    setItem(prevItem => [...prevItem, { FileName: fileName, FileID: _id }]);
     console.log('item', item);
   }
   const itemExists = (fileName) => {
@@ -808,7 +812,7 @@ const DataPage = () => {
             </form>
             <NotesForm catData={catData} fileName={fileName} notes={notes} editingNoteId={editingNoteId} editingNoteText={editingNoteText} handleUpdateNoteText={handleUpdateNoteText} handleDoneEditNote={handleDoneEditNote} handleEditNote={handleEditNote} handleDeleteNote={handleDeleteNote} handleAddNoteSubmit={handleAddNoteSubmit} newNote={newNote} setNewNote={setNewNote} username={username} setCatData={setCatData} isAdmin={isAdmin}/>
             <SetCreation catData={catData} setShowModal={setShowModal} handleSubmitSetModal={handleSubmitSetModal}  modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} handleAddToSet={handleAddToSet} item={item}/>
-            <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)}  modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} state={state} setState={setState} deleteItemFromSchedule={deleteItemFromSchedule} addItemToSchedule={addItemToSchedule} moveItemPlaylistSchedule={moveItemPlaylistSchedule}/>
+            <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)}  modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} state={state} setState={setState} deleteItemFromSchedule={deleteItemFromSchedule} addItemToSchedule={addItemToSchedule} handleAddToSet={handleAddToSet} moveItemPlaylistSchedule={moveItemPlaylistSchedule}/>
             <RequestDetails catData={catData} state={state} setState={setState} handleAddRequest={handleAddRequest} newRequestDescription={newRequestDescription} setNewRequestDescription={setNewRequestDescription} error={requestError} requests={requests} handleToggleStatus={handleToggleStatus} handleSaveSection={handleSaveSection} isAdmin={isAdmin} username={username}/>
           </>
         }

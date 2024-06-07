@@ -161,6 +161,9 @@ app.post('/playlistSchedule/:folder/add', verifyToken, async (req, res) => {
   if (!item) {
     return res.status(400).json({ message: 'Item is required' });
   }
+  if (!item.FileID){
+    return res.status(400).json({ message: 'ID is required' });
+  }
 
   try {
     const playlistSchedule = await PlaylistSchedule.findOne({ folder });
@@ -183,15 +186,25 @@ app.delete('/playlistSchedule/:folder/:item', verifyToken, async (req, res) => {
   const { folder, item } = req.params;
 
   try {
-    const decodedItem = decodeURIComponent(item);
-
+    const decodedItem = JSON.parse(decodeURIComponent(item)); // Parse the item to JSON object
+    console.log('Decoded item:', decodedItem);
     const playlistSchedule = await PlaylistSchedule.findOne({ folder });
     if (!playlistSchedule) {
       return res.status(404).json({ message: 'Playlist schedule not found' });
     }
+    console.log('Playlist items before deletion:', playlistSchedule.items);
 
+    const originalItemCount = playlistSchedule.items.length;
+    playlistSchedule.items = playlistSchedule.items.filter(i => i.FileID.toString() !== decodedItem.FileID);
+    const newItemCount = playlistSchedule.items.length;
+    if (originalItemCount === newItemCount) {
+      console.log('Item not found for deletion.');
+    } else {
+      console.log('Item deleted successfully.');
+    }
 
-    playlistSchedule.items = playlistSchedule.items.filter(i => i !== decodedItem);
+    console.log('Playlist items after deletion:', playlistSchedule.items);
+
     await playlistSchedule.save();
 
 
@@ -653,7 +666,7 @@ app.post('/:scheduleType/:folder/move', verifyToken, async (req, res) => {
       return res.status(404).json({ message: 'Schedule not found' });
     }
 
-    const index = schedule.items.indexOf(item);
+    const index = schedule.items.findIndex(i => i.FileID.toString() === item.FileID.toString());
     if (index === -1) {
       return res.status(404).json({ message: 'Item not found in the schedule' });
     }

@@ -1,9 +1,8 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import SearchInput from '../SearchInput';
 
 const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchTerm, modalFilteredData, itemExists, state, setState, deleteItemFromSchedule, addItemToSchedule, moveItemPlaylistSchedule  }) => {
 
-  
   return (
     <>
       {((currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') && (catData === 'viewTimes' || catData === 'alterTable')) && (
@@ -18,7 +17,7 @@ const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchT
                   modalFilteredData.filter(modalItem => !itemExists(modalItem.FileName)).map((modalItem, index) => (
                     <div key={index}>
                       <span>{modalItem.FileName}</span>
-                      <button onClick={() => addItemToSchedule(modalItem.FileName)}>Add</button>                    
+                      <button onClick={() => addItemToSchedule(modalItem, modalItem._id)}>Add</button>                    
                     </div>
                   ))
                 ) : (
@@ -52,9 +51,10 @@ const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchT
                   <ul>
                     {data.items.map((item, index) => (
                       <li key={index}>
-                        {item}
+                        {item.FileName}
                         {state === 'Delete' && (
                           <button className='action-button' onClick={() => deleteItemFromSchedule(item)}>Delete</button>
+                          
                         )}
                         {state === 'Move' && (
                           <>

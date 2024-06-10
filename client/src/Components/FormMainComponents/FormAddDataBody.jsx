@@ -2,25 +2,25 @@ import React from 'react';
 
 const FormAddDataBody = ({ catData, currentData, tag, handleTagChange, content, handleContentChange, expiry, handleExpiryChange, fileName, photoUrl, type, runTime, handleDrop, handleDragOver, file, result }) => {
 
-  const renderInfo = (info) => {
-    return Object.entries(info).map(([key, value]) => {
-      if (typeof value === 'object') {
-        return (
-          <div key={key}>
-            <strong>{key}:</strong>
-            <div style={{ marginLeft: '20px' }}>
-              {renderInfo(value)}
-            </div>
-          </div>
-        );
-      }
-      return (
-        <div key={key}>
-          <strong>{key}:</strong> {value.toString()}
-        </div>
-      );
-    });
-  };
+  // const renderInfo = (info) => {
+  //   return Object.entries(info).map(([key, value]) => {
+  //     if (typeof value === 'object') {
+  //       return (
+  //         <div key={key}>
+  //           <strong>{key}:</strong>
+  //           <div style={{ marginLeft: '20px' }}>
+  //             {renderInfo(value)}
+  //           </div>
+  //         </div>
+  //       );
+  //     }
+  //     return (
+  //       <div key={key}>
+  //         <strong>{key}:</strong> {value.toString()}
+  //       </div>
+  //     );
+  //   });
+  // };
 
   const renderResult = (data) => {
     if (!data) return null;

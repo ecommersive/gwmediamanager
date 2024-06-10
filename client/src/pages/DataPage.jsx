@@ -335,7 +335,7 @@ const DataPage = () => {
       });
     
   }, [searchTerm, data, currentData]);
-  const fetchDataModals = async () => {
+  const fetchDataModals = useCallback(async () => {
     let baseUrl = process.env.REACT_APP_API_URL;
     if(currentData === 'Playlist Schedule'){
       baseUrl += '/playlists';
@@ -352,7 +352,7 @@ const DataPage = () => {
     } catch (error) {
       console.error(`Error fetching data from ${baseUrl}`, error);
     }
-  };
+  });
   const handleAddItem = async (modalItem, id) => {
     await addItemToSchedule(modalItem, id);
     setAddedItems(prevItems => [...prevItems, id]);  // Update the added items state
@@ -376,7 +376,7 @@ const DataPage = () => {
     if (modalSearchTerm.length > 0) {
       fetchDataModals();
     }
-  }, [modalSearchTerm]);
+  }, [modalSearchTerm, fetchDataModals]);
   const handleDataSelection = (e) => {
     setCurrentData(e.target.value);
     setCurrentData(e.target.value);
@@ -756,7 +756,7 @@ const DataPage = () => {
   
   
   //connect to endpoint to grab request data 
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     let baseUrl = process.env.REACT_APP_API_URL;
     const url = `${baseUrl}/requests`;
 
@@ -775,7 +775,7 @@ const DataPage = () => {
     } catch (error) {
       console.error('Error fetching requests:', error.response ? error.response.data : error);
     }
-  };
+  });
   //finished handleAddRequest
   const handleAddRequest = async () => {
       let baseUrl = process.env.REACT_APP_API_URL;
@@ -866,8 +866,11 @@ const DataPage = () => {
   };
 
   useEffect(() => {
-    fetchRequests();
-  }, [catData === 'requests']);
+    if (catData === 'requests') {
+      fetchRequests();
+    }
+  }, [catData, fetchRequests]);
+
   
   const formatDate = (dateString) => {
     const date = new Date(dateString);

@@ -34,7 +34,21 @@ const adsSchema = new mongoose.Schema({
     text: { type: String },
     addedOn: { type: Date, default: Date.now }, // Automatically set the date when note is added
     user: { type: String}
-  }]
+  }],
+  generalData: {
+    OverallBitRate: String,
+  },
+  videoData: {
+    ColorSpace: String,
+    ChromaSubsampling: String,
+    BitDepth: String,
+    ScanType: String,
+  },
+  audioData: {
+    BitMode: String,
+    BitRate: String,
+    CompressionMode: String,
+  }
 }, {
   collection: 'Ads'
 });

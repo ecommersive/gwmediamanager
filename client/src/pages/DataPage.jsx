@@ -61,6 +61,7 @@ const DataPage = () => {
   const [newEndDate, setNewEndDate] = useState('');
   const [newStartTime, setNewStartTime] = useState('');
   const [newEndTime, setNewEndTime] = useState('');
+  const [fileDetails, setFileDetails] = useState(null);
 
 
   const handleModal = () => {
@@ -199,15 +200,39 @@ const DataPage = () => {
     let baseUrl = process.env.REACT_APP_API_URL;
     let logChange = ''
     if (catData === 'addData') {
-      const formData = {
-        FileName: fileName,
-        PhotoUrl: photoUrl,
-        Type: type,
-        Tag: tag,
-        Run_Time: runTime,
-        Content: content,
-        Expiry: expiry
-      };
+      const generalInfo = result?.media.track.find(track => track['@type'] === 'General');
+      const videoInfo = result?.media.track.find(track => track['@type'] === 'Video');
+      const audioInfo = result?.media.track.find(track => track['@type'] === 'Audio');
+
+    const generalData = {
+      OverallBitRate: generalInfo?.OverallBitRate || 'N/A',
+    };
+
+    const videoData = {
+      ColorSpace: videoInfo?.ColorSpace || 'N/A',
+      ChromaSubsampling: videoInfo?.ChromaSubsampling || 'N/A',
+      BitDepth: videoInfo?.BitDepth || 'N/A',
+      ScanType: videoInfo?.ScanType || 'N/A',
+    };
+
+    const audioData = {
+      BitMode: audioInfo?.BitMode || 'N/A',
+      BitRate: audioInfo?.BitRate_Mode || 'N/A',
+      CompressionMode: audioInfo?.Compression_Mode || 'N/A',
+    };
+
+    const formData = {
+      FileName: fileName,
+      PhotoUrl: photoUrl,
+      Type: type,
+      Tag: tag,
+      Run_Time: runTime,
+      Content: content,
+      Expiry: expiry,
+      generalData,
+      videoData,
+      audioData,
+    };
       if (notes.length > 0) {
         formData.notes = notes.map(noteText => ({
           text: noteText,
@@ -313,6 +338,27 @@ const DataPage = () => {
     resetAll()
     setFile('')
   };
+
+  const fetchFileDetails = async (fileName) => {
+    let baseUrl = process.env.REACT_APP_API_URL;
+    const url = `${baseUrl}/fileDetails/${fileName}`;
+    try {
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      setFileDetails(response.data);
+    } catch (error) {
+      console.error('Error fetching file details:', error);
+    }
+  };
+  useEffect(() => {
+    if (catData === 'viewfile' && fileName) {
+      fetchFileDetails(fileName);
+    }
+  }, [catData, fileName]);
+  
   const filteredData = useMemo(() => {
     
       return data.filter(item => {
@@ -861,16 +907,10 @@ const handleSaveSection = async () => {
       console.error('Error deleting completed requests:', error);
   }
 };
-
-
-
-// Verify that requests array contains correct IDs
   useEffect(() => {
-    console.log('Current requests:', requests); // Add this log to inspect the requests array
+    console.log('Current requests:', requests); 
   }, [requests]);
   
-  
-
   const handleToggleStatus = async (request) => {
     const newStatus = request.status === 'unfinished' ? 'completed' : 'unfinished';
     try {
@@ -937,7 +977,7 @@ const handleSaveSection = async () => {
           <>
             <form onSubmit={handleSubmit}>
               <FormTitle catData={catData} />
-              <FormViewFile catData={catData} isAdmin={isAdmin}/>
+              <FormViewFile catData={catData} isAdmin={isAdmin} fileDetails={fileDetails} />
               <FormAddDataBody catData={catData} currentData={currentData} handleFileNameChange={handleFileNameChange} handleSelectedCategoryChange={handleSelectedCategoryChange} handlePhotoUrlChange={handlePhotoUrlChange} handleRunTimeChange={handleRunTimeChange} tag={tag} handleTagChange={handleTagChange} content={content} handleContentChange={handleContentChange} expiry={expiry} handleExpiryChange={handleExpiryChange} fileName={fileName} photoUrl={photoUrl} type={type} runTime={runTime} handleDrop={handleDrop} handleDragOver={handleDragOver} file={file} result={result} isAdmin={isAdmin}/>
               <FormAllDataBody catData={catData} currentData={currentData} handleSelectedCategoryChange={handleSelectedCategoryChange} fileName={fileName} handleFileNameChange={handleFileNameChange}  ModalClose={ModalClose}/>
               <FormExpiry catData={catData} expiry={expiry} handleExpiryChange={handleExpiryChange} />

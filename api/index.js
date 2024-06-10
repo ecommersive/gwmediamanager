@@ -230,8 +230,8 @@ app.get('/adsSchedule/:folder', verifyToken, async (req, res) => {
 
 
 
-app.post('/uploadPlaylist',verifyToken, async (req, res) => {
-  const { FileName, PhotoUrl, Type, Tag, Run_Time, Content,  Expiry, notes } = req.body;
+app.post('/uploadPlaylist', verifyToken, async (req, res) => {
+  const { FileName, PhotoUrl, Type, Tag, Run_Time, Content, Expiry, notes, generalData, videoData, audioData } = req.body;
   const foundIn = await checkFileExistence(FileName);
   if (foundIn.length > 0) {
     return res.status(400).json({ message: `File name already exists in ${foundIn.join(', ')}.` });
@@ -244,9 +244,11 @@ app.post('/uploadPlaylist',verifyToken, async (req, res) => {
     Tag,
     Run_Time,
     Content,
-    
     Expiry,
-    notes
+    notes,
+    generalData,
+    videoData,
+    audioData,
   });
 
   try {
@@ -257,6 +259,21 @@ app.post('/uploadPlaylist',verifyToken, async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 });
+
+app.get('/fileDetails/:fileName', verifyToken, async (req, res) => {
+  try {
+    const fileName = req.params.fileName;
+    const fileDetails = await Playlist.findOne({ FileName: fileName });
+    if (!fileDetails) {
+      return res.status(404).json({ message: 'File not found' });
+    }
+    res.status(200).json(fileDetails);
+  } catch (error) {
+    console.error('Error fetching file details:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
 
 
 app.post('/register', async (req, res) => {
@@ -293,7 +310,7 @@ app.post('/register', async (req, res) => {
   }
 });
 app.post('/uploadAds', verifyToken, async (req, res) => {
-  const { FileName, PhotoUrl, Type, Tag, Run_Time, Content,  Expiry, notes } = req.body;
+  const { FileName, PhotoUrl, Type, Tag, Run_Time, Content,  Expiry, notes, generalData, videoData, audioData  } = req.body;
 
   const foundIn = await checkFileExistence(FileName);
   if (foundIn.length > 0) {
@@ -307,9 +324,11 @@ app.post('/uploadAds', verifyToken, async (req, res) => {
     Tag,
     Run_Time,
     Content,
-    
     Expiry,
-    notes
+    notes,
+    generalData,
+    videoData,
+    audioData,
   });
 
   try {

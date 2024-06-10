@@ -1,7 +1,5 @@
-import React from 'react';
-
-const FormAddDataBody = ({ catData, currentData, tag, handleTagChange, content, handleContentChange, expiry, handleExpiryChange,  handleDrop, handleDragOver, file, result, isAdmin }) => {
-
+const FormAddDataBody = ({ catData, currentData, tag, handleTagChange, content, handleContentChange, expiry, handleExpiryChange, handleDrop, handleDragOver, file, result, isAdmin }) => {
+  
   const renderInfo = (info) => {
     return Object.entries(info).map(([key, value]) => {
       if (typeof value === 'object') {
@@ -34,7 +32,6 @@ const FormAddDataBody = ({ catData, currentData, tag, handleTagChange, content, 
     } else {
       fileType = generalInfo.Format;
     }
-
 
     return (
       <div>
@@ -87,49 +84,49 @@ const FormAddDataBody = ({ catData, currentData, tag, handleTagChange, content, 
       </div>
     );
   };
+
   return (
     catData === 'addData' && (
       <>
-      <div
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        style={{ border: '1px solid black', padding: '20px', width: '300px' }}
-      >
-        {file ? (
-          <div>
-            {result && (
-              <>
-                <div>
-                  <p>Category: {currentData === 'Playlist' ? 'Content' : currentData === 'Ads' ? 'Ads' :''}</p>
-                  <p>File name: {file.name}</p>
-                  {renderResult(result)}
-                  <label>
-                    Tag:
-                    <input name="tag" value={tag} onChange={handleTagChange} />
-                  </label>
-                  <br />
-                  <p>Photo URL: {file.name}</p>
-                  <label>
-                    Type:
-                    <input type="text" name="content" value={content} onChange={handleContentChange} required />
-                  </label>
-                  <br />
-                  <label>
-                    Expiry Date:
-                    <input type="date" name="expiryDate" value={expiry} onChange={handleExpiryChange} />
-                  </label>
-                  {isAdmin && <><h1>Admin Info:</h1>
-                  {extractAndRenderData(result)}</>}
-                </div>
-              </>
-            )}
-           
-          </div>
-        ) : (
-          <p>Drag and drop a file here</p>
-        )}
-      </div>
-      <br />
+        <div
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          style={{ border: '1px solid black', padding: '20px', width: '300px' }}
+        >
+          {file ? (
+            <div>
+              {result && (
+                <>
+                  <div>
+                    <p>Category: {currentData === 'Playlist' ? 'Content' : currentData === 'Ads' ? 'Ads' :''}</p>
+                    <p>File name: {file.name}</p>
+                    {renderResult(result)}
+                    <label>
+                      Tag:
+                      <input name="tag" value={tag} onChange={handleTagChange} />
+                    </label>
+                    <br />
+                    <p>Photo URL: {file.name}</p>
+                    <label>
+                      Type:
+                      <input type="text" name="content" value={content} onChange={handleContentChange} required />
+                    </label>
+                    <br />
+                    <label>
+                      Expiry Date:
+                      <input type="date" name="expiryDate" value={expiry} onChange={handleExpiryChange} />
+                    </label>
+                    {isAdmin && <><h1>Admin Info:</h1>
+                    {extractAndRenderData(result)}</>}
+                  </div>
+                </>
+              )}
+            </div>
+          ) : (
+            <p>Drag and drop a file here</p>
+          )}
+        </div>
+        <br />
       </>
     )
   );

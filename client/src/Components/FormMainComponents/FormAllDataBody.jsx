@@ -1,7 +1,6 @@
 import React, {useEffect} from 'react'
 const FormAllDataBody = ({ catData, currentData, handleSelectedCategoryChange, fileName, handleFileNameChange }) => {
-    const shouldRenderCategory = catData === 'ExtendExpiry' || catData === 'DeleteData' || catData === 'deleteScheduleData';
-  
+    const shouldRenderCategory = catData === 'ExtendExpiry' || catData === 'DeleteData' || catData === 'deleteScheduleData';  
     useEffect(() => {
       handleSelectedCategoryChange({target: {value: currentData}})
     }, [])

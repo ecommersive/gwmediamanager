@@ -51,7 +51,7 @@ const DataPage = () => {
   const [modalState, setModalState] = useState('');
   const [requests, setRequests] = useState([]);
   const [file, setFile] = useState(null);
-  const [mediaInfo,setMediaInfo] = useState(null);
+  const [mediaInfo, setMediaInfo] = useState(null);
   const [result, setResult] = useState(null)
   const [addedItems, setAddedItems] = useState([]);
 
@@ -186,7 +186,7 @@ const DataPage = () => {
 
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
-  const resetAll = () =>{
+  const resetAll = () => {
     setFileName('')
     setContent('')
     setTag('')
@@ -204,35 +204,35 @@ const DataPage = () => {
       const videoInfo = result?.media.track.find(track => track['@type'] === 'Video');
       const audioInfo = result?.media.track.find(track => track['@type'] === 'Audio');
 
-    const generalData = {
-      OverallBitRate: generalInfo?.OverallBitRate || 'N/A',
-    };
+      const generalData = {
+        OverallBitRate: generalInfo?.OverallBitRate || 'N/A',
+      };
 
-    const videoData = {
-      ColorSpace: videoInfo?.ColorSpace || 'N/A',
-      ChromaSubsampling: videoInfo?.ChromaSubsampling || 'N/A',
-      BitDepth: videoInfo?.BitDepth || 'N/A',
-      ScanType: videoInfo?.ScanType || 'N/A',
-    };
+      const videoData = {
+        ColorSpace: videoInfo?.ColorSpace || 'N/A',
+        ChromaSubsampling: videoInfo?.ChromaSubsampling || 'N/A',
+        BitDepth: videoInfo?.BitDepth || 'N/A',
+        ScanType: videoInfo?.ScanType || 'N/A',
+      };
 
-    const audioData = {
-      BitMode: audioInfo?.BitMode || 'N/A',
-      BitRate: audioInfo?.BitRate_Mode || 'N/A',
-      CompressionMode: audioInfo?.Compression_Mode || 'N/A',
-    };
+      const audioData = {
+        BitMode: audioInfo?.BitMode || 'N/A',
+        BitRate: audioInfo?.BitRate_Mode || 'N/A',
+        CompressionMode: audioInfo?.Compression_Mode || 'N/A',
+      };
 
-    const formData = {
-      FileName: fileName,
-      PhotoUrl: photoUrl,
-      Type: type,
-      Tag: tag,
-      Run_Time: runTime,
-      Content: content,
-      Expiry: expiry,
-      generalData,
-      videoData,
-      audioData,
-    };
+      const formData = {
+        FileName: fileName,
+        PhotoUrl: photoUrl,
+        Type: type,
+        Tag: tag,
+        Run_Time: runTime,
+        Content: content,
+        Expiry: expiry,
+        generalData,
+        videoData,
+        audioData,
+      };
       if (notes.length > 0) {
         formData.notes = notes.map(noteText => ({
           text: noteText,
@@ -252,7 +252,7 @@ const DataPage = () => {
           setShowModal(false);
           logChange = `${username} has added ${formData.FileName} into ${currentData === 'Playlist' ? ' the Content Pool' : currentData === 'Ads' ? 'Ads' : (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? currentData : ''}.`;
           fetchData();
-          
+
         } else {
           throw new Error(`Failed to add ${currentData} item`);
         }
@@ -301,9 +301,9 @@ const DataPage = () => {
       } catch (error) {
         console.log('An error occurred. Please try again.', error);
       }
-    }else if(catData === 'deleteScheduleData'){
+    } else if (catData === 'deleteScheduleData') {
       const scheduleType = currentData === 'Playlist Schedule' ? 'playlistSchedule' : 'adsSchedule';
-      const folderNumber = fileName; 
+      const folderNumber = fileName;
       try {
         const response = await axios.delete(`${baseUrl}/schedules/${scheduleType}/${folderNumber}`, {
           headers: {
@@ -325,7 +325,7 @@ const DataPage = () => {
     }
     if (logChange) {
       try {
-        await axios.post(`${baseUrl}/changelog`, { user:username, message: logChange }, {
+        await axios.post(`${baseUrl}/changelog`, { user: username, message: logChange }, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -358,36 +358,36 @@ const DataPage = () => {
       fetchFileDetails(fileName);
     }
   }, [catData, fileName]);
-  
+
   const filteredData = useMemo(() => {
-    
-      return data.filter(item => {
-        if(currentData === 'Playlist' || currentData === 'Ads'){
-          return (
-            item.FileName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.Type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.Tag?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.Run_Time?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.Content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.Expiry?.toLowerCase().includes(searchTerm.toLowerCase())
-          );
-        }else if(currentData === 'Playlist Schedule' || currentData === 'Ads Schedule'){
-          return (
-            item.folder?.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.startDate?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.endDate?.toLowerCase().includes(searchTerm.toLowerCase())
-          );
-        }else {
-          return false; // Ensure that the filter function always returns a boolean
-        }
-      });
-    
+
+    return data.filter(item => {
+      if (currentData === 'Playlist' || currentData === 'Ads') {
+        return (
+          item.FileName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.Type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.Tag?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.Run_Time?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.Content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.Expiry?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      } else if (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') {
+        return (
+          item.folder?.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.startDate?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.endDate?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      } else {
+        return false; // Ensure that the filter function always returns a boolean
+      }
+    });
+
   }, [searchTerm, data, currentData]);
   const fetchDataModals = useCallback(async () => {
     let baseUrl = process.env.REACT_APP_API_URL;
-    if(currentData === 'Playlist Schedule'){
+    if (currentData === 'Playlist Schedule') {
       baseUrl += '/playlists';
-    }else if(currentData === 'Ads Schedule'){
+    } else if (currentData === 'Ads Schedule') {
       baseUrl += '/ads';
     }
     try {
@@ -418,7 +418,7 @@ const DataPage = () => {
       )
     );
   }, [modalSearchTerm, modalData, addedItems]);
-  
+
 
   useEffect(() => {
     if (modalSearchTerm.length > 0) {
@@ -440,7 +440,7 @@ const DataPage = () => {
     const noteToAdd = {
       text: newNote,
       addedOn: new Date(),
-      user:username
+      user: username
     };
     let baseUrl = process.env.REACT_APP_API_URL;
     try {
@@ -457,7 +457,7 @@ const DataPage = () => {
         fetchData();
         const logMessage = `${username} has added a comment saying "${noteToAdd.text}" in ${currentData === 'Playlist' ? ' the Content Pool' : currentData === 'Ads' ? 'Ads' : (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? currentData : ''} to ${fileName}.`;
         try {
-          await axios.post(`${baseUrl}/changelog`, { user:username, message: logMessage }, {
+          await axios.post(`${baseUrl}/changelog`, { user: username, message: logMessage }, {
             headers: {
               Authorization: `Bearer ${token}`,
               'Content-Type': 'application/json'
@@ -509,7 +509,7 @@ const DataPage = () => {
         fetchData();
         const logMessage = `${username} has updated a comment: "${oldComment}" to "${editingNoteText}" in ${currentData === 'Playlist' ? ' the Content Pool' : currentData === 'Ads' ? 'Ads' : (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? currentData : ''} for ${fileName}.`;
         try {
-          await axios.post(`${baseUrl}/changelog`, {user: username,message: logMessage }, {
+          await axios.post(`${baseUrl}/changelog`, { user: username, message: logMessage }, {
             headers: {
               Authorization: `Bearer ${token}`,
               'Content-Type': 'application/json'
@@ -545,7 +545,7 @@ const DataPage = () => {
         fetchData();
         const logMessage = `${username} has deleted comment: "${oldComment}" in ${currentData === 'Playlist' ? ' the Content Pool' : currentData === 'Ads' ? 'Ads' : (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? currentData : ''} for ${fileName}`;
         try {
-          await axios.post(`${baseUrl}/changelog`, { user:username, message: logMessage }, {
+          await axios.post(`${baseUrl}/changelog`, { user: username, message: logMessage }, {
             headers: {
               Authorization: `Bearer ${token}`,
               'Content-Type': 'application/json'
@@ -576,7 +576,7 @@ const DataPage = () => {
       default:
         return;
     }
-  
+
     const requestData = {
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
@@ -584,8 +584,8 @@ const DataPage = () => {
       startTime: startTime.startTime, // Ensure it's a string
       endTime: endTime.endTime         // Ensure it's a string
     };
-  
-  
+
+
     try {
       const response = await axios.post(url, requestData, {
         headers: {
@@ -593,7 +593,7 @@ const DataPage = () => {
           'Content-Type': 'application/json'
         }
       });
-  
+
       if (response.status === 201 || response.status === 200) {
         console.log('Schedule created successfully');
         setData(prevData => [...prevData, response.data]);
@@ -601,7 +601,7 @@ const DataPage = () => {
         const itemsStringValues = requestData.items.map((i, index) => `${index + 1}.) ${i.FileName}`).join('\n');
         const logMessage = `${username} has created a new ${currentData === 'Playlist Schedule' ? 'Playlist Set' : 'Ads Set'}: \nStart Date: ${requestData.startDate}\nEnd Date: ${requestData.endDate}\nItems:\n${itemsStringValues}\nDuration of ${currentData === 'Playlist Schedule' ? 'Playlist Set' : 'Ads Set'}: ${requestData.startTime} - ${requestData.endTime}`;
         try {
-          await axios.post(`${baseUrl}/changelog`, { user:username, message: logMessage }, {
+          await axios.post(`${baseUrl}/changelog`, { user: username, message: logMessage }, {
             headers: {
               Authorization: `Bearer ${token}`,
               'Content-Type': 'application/json'
@@ -631,14 +631,14 @@ const DataPage = () => {
     } else if (currentData === 'Ads Schedule') {
       alterValue = 'adsSchedule';
     }
-  
+
     const itemWithId = {
       ...itemToAdd,
       FileID: id, // Replace generateUniqueId with your method of generating IDs if needed
     };
     const url = `${baseUrl}/${alterValue}/${folderViewNum}/add`;
-    
-  
+
+
     try {
       const response = await axios.post(url, { item: itemWithId }, {
         headers: {
@@ -651,7 +651,7 @@ const DataPage = () => {
         fetchData();
         const logMessage = `${username} has added ${itemToAdd.FileName} to ${currentData} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum}`;
         try {
-          await axios.post(`${baseUrl}/changelog`, { user:username, message: logMessage }, {
+          await axios.post(`${baseUrl}/changelog`, { user: username, message: logMessage }, {
             headers: {
               Authorization: `Bearer ${token}`,
               'Content-Type': 'application/json'
@@ -690,7 +690,7 @@ const DataPage = () => {
         fetchData();
         const logMessage = `${username} has deleted ${itemToDelete.FileName} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum}.`
         try {
-          await axios.post(`${baseUrl}/changelog`, { user:username, message: logMessage }, {
+          await axios.post(`${baseUrl}/changelog`, { user: username, message: logMessage }, {
             headers: {
               Authorization: `Bearer ${token}`,
               'Content-Type': 'application/json'
@@ -706,7 +706,7 @@ const DataPage = () => {
       console.error('Error deleting item:', error.response ? error.response.data : error);
     }
   };
-  
+
   //finished MoveItem
   const moveItemPlaylistSchedule = async (itemToMove, direction) => {
     let baseUrl = process.env.REACT_APP_API_URL;
@@ -719,42 +719,42 @@ const DataPage = () => {
 
     const url = `${baseUrl}/${alterValue}/${folderViewNum}/move`;
 
-  try {
-    const response = await axios.post(url, { item: itemToMove, direction }, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
+    try {
+      const response = await axios.post(url, { item: itemToMove, direction }, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (response.status === 200) {
+        console.log('Item moved successfully');
+        fetchData();
+        const logMessage = `${username} has moved ${itemToMove.FileName} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum} ${direction}.`
+        try {
+          await axios.post(`${baseUrl}/changelog`, { user: username, message: logMessage }, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+        } catch (error) {
+          console.log('Failed to log change:', error);
+        }
+      } else {
+        throw new Error('Failed to move the item');
       }
-    });
-    if (response.status === 200) {
-      console.log('Item moved successfully');
-      fetchData();
-      const logMessage = `${username} has moved ${itemToMove.FileName} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum} ${direction}.`
-      try {
-        await axios.post(`${baseUrl}/changelog`, { user:username, message: logMessage }, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-      } catch (error) {
-        console.log('Failed to log change:', error);
-      }
-    } else {
-      throw new Error('Failed to move the item');
+    } catch (error) {
+      console.error('Error moving item:', error.response ? error.response.data : error);
     }
-  } catch (error) {
-    console.error('Error moving item:', error.response ? error.response.data : error);
-  }
   };
-  
+
   const handleSave = async (field) => {
     const baseUrl = process.env.REACT_APP_API_URL;
     let alterValue = currentData === 'Playlist Schedule' ? 'playlistSchedule' : 'adsSchedule';
     const url = `${baseUrl}/${alterValue}/${folderViewNum}/update`;
     const updatedData = {};
     let logMessage = '';
-  
+
     if (field === 'duration') {
       updatedData.startDate = newStartDate;
       updatedData.endDate = newEndDate;
@@ -764,7 +764,7 @@ const DataPage = () => {
       updatedData.endTime = newEndTime;
       logMessage = `${username} has updated time in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum} to ${formatTime(newStartTime)} - ${formatTime(newEndTime)}.`;
     }
-  
+
     try {
       const response = await axios.put(url, updatedData, {
         headers: {
@@ -784,7 +784,7 @@ const DataPage = () => {
           setNewEndTime('');
           setIsEditingTime(false);
         }
-  
+
         try {
           await axios.post(`${baseUrl}/changelog`, { user: username, message: logMessage }, {
             headers: {
@@ -802,8 +802,8 @@ const DataPage = () => {
       console.error('Error updating schedule:', error.response ? error.response.data : error);
     }
   };
-  
-  
+
+
   //connect to endpoint to grab request data 
   const fetchRequests = async () => {
     let baseUrl = process.env.REACT_APP_API_URL;
@@ -831,61 +831,61 @@ const DataPage = () => {
     const url = `${baseUrl}/request`;
 
     try {
-        const response = await axios.post(url, {
-            description: newRequestDescription,
-            username
-        }, {
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
-            }
-        });
-
-        if (response.status === 201) {
-            console.log('Request added successfully');
-            setNewRequestDescription('');
-            fetchRequests();
-            const logMessage = `${username} has added a new request:\n${newRequestDescription}.`
-            try {
-                await axios.post(`${baseUrl}/changelog`, { user: username, message: logMessage }, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-            } catch (error) {
-                console.log('Failed to log change:', error);
-            }
-        } else {
-            throw new Error('Failed to add request');
+      const response = await axios.post(url, {
+        description: newRequestDescription,
+        username
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
         }
+      });
+
+      if (response.status === 201) {
+        console.log('Request added successfully');
+        setNewRequestDescription('');
+        fetchRequests();
+        const logMessage = `${username} has added a new request:\n${newRequestDescription}.`
+        try {
+          await axios.post(`${baseUrl}/changelog`, { user: username, message: logMessage }, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+        } catch (error) {
+          console.log('Failed to log change:', error);
+        }
+      } else {
+        throw new Error('Failed to add request');
+      }
     } catch (error) {
-        console.error('Error adding request:', error.response ? error.response.data : error);
-        setRequestError('An error occurred. Please try again.');
+      console.error('Error adding request:', error.response ? error.response.data : error);
+      setRequestError('An error occurred. Please try again.');
     }
-};
+  };
 
-const handleSaveSection = async () => {
-  const baseUrl = process.env.REACT_APP_API_URL;
-  const completedRequests = requests.filter(request => request.status === 'completed');
-  const unfinishedRequests = requests.filter(request => request.status === 'unfinished');
+  const handleSaveSection = async () => {
+    const baseUrl = process.env.REACT_APP_API_URL;
+    const completedRequests = requests.filter(request => request.status === 'completed');
+    const unfinishedRequests = requests.filter(request => request.status === 'unfinished');
 
-  try {
+    try {
       await Promise.all(completedRequests.map(async (request) => {
-          const url = `${baseUrl}/requests/${request._id}`;
-          console.log(`Attempting to delete request with ID: ${request._id}`); // Log the ID here
+        const url = `${baseUrl}/requests/${request._id}`;
+        console.log(`Attempting to delete request with ID: ${request._id}`); // Log the ID here
 
-          try {
-              await axios.delete(url, {
-                  headers: {
-                      'Content-Type': 'application/json',
-                      Authorization: `Bearer ${token}`
-                  }
-              });
-              console.log(`Successfully deleted request with ID: ${request._id}`);
-          } catch (deleteError) {
-              console.error(`Failed to delete request with ID: ${request._id}`, deleteError);
-          }
+        try {
+          await axios.delete(url, {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            }
+          });
+          console.log(`Successfully deleted request with ID: ${request._id}`);
+        } catch (deleteError) {
+          console.error(`Failed to delete request with ID: ${request._id}`, deleteError);
+        }
       }));
 
       // Re-fetch requests after deletion
@@ -894,44 +894,44 @@ const handleSaveSection = async () => {
       const logMessage = `Following requests finished:\n${completedRequests.map(req => req.description).join('\n')}\nFollowing requests unfinished:\n${unfinishedRequests.map(req => req.description).join('\n')}`;
 
       try {
-          await axios.post(`${baseUrl}/changelog`, { user: username, message: logMessage }, {
-              headers: {
-                  Authorization: `Bearer ${token}`,
-                  'Content-Type': 'application/json'
-              }
-          });
+        await axios.post(`${baseUrl}/changelog`, { user: username, message: logMessage }, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
       } catch (logError) {
-          console.log('Failed to log change:', logError);
+        console.log('Failed to log change:', logError);
       }
-  } catch (error) {
+    } catch (error) {
       console.error('Error deleting completed requests:', error);
-  }
-};
+    }
+  };
   useEffect(() => {
-    console.log('Current requests:', requests); 
+    console.log('Current requests:', requests);
   }, [requests]);
-  
+
   const handleToggleStatus = async (request) => {
     const newStatus = request.status === 'unfinished' ? 'completed' : 'unfinished';
     try {
-        const baseUrl = process.env.REACT_APP_API_URL;
-        const url = `${baseUrl}/requests/${request._id}/status`;
-        await axios.put(url, { status: newStatus }, {
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
-            }
-        });
-        fetchRequests();
+      const baseUrl = process.env.REACT_APP_API_URL;
+      const url = `${baseUrl}/requests/${request._id}/status`;
+      await axios.put(url, { status: newStatus }, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      });
+      fetchRequests();
     } catch (error) {
-        console.error('Error updating request status:', error);
+      console.error('Error updating request status:', error);
     }
   };
 
   useEffect(() => {
     fetchRequests();
   }, [catData === 'requests'], fetchRequests);
-  
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
@@ -949,7 +949,7 @@ const handleSaveSection = async () => {
       console.log('item updated:', item);
     }
   }, [item]);
-  
+
 
   function handleAddToSet(event, fileName, _id) {
     event.preventDefault();
@@ -964,32 +964,32 @@ const handleSaveSection = async () => {
     <main className="table">
       <section className="table_header">
         <div className="data-display-container">
-          <SwitchSections currentData={currentData} handleDataSelection={handleDataSelection}/>
+          <SwitchSections currentData={currentData} handleDataSelection={handleDataSelection} />
         </div>
         <div className="header-controls">
           {(currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? '' : <SearchInput searchTerm={searchTerm} setSearchTerm={setSearchTerm} />}
           <HeaderButtons currentData={currentData} isAdmin={isAdmin} handleModal={handleModal} setMode={setMode} setCatData={setCatData} handleLogout={handleLogout} />
         </div>
       </section>
-      <DataTable currentData={currentData} isAdmin={isAdmin} setMode={setMode} searchTerm={searchTerm}  filteredData={filteredData} setShowModal={setShowModal} setFileName={setFileName} setNotes={setNotes} setCatData={setCatData} setfolderViewNum={setfolderViewNum} formatDate={formatDate} formatTime={formatTime}/>
+      <DataTable currentData={currentData} isAdmin={isAdmin} setMode={setMode} searchTerm={searchTerm} filteredData={filteredData} setShowModal={setShowModal} setFileName={setFileName} setNotes={setNotes} setCatData={setCatData} setfolderViewNum={setfolderViewNum} formatDate={formatDate} formatTime={formatTime} />
       <Modal isOpen={showModal} onClose={() => { ModalClose(); if (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') { setModalSearchTerm(''); } }}>
         {mode === 'configureData' &&
           <>
             <form onSubmit={handleSubmit}>
               <FormTitle catData={catData} />
               <FormViewFile catData={catData} isAdmin={isAdmin} fileDetails={fileDetails} />
-              <FormAddDataBody catData={catData} currentData={currentData} handleFileNameChange={handleFileNameChange} handleSelectedCategoryChange={handleSelectedCategoryChange} handlePhotoUrlChange={handlePhotoUrlChange} handleRunTimeChange={handleRunTimeChange} tag={tag} handleTagChange={handleTagChange} content={content} handleContentChange={handleContentChange} expiry={expiry} handleExpiryChange={handleExpiryChange} fileName={fileName} photoUrl={photoUrl} type={type} runTime={runTime} handleDrop={handleDrop} handleDragOver={handleDragOver} file={file} result={result} isAdmin={isAdmin}/>
-              <FormAllDataBody catData={catData} currentData={currentData} handleSelectedCategoryChange={handleSelectedCategoryChange} fileName={fileName} handleFileNameChange={handleFileNameChange}  ModalClose={ModalClose}/>
+              <FormAddDataBody catData={catData} currentData={currentData} handleFileNameChange={handleFileNameChange} handleSelectedCategoryChange={handleSelectedCategoryChange} handlePhotoUrlChange={handlePhotoUrlChange} handleRunTimeChange={handleRunTimeChange} tag={tag} handleTagChange={handleTagChange} content={content} handleContentChange={handleContentChange} expiry={expiry} handleExpiryChange={handleExpiryChange} fileName={fileName} photoUrl={photoUrl} type={type} runTime={runTime} handleDrop={handleDrop} handleDragOver={handleDragOver} file={file} result={result} isAdmin={isAdmin} />
+              <FormAllDataBody catData={catData} currentData={currentData} handleSelectedCategoryChange={handleSelectedCategoryChange} fileName={fileName} handleFileNameChange={handleFileNameChange} ModalClose={ModalClose} />
               <FormExpiry catData={catData} expiry={expiry} handleExpiryChange={handleExpiryChange} />
               <FormButton catData={catData} fileName={fileName} photoUrl={photoUrl} type={type} runTime={runTime} content={content} handleSubmit={handleSubmit} />
             </form>
-            <NotesForm catData={catData} fileName={fileName} notes={notes} editingNoteId={editingNoteId} editingNoteText={editingNoteText} handleUpdateNoteText={handleUpdateNoteText} handleDoneEditNote={handleDoneEditNote} handleEditNote={handleEditNote} handleDeleteNote={handleDeleteNote} handleAddNoteSubmit={handleAddNoteSubmit} newNote={newNote} setNewNote={setNewNote} username={username} setCatData={setCatData} isAdmin={isAdmin}/>
-            <SetCreation catData={catData} setShowModal={setShowModal} handleSubmitSetModal={handleSubmitSetModal}  modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} handleAddToSet={handleAddToSet} item={item}/>
-            <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)}  modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} modalState={modalState} setModalState={setModalState} deleteItemFromSchedule={deleteItemFromSchedule} addItemToSchedule={addItemToSchedule} handleAddToSet={handleAddToSet} moveItemPlaylistSchedule={moveItemPlaylistSchedule} handleAddItem={handleAddItem} fetchData={fetchData} formatDate={formatDate} formatTime={formatTime} isEditingDuration={isEditingDuration} isEditingTime={isEditingTime} setNewStartDate={setNewStartDate} setNewEndDate={setNewEndDate} setNewStartTime={setNewStartTime} setNewEndTime={setNewEndTime} handleSave={handleSave} newStartDate={newStartDate} newEndDate={newEndDate} setIsEditingDuration={setIsEditingDuration} newStartTime={newStartTime} newEndTime={newEndTime} setIsEditingTime={setIsEditingTime}/>
-            <RequestDetails catData={catData} state={state} setState={setState} handleAddRequest={handleAddRequest} newRequestDescription={newRequestDescription} setNewRequestDescription={setNewRequestDescription} error={requestError} requests={requests} handleToggleStatus={handleToggleStatus} handleSaveSection={handleSaveSection} isAdmin={isAdmin} username={username}/>
+            <NotesForm catData={catData} fileName={fileName} notes={notes} editingNoteId={editingNoteId} editingNoteText={editingNoteText} handleUpdateNoteText={handleUpdateNoteText} handleDoneEditNote={handleDoneEditNote} handleEditNote={handleEditNote} handleDeleteNote={handleDeleteNote} handleAddNoteSubmit={handleAddNoteSubmit} newNote={newNote} setNewNote={setNewNote} username={username} setCatData={setCatData} isAdmin={isAdmin} />
+            <SetCreation catData={catData} setShowModal={setShowModal} handleSubmitSetModal={handleSubmitSetModal} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} handleAddToSet={handleAddToSet} item={item} />
+            <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} modalState={modalState} setModalState={setModalState} deleteItemFromSchedule={deleteItemFromSchedule} addItemToSchedule={addItemToSchedule} handleAddToSet={handleAddToSet} moveItemPlaylistSchedule={moveItemPlaylistSchedule} handleAddItem={handleAddItem} fetchData={fetchData} formatDate={formatDate} formatTime={formatTime} isEditingDuration={isEditingDuration} isEditingTime={isEditingTime} setNewStartDate={setNewStartDate} setNewEndDate={setNewEndDate} setNewStartTime={setNewStartTime} setNewEndTime={setNewEndTime} handleSave={handleSave} newStartDate={newStartDate} newEndDate={newEndDate} setIsEditingDuration={setIsEditingDuration} newStartTime={newStartTime} newEndTime={newEndTime} setIsEditingTime={setIsEditingTime} />
+            <RequestDetails catData={catData} state={state} setState={setState} handleAddRequest={handleAddRequest} newRequestDescription={newRequestDescription} setNewRequestDescription={setNewRequestDescription} error={requestError} requests={requests} handleToggleStatus={handleToggleStatus} handleSaveSection={handleSaveSection} isAdmin={isAdmin} username={username} />
           </>
         }
-        
+
       </Modal>
     </main>
   );

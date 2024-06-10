@@ -24,7 +24,7 @@ const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileNa
                 <th>Run Time</th>
                 <th>Type</th>
                 <th>Expiry</th>
-                {isAdmin && <th>Comments</th>}
+                <th>Comments</th>
                 {isAdmin && <th>Details</th>}
               </tr>
             )}
@@ -41,7 +41,7 @@ const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileNa
                     <td>{item.Run_Time}</td>
                     <td>{item.Content}</td>
                     <td>{item.Expiry}</td>
-                    {isAdmin && <td><button className='action-button' onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setCatData('Comments'); setMode('configureData') }}>Comments</button></td>}
+                    <td><button className='action-button' onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setCatData('Comments'); setMode('configureData') }}>Comments</button></td>
                     {isAdmin && <th><button className='action-button' onClick={() => { setShowModal(true); setFileName(item.FileName); setMode('configureData'); setCatData('viewfile') }}>Details</button></th>}
                   </tr>
                 );

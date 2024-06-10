@@ -1,3 +1,5 @@
+import React from 'react';
+
 const FormAddDataBody = ({ catData, currentData, tag, handleTagChange, content, handleContentChange, expiry, handleExpiryChange, handleDrop, handleDragOver, file, result, isAdmin }) => {
   
   const renderInfo = (info) => {

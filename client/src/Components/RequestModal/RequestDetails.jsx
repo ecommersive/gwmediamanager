@@ -28,8 +28,14 @@ const RequestDetails = ({ catData, state, setState, handleAddRequest, newRequest
                                     <p>Request Made by: {request.user}</p>
                                     <p>Date of request: {new Date(request.createdAt).toLocaleDateString()}</p>
                                     <p>Request: {request.description}</p>
-                                    {isAdmin || request.user === username && <p>Status: {request.status} <button onClick={() => handleToggleStatus(request)}>{request.status === 'unfinished' ? 'complete' : 'unfinished'}</button></p>}
-                                    <hr />
+                                    {(isAdmin || request.user === username) && (
+                                        <p>
+                                            Status: {request.status}
+                                            <button onClick={() => handleToggleStatus(request)}>
+                                                {request.status === 'unfinished' ? 'Complete' : 'Unfinished'}
+                                            </button>
+                                        </p>
+                                    )}                                    <hr />
                                 </li>
                             ))}
                         </ul>

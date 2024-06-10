@@ -671,7 +671,7 @@ app.post('/:scheduleType/:folder/move', verifyToken, async (req, res) => {
   }
 });
 
-app.delete('/schedules/:scheduleType/:folder', verifyToken, async (req, res) => {
+app.delete('/set/schedules/:scheduleType/:folder', verifyToken, async (req, res) => {
   const { scheduleType, folder } = req.params;
   const Model = getModel(scheduleType);
 

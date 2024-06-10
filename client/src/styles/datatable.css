@@ -1,25 +1,9 @@
-
-
-table,th,td{
-    border-collapse: collapse;
-    padding: 1rem;
-    text-align: left;
-}
-
-.table_body:hover::-webkit-scrollbar-thumb{
-    visibility: visible;
-}
-
-
-
-table{
-    width: 100%;
-}
-
-main.table{
-    
-    width: 98%;
-    height: 96vh;
+.table_body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 96vh; /* Ensure it takes the full height of the main table */
+    text-align: center; /* Center text horizontally */
     background-color: #fff5;
     backdrop-filter: blur(7px);
     box-shadow: 0 .4rem 8rem #0005;
@@ -27,45 +11,69 @@ main.table{
     overflow: hidden;
 }
 
-tbody tr:nth-child(even){
+table, th, td {
+    border-collapse: collapse;
+    padding: 1rem;
+    text-align: left;
+}
+
+.table_body:hover::-webkit-scrollbar-thumb {
+    visibility: visible;
+}
+
+table {
+    width: 100%;
+}
+
+main.table {
+    width: 98%;
+    height: 96vh;
+}
+
+tbody tr:nth-child(even) {
     background-color: #0000000b;
 }
 
-tbody tr.hide{
+tbody tr.hide {
     opacity: 0;
 }
 
-tbody tr{
+tbody tr {
     --delay: .1s;
     transition: .5s ease-in-out var(--delay), background-color 0s;
 }
 
-tbody tr:hover{
+tbody tr:hover {
     background-color: #fff6 !important;
 }
 
 tbody tr td,
 tbody tr td p,
-tbody tr td{
+tbody tr td {
     transition: .2s ease-in-out;
 }
 
 tbody tr hide td,
-tbody tr.hide td p{
+tbody tr.hide td p {
     padding: 0;
     font: 0 / 0 sans-serif;
     transition: .2s ease-in-out .5s;
 }
 
-tbody tr.hide td{
+tbody tr.hide td {
     width: 0;
     height: 0;
     transition: .2s ease-in-out .5s;
 }
 
-thead th{
-    position:sticky;
+thead th {
+    position: sticky;
     top: 0;
     left: 0;
     background-color: #d5d1defe;
+}
+
+.no-data-message {
+    font-size: 1.5em;
+    color: #555;
 }

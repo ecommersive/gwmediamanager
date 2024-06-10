@@ -305,7 +305,7 @@ const DataPage = () => {
       const scheduleType = currentData === 'Playlist Schedule' ? 'playlistSchedule' : 'adsSchedule';
       const folderNumber = fileName;
       try {
-        const response = await axios.delete(`${baseUrl}/schedules/${scheduleType}/${folderNumber}`, {
+        const response = await axios.delete(`${baseUrl}/set/schedules/${scheduleType}/${folderNumber}`, {
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`
@@ -825,7 +825,6 @@ const DataPage = () => {
       console.error('Error fetching requests:', error.response ? error.response.data : error);
     }
   };
-  //finished handleAddRequest
   const handleAddRequest = async () => {
     let baseUrl = process.env.REACT_APP_API_URL;
     const url = `${baseUrl}/request`;

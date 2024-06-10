@@ -8,18 +8,18 @@ const FormViewFile = ({catData, isAdmin, fileDetails}) => {
         {isAdmin && catData === 'viewfile' && (
          <>
             <h3>General Info:</h3>
-            <p>Overall BitRate: {fileDetails.generalData.OverallBitRate}</p>
+            <p>Overall BitRate: {fileDetails ? fileDetails?.generalData.OverallBitRate : 'N/A'}</p>
 
             <h3>Video Info:</h3>
-            <p>ColorSpace: {fileDetails.videoData.ColorSpace}</p>
-            <p>ChromaSubsampling: {fileDetails.videoData.ChromaSubsampling}</p>
-            <p>BitDepth: {fileDetails.videoData.BitDepth}</p>
-            <p>ScanType: {fileDetails.videoData.ScanType}</p>
+            <p>ColorSpace: {fileDetails ? fileDetails?.videoData.ColorSpace : 'N/A'}</p>
+            <p>ChromaSubsampling: {fileDetails ? fileDetails?.videoData.ChromaSubsampling : 'N/A'}</p>
+            <p>BitDepth: {fileDetails ? fileDetails?.videoData.BitDepth : 'N/A'}</p>
+            <p>ScanType: {fileDetails ? fileDetails?.videoData.ScanType : 'N/A'}</p>
 
             <h3>Audio Info:</h3>
-            <p>BitMode: {fileDetails.audioData.BitMode}</p>
-            <p>BitRate: {fileDetails.audioData.BitRate}</p>
-            <p>Compression Mode: {fileDetails.audioData.CompressionMode}</p>
+            <p>BitMode: {fileDetails ? fileDetails?.audioData.BitMode : 'N/A'}</p>
+            <p>BitRate: {fileDetails ? fileDetails?.audioData.BitRate : 'N/A'}</p>
+            <p>Compression Mode: {fileDetails ? fileDetails?.audioData.CompressionMode : 'N/A'}</p>
         </>
         )}
     </>

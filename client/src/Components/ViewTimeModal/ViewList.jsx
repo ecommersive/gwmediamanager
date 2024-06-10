@@ -1,14 +1,14 @@
 import React from 'react';
 import SearchInput from '../SearchInput';
 
-const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchTerm, modalFilteredData, itemExists, state, setState, deleteItemFromSchedule, moveItemPlaylistSchedule, handleAddItem, fetchData, formatDate, formatTime, isEditingDuration, isEditingTime, setNewStartDate, setNewEndDate, setNewStartTime, setNewEndTime, handleSave, newStartDate, newEndDate, setIsEditingDuration, newStartTime, newEndTime, setIsEditingTime}) => {
+const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchTerm, modalFilteredData, itemExists, modalState, setModalState, deleteItemFromSchedule, moveItemPlaylistSchedule, handleAddItem, fetchData, formatDate, formatTime, isEditingDuration, isEditingTime, setNewStartDate, setNewEndDate, setNewStartTime, setNewEndTime, handleSave, newStartDate, newEndDate, setIsEditingDuration, newStartTime, newEndTime, setIsEditingTime}) => {
 
   return (
     <>
       {((currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') && (catData === 'viewTimes' || catData === 'alterTable')) && (
         <>
           <h1>{currentData === 'Playlist Schedule' ? 'Playlist Schedule' : 'Ads Schedule'}</h1>
-          {state === 'Add' && (
+          {modalState === 'Add' && (
             <>
               <SearchInput searchTerm={modalSearchTerm} setSearchTerm={setModalSearchTerm} />
               <br />
@@ -31,7 +31,7 @@ const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchT
           )}
           {data && (
             <div>
-              {state === '' && (catData === 'viewTimes' || catData === 'alterTable') && (
+              {modalState === '' && (catData === 'viewTimes' || catData === 'alterTable') && (
                 <>
                 <div>
                   {isEditingDuration ? (
@@ -64,13 +64,13 @@ const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchT
                 </div>
               </>
               )}
-              {state === '' && catData === 'alterTable' && (
+              {modalState === '' && catData === 'alterTable' && (
                 <>
                   <h1>Alter {currentData === 'Playlist Schedule' ? ` Playlist ${data.folder}` : ` Ads ${data.folder}`}</h1>
                   <div style={{ display: 'flex', margin: '0 10px' }}>
-                    <button className='action-button' style={{ margin: '0 10px' }} onClick={() => setState('Add')}>Add</button>
-                    <button className='action-button' style={{ margin: '0 10px' }} onClick={() => setState('Delete')}>Delete</button>
-                    <button className='action-button' style={{ margin: '0 10px' }} onClick={() => setState('Move')}>Move</button>
+                    <button className='action-button' style={{ margin: '0 10px' }} onClick={() => setModalState('Add')}>Add</button>
+                    <button className='action-button' style={{ margin: '0 10px' }} onClick={() => setModalState('Delete')}>Delete</button>
+                    <button className='action-button' style={{ margin: '0 10px' }} onClick={() => setModalState('Move')}>Move</button>
                   </div>
                 </>
               )}
@@ -81,11 +81,11 @@ const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchT
                     {data.items.map((item, index) => (
                       <li key={index}>
                         {item.FileName}
-                        {state === 'Delete' && (
+                        {modalState === 'Delete' && (
                           <button className='action-button' onClick={() => deleteItemFromSchedule(item)}>Delete</button>
                           
                         )}
-                        {state === 'Move' && (
+                        {modalState === 'Move' && (
                           <>
                             {index !== 0 && <button className='action-button' onClick={() => moveItemPlaylistSchedule(item, 'up')}>Up</button>}
                             {index !== data.items.length - 1 && <button className='action-button' onClick={() => moveItemPlaylistSchedule(item, 'down')}>Down</button>}
@@ -96,8 +96,8 @@ const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchT
                   </ul>
                 </div>
               )}
-              {(state === 'Add' || state === 'Delete' || state === 'Move') && (
-                <button className='action-button' onClick={() => {setState('');  setModalSearchTerm(''); fetchData()}}>Exit</button>
+              {(modalState === 'Add' || modalState === 'Delete' || modalState === 'Move') && (
+                <button className='action-button' onClick={() => {setModalState('');  setModalSearchTerm(''); fetchData()}}>Exit</button>
               )}
             </div>
           )}

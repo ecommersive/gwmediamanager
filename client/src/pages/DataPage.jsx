@@ -47,6 +47,7 @@ const DataPage = () => {
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [editingNoteText, setEditingNoteText] = useState('');
   const [state, setState] = useState('');
+  const [modalState, setModalState] = useState('');
   const [requests, setRequests] = useState([]);
   const [file, setFile] = useState(null);
   const [mediaInfo,setMediaInfo] = useState(null);
@@ -756,7 +757,7 @@ const DataPage = () => {
   
   
   //connect to endpoint to grab request data 
-  const fetchRequests = useCallback(async () => {
+  const fetchRequests = async () => {
     let baseUrl = process.env.REACT_APP_API_URL;
     const url = `${baseUrl}/requests`;
 
@@ -775,7 +776,7 @@ const DataPage = () => {
     } catch (error) {
       console.error('Error fetching requests:', error.response ? error.response.data : error);
     }
-  });
+  };
   //finished handleAddRequest
   const handleAddRequest = async () => {
       let baseUrl = process.env.REACT_APP_API_URL;
@@ -815,38 +816,55 @@ const DataPage = () => {
         setRequestError('An error occurred. Please try again.');
       }
   };
-  //finished handleSaveSection
   const handleSaveSection = async () => {
     const baseUrl = process.env.REACT_APP_API_URL;
     const completedRequests = requests.filter(request => request.status === 'completed');
     const unfinishedRequests = requests.filter(request => request.status === 'unfinished');
+
     try {
         await Promise.all(completedRequests.map(async (request) => {
-            const baseUrl = process.env.REACT_APP_API_URL;
             const url = `${baseUrl}/requests/${request._id}`;
-            await axios.delete(url, {
+            console.log(`Attempting to delete request with ID: ${request._id}`); // Log the ID here
+
+            try {
+                await axios.delete(url, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+                console.log(`Successfully deleted request with ID: ${request._id}`);
+            } catch (deleteError) {
+                console.error(`Failed to delete request with ID: ${request._id}`, deleteError);
+            }
+        }));
+
+        // Re-fetch requests after deletion
+        fetchRequests();
+
+        const logMessage = `Following requests finished:\n${completedRequests.map(req => req.description).join('\n')}\nFollowing requests unfinished:\n${unfinishedRequests.map(req => req.description).join('\n')}`;
+
+        try {
+            await axios.post(`${baseUrl}/changelog`, { user: username, message: logMessage }, {
                 headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 }
             });
-        }));
-        fetchRequests();
-        const logMessage = `Following requests finished:\n${completedRequests.map(req => req.description).join('\n')}\nFollowing requests unfinished:\n${unfinishedRequests.map(req => req.description).join('\n')}`;
-        try {
-          await axios.post(`${baseUrl}/changelog`, { user:username, message: logMessage }, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-        } catch (error) {
-          console.log('Failed to log change:', error);
+        } catch (logError) {
+            console.log('Failed to log change:', logError);
         }
-      } catch (error) {
+    } catch (error) {
         console.error('Error deleting completed requests:', error);
     }
-  };
+};
+
+// Verify that requests array contains correct IDs
+  useEffect(() => {
+    console.log('Current requests:', requests); // Add this log to inspect the requests array
+  }, [requests]);
+  
+  
 
   const handleToggleStatus = async (request) => {
     const newStatus = request.status === 'unfinished' ? 'completed' : 'unfinished';
@@ -866,11 +884,8 @@ const DataPage = () => {
   };
 
   useEffect(() => {
-    if (catData === 'requests') {
-      fetchRequests();
-    }
-  }, [catData, fetchRequests]);
-
+    fetchRequests();
+  }, [catData === 'requests'], fetchRequests);
   
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -924,8 +939,8 @@ const DataPage = () => {
             </form>
             <NotesForm catData={catData} fileName={fileName} notes={notes} editingNoteId={editingNoteId} editingNoteText={editingNoteText} handleUpdateNoteText={handleUpdateNoteText} handleDoneEditNote={handleDoneEditNote} handleEditNote={handleEditNote} handleDeleteNote={handleDeleteNote} handleAddNoteSubmit={handleAddNoteSubmit} newNote={newNote} setNewNote={setNewNote} username={username} setCatData={setCatData} isAdmin={isAdmin}/>
             <SetCreation catData={catData} setShowModal={setShowModal} handleSubmitSetModal={handleSubmitSetModal}  modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} handleAddToSet={handleAddToSet} item={item}/>
-            <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)}  modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} state={state} setState={setState} deleteItemFromSchedule={deleteItemFromSchedule} addItemToSchedule={addItemToSchedule} handleAddToSet={handleAddToSet} moveItemPlaylistSchedule={moveItemPlaylistSchedule} handleAddItem={handleAddItem} fetchData={fetchData} formatDate={formatDate} formatTime={formatTime} isEditingDuration={isEditingDuration} isEditingTime={isEditingTime} setNewStartDate={setNewStartDate} setNewEndDate={setNewEndDate} setNewStartTime={setNewStartTime} setNewEndTime={setNewEndTime} handleSave={handleSave} newStartDate={newStartDate} newEndDate={newEndDate} setIsEditingDuration={setIsEditingDuration} newStartTime={newStartTime} newEndTime={newEndTime} setIsEditingTime={setIsEditingTime}/>
-            <RequestDetails catData={catData} state={state} setState={setState} handleAddRequest={handleAddRequest} newRequestDescription={newRequestDescription} setNewRequestDescription={setNewRequestDescription} error={requestError} requests={requests} handleToggleStatus={handleToggleStatus} handleSaveSection={handleSaveSection} isAdmin={isAdmin} username={username}/>
+            <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)}  modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} modalState={modalState} setModalState={setModalState} deleteItemFromSchedule={deleteItemFromSchedule} addItemToSchedule={addItemToSchedule} handleAddToSet={handleAddToSet} moveItemPlaylistSchedule={moveItemPlaylistSchedule} handleAddItem={handleAddItem} fetchData={fetchData} formatDate={formatDate} formatTime={formatTime} isEditingDuration={isEditingDuration} isEditingTime={isEditingTime} setNewStartDate={setNewStartDate} setNewEndDate={setNewEndDate} setNewStartTime={setNewStartTime} setNewEndTime={setNewEndTime} handleSave={handleSave} newStartDate={newStartDate} newEndDate={newEndDate} setIsEditingDuration={setIsEditingDuration} newStartTime={newStartTime} newEndTime={newEndTime} setIsEditingTime={setIsEditingTime}/>
+            <RequestDetails catData={catData} state={state} setState={setState} handleAddRequest={handleAddRequest} newRequestDescription={newRequestDescription} setNewRequestDescription={setNewRequestDescription} error={requestError} requests={requests} handleToggleStatus={handleToggleStatus} handleSaveSection={handleSaveSection} isAdmin={isAdmin}/>
           </>
         }
         

@@ -17,6 +17,7 @@ import axios from 'axios';
 import ViewList from '../Components/ViewTimeModal/ViewList';
 import RequestDetails from '../Components/RequestModal/RequestDetails';
 import { mediaInfoFactory } from 'mediainfo.js';
+import FormViewFile from '../Components/FormMainComponents/FormViewFile';
 
 const DataPage = () => {
   const [folderViewNum, setfolderViewNum] = useState(0)
@@ -936,7 +937,8 @@ const handleSaveSection = async () => {
           <>
             <form onSubmit={handleSubmit}>
               <FormTitle catData={catData} />
-              <FormAddDataBody catData={catData} currentData={currentData} handleFileNameChange={handleFileNameChange} handleSelectedCategoryChange={handleSelectedCategoryChange} handlePhotoUrlChange={handlePhotoUrlChange} handleRunTimeChange={handleRunTimeChange} tag={tag} handleTagChange={handleTagChange} content={content} handleContentChange={handleContentChange} expiry={expiry} handleExpiryChange={handleExpiryChange} fileName={fileName} photoUrl={photoUrl} type={type} runTime={runTime} handleDrop={handleDrop} handleDragOver={handleDragOver} file={file} result={result} />
+              <FormViewFile catData={catData} isAdmin={isAdmin}/>
+              <FormAddDataBody catData={catData} currentData={currentData} handleFileNameChange={handleFileNameChange} handleSelectedCategoryChange={handleSelectedCategoryChange} handlePhotoUrlChange={handlePhotoUrlChange} handleRunTimeChange={handleRunTimeChange} tag={tag} handleTagChange={handleTagChange} content={content} handleContentChange={handleContentChange} expiry={expiry} handleExpiryChange={handleExpiryChange} fileName={fileName} photoUrl={photoUrl} type={type} runTime={runTime} handleDrop={handleDrop} handleDragOver={handleDragOver} file={file} result={result} isAdmin={isAdmin}/>
               <FormAllDataBody catData={catData} currentData={currentData} handleSelectedCategoryChange={handleSelectedCategoryChange} fileName={fileName} handleFileNameChange={handleFileNameChange}  ModalClose={ModalClose}/>
               <FormExpiry catData={catData} expiry={expiry} handleExpiryChange={handleExpiryChange} />
               <FormButton catData={catData} fileName={fileName} photoUrl={photoUrl} type={type} runTime={runTime} content={content} handleSubmit={handleSubmit} />

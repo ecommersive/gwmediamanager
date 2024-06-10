@@ -27,6 +27,8 @@ const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileNa
                 <th>Type</th>
                 <th>Expiry</th>
                 {isAdmin && <th>Comments</th>}
+                {isAdmin && <th>Details</th>}
+
               </tr>
           }
         </thead>
@@ -43,6 +45,7 @@ const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileNa
                   <td>{item.Content}</td>
                   <td>{item.Expiry}</td>
                   {isAdmin && <td><button className='action-button' onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setCatData('Comments'); setMode('configureData')}}>Comments</button></td>}
+                  {isAdmin && <th><button className='action-button' onClick={() => { setShowModal(true); setFileName(item.FileName); setMode('configureData'); setCatData('viewfile')}}>Details</button></th>}
                 </tr>
               );
             } else if (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') {

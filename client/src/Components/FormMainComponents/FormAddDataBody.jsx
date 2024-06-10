@@ -1,26 +1,26 @@
 import React from 'react';
 
-const FormAddDataBody = ({ catData, currentData, tag, handleTagChange, content, handleContentChange, expiry, handleExpiryChange, fileName, photoUrl, type, runTime, handleDrop, handleDragOver, file, result }) => {
+const FormAddDataBody = ({ catData, currentData, tag, handleTagChange, content, handleContentChange, expiry, handleExpiryChange,  handleDrop, handleDragOver, file, result, isAdmin }) => {
 
-  // const renderInfo = (info) => {
-  //   return Object.entries(info).map(([key, value]) => {
-  //     if (typeof value === 'object') {
-  //       return (
-  //         <div key={key}>
-  //           <strong>{key}:</strong>
-  //           <div style={{ marginLeft: '20px' }}>
-  //             {renderInfo(value)}
-  //           </div>
-  //         </div>
-  //       );
-  //     }
-  //     return (
-  //       <div key={key}>
-  //         <strong>{key}:</strong> {value.toString()}
-  //       </div>
-  //     );
-  //   });
-  // };
+  const renderInfo = (info) => {
+    return Object.entries(info).map(([key, value]) => {
+      if (typeof value === 'object') {
+        return (
+          <div key={key}>
+            <strong>{key}:</strong>
+            <div style={{ marginLeft: '20px' }}>
+              {renderInfo(value)}
+            </div>
+          </div>
+        );
+      }
+      return (
+        <div key={key}>
+          <strong>{key}:</strong> {value.toString()}
+        </div>
+      );
+    });
+  };
 
   const renderResult = (data) => {
     if (!data) return null;
@@ -34,6 +34,7 @@ const FormAddDataBody = ({ catData, currentData, tag, handleTagChange, content, 
     } else {
       fileType = generalInfo.Format;
     }
+
 
     return (
       <div>
@@ -51,6 +52,41 @@ const FormAddDataBody = ({ catData, currentData, tag, handleTagChange, content, 
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
+  const extractAndRenderData = (data) => {
+    if (!data) return null;
+
+    const generalInfo = data.media.track.find(track => track['@type'] === 'General');
+    const videoInfo = data.media.track.find(track => track['@type'] === 'Video');
+    const audioInfo = data.media.track.find(track => track['@type'] === 'Audio');
+
+    const generalData = {
+      'Overall BitRate': generalInfo?.OverallBitRate || 'N/A',
+    };
+
+    const videoData = {
+      'ColorSpace': videoInfo?.ColorSpace || 'N/A',
+      'ChromaSubsampling': videoInfo?.ChromaSubsampling || 'N/A',
+      'BitDepth': videoInfo?.BitDepth || 'N/A',
+      'ScanType': videoInfo?.ScanType || 'N/A'
+    };
+
+    const audioData = {
+      'BitMode': audioInfo?.BitMode || 'N/A',
+      'BitRate': audioInfo?.BitRate_Mode || 'N/A',
+      'Compression Mode': audioInfo?.Compression_Mode || 'N/A'
+    };
+
+    return (
+      <div>
+        <h3>General Info:</h3>
+        {renderInfo(generalData)}
+        <h3>Video Info:</h3>
+        {renderInfo(videoData)}
+        <h3>Audio Info:</h3>
+        {renderInfo(audioData)}
+      </div>
+    );
+  };
   return (
     catData === 'addData' && (
       <>
@@ -82,9 +118,12 @@ const FormAddDataBody = ({ catData, currentData, tag, handleTagChange, content, 
                     Expiry Date:
                     <input type="date" name="expiryDate" value={expiry} onChange={handleExpiryChange} />
                   </label>
+                  {isAdmin && <><h1>Admin Info:</h1>
+                  {extractAndRenderData(result)}</>}
                 </div>
               </>
             )}
+           
           </div>
         ) : (
           <p>Drag and drop a file here</p>

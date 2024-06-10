@@ -3,6 +3,7 @@ import React from 'react';
 const FormTitle = ({ catData }) => {
   const catToFormTitle = {
     addData: 'Add New Data',
+    viewfile: 'Admin Info',
     ExtendExpiry: 'Extend Expiry Date',
     DeleteData: 'Delete Data',
     viewNotes: 'View Notes',

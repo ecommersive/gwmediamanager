@@ -279,7 +279,7 @@ const DataPage = () => {
       const scheduleType = currentData === 'Playlist Schedule' ? 'playlistSchedule' : 'adsSchedule';
       const folderNumber = fileName; 
       try {
-        const response = await axios.delete(`${baseUrl}/${scheduleType}/${folderNumber}`, {
+        const response = await axios.delete(`${baseUrl}/schedules/${scheduleType}/${folderNumber}`, {
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`
@@ -659,6 +659,7 @@ const DataPage = () => {
       console.error('Error deleting item:', error.response ? error.response.data : error);
     }
   };
+  
   //finished MoveItem
   const moveItemPlaylistSchedule = async (itemToMove, direction) => {
     let baseUrl = process.env.REACT_APP_API_URL;
@@ -779,85 +780,88 @@ const DataPage = () => {
   };
   //finished handleAddRequest
   const handleAddRequest = async () => {
-      let baseUrl = process.env.REACT_APP_API_URL;
-      const url = `${baseUrl}/request`;
-  
-      try {
-        const response = await axios.post(url, {
-          description: newRequestDescription,
-          username
-        }, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          }
-        });
-  
-        if (response.status === 201) {
-          console.log('Request added successfully');
-          setNewRequestDescription('');
-          fetchRequests();
-          const logMessage = `${username} has added a new request:\n${newRequestDescription}.`
-          try {
-            await axios.post(`${baseUrl}/changelog`, { user:username, message: logMessage }, {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              }
-            });
-          } catch (error) {
-            console.log('Failed to log change:', error);
-          }
-        } else {
-          throw new Error('Failed to add request');
-        }
-      } catch (error) {
-        console.error('Error adding request:', error.response ? error.response.data : error);
-        setRequestError('An error occurred. Please try again.');
-      }
-  };
-  const handleSaveSection = async () => {
-    const baseUrl = process.env.REACT_APP_API_URL;
-    const completedRequests = requests.filter(request => request.status === 'completed');
-    const unfinishedRequests = requests.filter(request => request.status === 'unfinished');
+    let baseUrl = process.env.REACT_APP_API_URL;
+    const url = `${baseUrl}/request`;
 
     try {
-        await Promise.all(completedRequests.map(async (request) => {
-            const url = `${baseUrl}/requests/${request._id}`;
-            console.log(`Attempting to delete request with ID: ${request._id}`); // Log the ID here
+        const response = await axios.post(url, {
+            description: newRequestDescription,
+            username
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+            }
+        });
 
+        if (response.status === 201) {
+            console.log('Request added successfully');
+            setNewRequestDescription('');
+            fetchRequests();
+            const logMessage = `${username} has added a new request:\n${newRequestDescription}.`
             try {
-                await axios.delete(url, {
+                await axios.post(`${baseUrl}/changelog`, { user: username, message: logMessage }, {
                     headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json'
                     }
                 });
-                console.log(`Successfully deleted request with ID: ${request._id}`);
-            } catch (deleteError) {
-                console.error(`Failed to delete request with ID: ${request._id}`, deleteError);
+            } catch (error) {
+                console.log('Failed to log change:', error);
             }
-        }));
-
-        // Re-fetch requests after deletion
-        fetchRequests();
-
-        const logMessage = `Following requests finished:\n${completedRequests.map(req => req.description).join('\n')}\nFollowing requests unfinished:\n${unfinishedRequests.map(req => req.description).join('\n')}`;
-
-        try {
-            await axios.post(`${baseUrl}/changelog`, { user: username, message: logMessage }, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-        } catch (logError) {
-            console.log('Failed to log change:', logError);
+        } else {
+            throw new Error('Failed to add request');
         }
     } catch (error) {
-        console.error('Error deleting completed requests:', error);
+        console.error('Error adding request:', error.response ? error.response.data : error);
+        setRequestError('An error occurred. Please try again.');
     }
 };
+
+const handleSaveSection = async () => {
+  const baseUrl = process.env.REACT_APP_API_URL;
+  const completedRequests = requests.filter(request => request.status === 'completed');
+  const unfinishedRequests = requests.filter(request => request.status === 'unfinished');
+
+  try {
+      await Promise.all(completedRequests.map(async (request) => {
+          const url = `${baseUrl}/requests/${request._id}`;
+          console.log(`Attempting to delete request with ID: ${request._id}`); // Log the ID here
+
+          try {
+              await axios.delete(url, {
+                  headers: {
+                      'Content-Type': 'application/json',
+                      Authorization: `Bearer ${token}`
+                  }
+              });
+              console.log(`Successfully deleted request with ID: ${request._id}`);
+          } catch (deleteError) {
+              console.error(`Failed to delete request with ID: ${request._id}`, deleteError);
+          }
+      }));
+
+      // Re-fetch requests after deletion
+      fetchRequests();
+
+      const logMessage = `Following requests finished:\n${completedRequests.map(req => req.description).join('\n')}\nFollowing requests unfinished:\n${unfinishedRequests.map(req => req.description).join('\n')}`;
+
+      try {
+          await axios.post(`${baseUrl}/changelog`, { user: username, message: logMessage }, {
+              headers: {
+                  Authorization: `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+              }
+          });
+      } catch (logError) {
+          console.log('Failed to log change:', logError);
+      }
+  } catch (error) {
+      console.error('Error deleting completed requests:', error);
+  }
+};
+
+
 
 // Verify that requests array contains correct IDs
   useEffect(() => {
@@ -940,7 +944,7 @@ const DataPage = () => {
             <NotesForm catData={catData} fileName={fileName} notes={notes} editingNoteId={editingNoteId} editingNoteText={editingNoteText} handleUpdateNoteText={handleUpdateNoteText} handleDoneEditNote={handleDoneEditNote} handleEditNote={handleEditNote} handleDeleteNote={handleDeleteNote} handleAddNoteSubmit={handleAddNoteSubmit} newNote={newNote} setNewNote={setNewNote} username={username} setCatData={setCatData} isAdmin={isAdmin}/>
             <SetCreation catData={catData} setShowModal={setShowModal} handleSubmitSetModal={handleSubmitSetModal}  modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} handleAddToSet={handleAddToSet} item={item}/>
             <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)}  modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} modalState={modalState} setModalState={setModalState} deleteItemFromSchedule={deleteItemFromSchedule} addItemToSchedule={addItemToSchedule} handleAddToSet={handleAddToSet} moveItemPlaylistSchedule={moveItemPlaylistSchedule} handleAddItem={handleAddItem} fetchData={fetchData} formatDate={formatDate} formatTime={formatTime} isEditingDuration={isEditingDuration} isEditingTime={isEditingTime} setNewStartDate={setNewStartDate} setNewEndDate={setNewEndDate} setNewStartTime={setNewStartTime} setNewEndTime={setNewEndTime} handleSave={handleSave} newStartDate={newStartDate} newEndDate={newEndDate} setIsEditingDuration={setIsEditingDuration} newStartTime={newStartTime} newEndTime={newEndTime} setIsEditingTime={setIsEditingTime}/>
-            <RequestDetails catData={catData} state={state} setState={setState} handleAddRequest={handleAddRequest} newRequestDescription={newRequestDescription} setNewRequestDescription={setNewRequestDescription} error={requestError} requests={requests} handleToggleStatus={handleToggleStatus} handleSaveSection={handleSaveSection} isAdmin={isAdmin}/>
+            <RequestDetails catData={catData} state={state} setState={setState} handleAddRequest={handleAddRequest} newRequestDescription={newRequestDescription} setNewRequestDescription={setNewRequestDescription} error={requestError} requests={requests} handleToggleStatus={handleToggleStatus} handleSaveSection={handleSaveSection} isAdmin={isAdmin} username={username}/>
           </>
         }
         

@@ -17,6 +17,8 @@ const path = require('path');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const xlsx = require('xlsx');
+const ObjectId = mongoose.Types.ObjectId;
+
 const moment = require('moment-timezone');
 
 const {verifyToken} = require('./middleware/authmiddleware');
@@ -650,7 +652,7 @@ app.post('/:scheduleType/:folder/move', verifyToken, async (req, res) => {
   }
 });
 
-app.delete('/:scheduleType/:folder', verifyToken, async (req, res) => {
+app.delete('/schedules/:scheduleType/:folder', verifyToken, async (req, res) => {
   const { scheduleType, folder } = req.params;
   const Model = getModel(scheduleType);
 
@@ -757,19 +759,20 @@ app.put('/requests/:id/status', verifyToken, async (req, res) => {
 });
 
 //need to be able to delete the request
-app.delete('/requests/:id', async (req, res) => {
+app.delete('/requests/:id', verifyToken, async (req, res) => {
   const { id } = req.params;
 
   try {
       console.log(`Attempting to delete request with ID: ${id}`);
-      
-      // Validate the ID format
-      if (!mongoose.Types.ObjectId.isValid(id)) {
+
+      // Convert the ID to ObjectId
+      if (!ObjectId.isValid(id)) {
           console.log(`Invalid ID format: ${id}`);
           return res.status(400).json({ message: 'Invalid request ID' });
       }
 
-      const deletedRequest = await Request.findByIdAndDelete(id);
+      const objectId = new ObjectId(id);
+      const deletedRequest = await Request.findByIdAndDelete(objectId);
       if (!deletedRequest) {
           console.log(`Request with ID: ${id} not found`);
           return res.status(404).json({ message: 'Request not found' });
@@ -778,7 +781,7 @@ app.delete('/requests/:id', async (req, res) => {
       console.log(`Request with ID: ${id} deleted successfully`);
       res.status(200).json({ message: 'Request deleted successfully' });
   } catch (error) {
-      console.error('Error deleting request:', error);
+      console.error('Error deleting request:', error.message, error.stack); // Log error message and stack
       res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 });

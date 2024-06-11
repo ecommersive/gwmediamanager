@@ -18,6 +18,7 @@ import ViewList from '../Components/ViewTimeModal/ViewList';
 import RequestDetails from '../Components/RequestModal/RequestDetails';
 import { mediaInfoFactory } from 'mediainfo.js';
 import FormViewFile from '../Components/FormMainComponents/FormViewFile';
+import apiService from '../service';
 
 const DataPage = () => {
   const [folderViewNum, setfolderViewNum] = useState(0)
@@ -54,7 +55,6 @@ const DataPage = () => {
   const [mediaInfo, setMediaInfo] = useState(null);
   const [result, setResult] = useState(null)
   const [addedItems, setAddedItems] = useState([]);
-
   const [isEditingDuration, setIsEditingDuration] = useState(false);
   const [isEditingTime, setIsEditingTime] = useState(false);
   const [newStartDate, setNewStartDate] = useState('');
@@ -76,38 +76,70 @@ const DataPage = () => {
     setFile('')
   }
   const fetchData = useCallback(async () => {
-    let baseUrl = process.env.REACT_APP_API_URL
-    let url = `${baseUrl}/`;
-    switch (currentData) {
-      case 'Playlist':
-        url += 'playlists';
-        break;
-      case 'Ads':
-        url += 'ads';
-        break;
-      case 'Playlist Schedule':
-        url += 'playlistSchedule';
-        break;
-      case 'Ads Schedule':
-        url += 'adsSchedule';
-        break;
-      default:
-        console.error('Unexpected data type');
-        return;
-    }
-    const adminStatus = localStorage.getItem('isAdmin') === 'true';
-    setIsAdmin(adminStatus);
     try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      const data = await response.json();
+      const data = await apiService.fetchData(currentData);
       setData(data);
+      const adminStatus = localStorage.getItem('isAdmin') === 'true';
+      setIsAdmin(adminStatus);
     } catch (error) {
-      console.error(`Error fetching data from ${url}:`, error);
+      console.error('Error fetching data:', error);
+    }
+  }, [currentData])
+  const fetchFileDetails = async (fileName) => {
+    try {
+      const data = await apiService.fetchFileDetails(fileName);
+      setFileDetails(data);
+    } catch (error) {
+      console.error('Error fetching file details:', error);
+    }
+  };
+  const fetchDataModals = useCallback(async () => {
+    try {
+      const data = await apiService.fetchDataModals(currentData);
+      setModalData([...data]);
+    } catch (error) {
+      console.error('Error fetching data from API', error);
     }
   }, [currentData]);
+  const fetchRequests = async () => {
+    await apiService.fetchRequests(setRequests);
+  };
+  const handleSubmit = async (event) => {
+    await apiService.handleSubmit({event,catData,result,fileName,photoUrl,type,tag,runTime,content,expiry,notes,currentData,fetchData,setShowModal,resetAll,setFile});
+  };
+  const handleAddNoteSubmit = async (event, fileName) => {
+    await apiService.handleAddNoteSubmit({event,fileName,newNote,currentData,setNotes,fetchData});
+  };
+  const handleSubmitSetModal = async (event, startDate, endDate, item, startTime, endTime) => {
+    await apiService.handleSubmitSetModal({event,startDate,endDate,item,startTime,endTime,currentData,setData,setfolderViewNum,setItem,setAddedItems,setShowModal});
+  };
+  const addItemToSchedule = async (itemToAdd, id) => {
+    await apiService.addItemToSchedule({itemToAdd,id,currentData,folderViewNum,fetchData});
+  };
+  const handleAddRequest = async () => {
+    await apiService.handleAddRequest({newRequestDescription,fetchRequests,setNewRequestDescription,setRequestError});
+  };
+  const handleDoneEditNote = async (noteIndex, fileName) => {
+    await apiService.handleDoneEditNote({noteIndex,fileName,editingNoteId,editingNoteText,notes,currentData,setNotes,setEditingNoteId,setEditingNoteText,fetchData});
+  };
+  const handleSave = async (field) => {
+    await apiService.handleSave({field,currentData,folderViewNum,newStartDate,newEndDate,newStartTime,newEndTime,setNewStartDate,setNewEndDate,setIsEditingDuration,setNewStartTime,setNewEndTime,setIsEditingTime,fetchData,formatDate,formatTime});
+  };
+  const handleSaveSection = async () => {
+    await apiService.handleSaveSection({requests,fetchRequests});
+  };
+  const handleToggleStatus = async (request) => {
+    await apiService.handleToggleStatus({request,fetchRequests});
+  };  
+  const moveItemPlaylistSchedule = async (itemToMove, direction) => {
+    await apiService.moveItemPlaylistSchedule({itemToMove,direction,currentData,folderViewNum,fetchData});
+  };
+  const handleDeleteNote = async (noteIndex, fileName) => {
+    await apiService.handleDeleteNote({noteIndex,fileName,notes,currentData,setNotes,fetchData});
+  };
+  const deleteItemFromSchedule = async (itemToDelete) => {
+    await apiService.deleteItemFromSchedule({itemToDelete,currentData,folderViewNum,fetchData});
+  };
   useEffect(() => {
     fetchData();
   }, [fetchData]);
@@ -195,164 +227,8 @@ const DataPage = () => {
     setRunTime('')
     setExpiry('')
   }
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    let baseUrl = process.env.REACT_APP_API_URL;
-    let logChange = ''
-    if (catData === 'addData') {
-      const generalInfo = result?.media.track.find(track => track['@type'] === 'General');
-      const videoInfo = result?.media.track.find(track => track['@type'] === 'Video');
-      const audioInfo = result?.media.track.find(track => track['@type'] === 'Audio');
 
-      const generalData = {
-        OverallBitRate: generalInfo?.OverallBitRate || 'N/A',
-      };
 
-      const videoData = {
-        ColorSpace: videoInfo?.ColorSpace || 'N/A',
-        ChromaSubsampling: videoInfo?.ChromaSubsampling || 'N/A',
-        BitDepth: videoInfo?.BitDepth || 'N/A',
-        ScanType: videoInfo?.ScanType || 'N/A',
-      };
-
-      const audioData = {
-        BitMode: audioInfo?.BitMode || 'N/A',
-        BitRate: audioInfo?.BitRate_Mode || 'N/A',
-        CompressionMode: audioInfo?.Compression_Mode || 'N/A',
-      };
-
-      const formData = {
-        FileName: fileName,
-        PhotoUrl: photoUrl,
-        Type: type,
-        Tag: tag,
-        Run_Time: runTime,
-        Content: content,
-        Expiry: expiry,
-        generalData,
-        videoData,
-        audioData,
-      };
-      if (notes.length > 0) {
-        formData.notes = notes.map(noteText => ({
-          text: noteText,
-          addedOn: new Date()
-        }));
-      }
-      const endpoint = currentData === "Playlist" ? "uploadPlaylist" : "uploadAds";
-      try {
-        const response = await axios.post(`${baseUrl}/${endpoint}`, formData, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (response.status === 201) {
-          setShowModal(false);
-          logChange = `${username} has added ${formData.FileName} into ${currentData === 'Playlist' ? ' the Content Pool' : currentData === 'Ads' ? 'Ads' : (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? currentData : ''}.`;
-          fetchData();
-
-        } else {
-          throw new Error(`Failed to add ${currentData} item`);
-        }
-      } catch (error) {
-        console.log('An error occurred. Please try again.', error);
-      }
-    } else if (catData === 'ExtendExpiry') {
-      const encodedFileName = encodeURIComponent(fileName);
-      try {
-        const response = await axios.post(`${baseUrl}/setExpiry/${currentData.toLowerCase()}/${encodedFileName}`, {
-          newExpiryDate: expiry
-        }, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          }
-        });
-        if (response.status === 200) {
-          logChange = `${username} has extended ${encodedFileName} in ${currentData === 'Playlist' ? ' the Content Pool' : currentData === 'Ads' ? 'Ads' : (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? currentData : ''} to ${expiry}.`;
-          console.log('Expiry date set successfully');
-          fetchData();
-          setShowModal(false);
-        } else {
-          throw new Error(`Failed to set expiry date for ${currentData} item`);
-        }
-      } catch (error) {
-        console.log('An error occurred. Please try again.', error);
-      }
-    } else if (catData === 'DeleteData') {
-      const encodedFileName = encodeURIComponent(fileName);
-      try {
-        const response = await axios.delete(`${baseUrl}/deleteData/${currentData.toLowerCase()}/${encodedFileName}`, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          }
-        });
-        if (response.status === 200) {
-          logChange = `${username} has deleted ${encodedFileName} in ${currentData === 'Playlist' ? ' the Content Pool' : currentData === 'Ads' ? 'Ads' : (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? currentData : ''}.`;
-          console.log('Deletion successful');
-          fetchData();
-          setShowModal(false);
-        } else {
-          throw new Error(`Failed to delete ${currentData} item`);
-        }
-      } catch (error) {
-        console.log('An error occurred. Please try again.', error);
-      }
-    } else if (catData === 'deleteScheduleData') {
-      const scheduleType = currentData === 'Playlist Schedule' ? 'playlistSchedule' : 'adsSchedule';
-      const folderNumber = fileName;
-      try {
-        const response = await axios.delete(`${baseUrl}/set/schedules/${scheduleType}/${folderNumber}`, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          }
-        });
-        if (response.status === 200) {
-          logChange = `${username} has deleted ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderNumber}.`;
-          console.log('Deletion successful');
-          fetchData();
-          setShowModal(false);
-        } else {
-          throw new Error(`Failed to delete ${currentData} item`);
-        }
-      } catch (error) {
-        console.log('An error occurred. Please try again.', error);
-      }
-    }
-    if (logChange) {
-      try {
-        await axios.post(`${baseUrl}/changelog`, { user: username, message: logChange }, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-      } catch (error) {
-        console.log('Failed to log change:', error);
-      }
-    }
-    resetAll()
-    setFile('')
-  };
-
-  const fetchFileDetails = async (fileName) => {
-    let baseUrl = process.env.REACT_APP_API_URL;
-    const url = `${baseUrl}/fileDetails/${fileName}`;
-    try {
-      const response = await axios.get(url, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      setFileDetails(response.data);
-    } catch (error) {
-      console.error('Error fetching file details:', error);
-    }
-  };
   useEffect(() => {
     if (catData === 'viewfile' && fileName) {
       fetchFileDetails(fileName);
@@ -383,24 +259,7 @@ const DataPage = () => {
     });
 
   }, [searchTerm, data, currentData]);
-  const fetchDataModals = useCallback(async () => {
-    let baseUrl = process.env.REACT_APP_API_URL;
-    if (currentData === 'Playlist Schedule') {
-      baseUrl += '/playlists';
-    } else if (currentData === 'Ads Schedule') {
-      baseUrl += '/ads';
-    }
-    try {
-      const response = await fetch(baseUrl);
-      if (!response) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      const data = await response.json();
-      setModalData([...data]);
-    } catch (error) {
-      console.error(`Error fetching data from ${baseUrl}`, error);
-    }
-  });
+
   const handleAddItem = async (modalItem, id) => {
     await addItemToSchedule(modalItem, id);
     setAddedItems(prevItems => [...prevItems, id]);  // Update the added items state
@@ -434,45 +293,7 @@ const DataPage = () => {
     localStorage.removeItem('isAdmin');
     navigate('/');
   }
-  //finished handleAddNoteSubmit
-  const handleAddNoteSubmit = async (event, fileName) => {
-    event.preventDefault();
-    const noteToAdd = {
-      text: newNote,
-      addedOn: new Date(),
-      user: username
-    };
-    let baseUrl = process.env.REACT_APP_API_URL;
-    try {
-      const encodedFileName = encodeURIComponent(fileName);
-      const endpoint = `${baseUrl}/notes/add/${currentData.toLowerCase()}/${encodedFileName}`;
-      const response = await axios.post(endpoint, noteToAdd, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      if (response.status === 200) {
-        setNotes(prevNotes => [...prevNotes, noteToAdd]);
-        fetchData();
-        const logMessage = `${username} has added a comment saying "${noteToAdd.text}" in ${currentData === 'Playlist' ? ' the Content Pool' : currentData === 'Ads' ? 'Ads' : (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? currentData : ''} to ${fileName}.`;
-        try {
-          await axios.post(`${baseUrl}/changelog`, { user: username, message: logMessage }, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-        } catch (error) {
-          console.log('Failed to log change:', error);
-        }
-      } else {
-        throw new Error('Failed to add note');
-      }
-    } catch (error) {
-      console.error('Error adding note:', error);
-    }
-  };
+  
   const handleEditNote = (noteId, text) => {
     setEditingNoteId(noteId);
     setEditingNoteText(text);
@@ -480,452 +301,11 @@ const DataPage = () => {
   const handleUpdateNoteText = (event) => {
     setEditingNoteText(event.target.value);
   };
-  //finished handleDoneEditNote
-  const handleDoneEditNote = async (noteIndex, fileName) => {
-    if (editingNoteId === null || editingNoteText.trim() === '') {
-      alert('You must provide updated note text.');
-      return;
-    }
-    const baseUrl = process.env.REACT_APP_API_URL;
-    try {
-      const encodedFileName = encodeURIComponent(fileName);
-      const oldComment = notes[noteIndex].text;
-      const response = await axios.put(`${baseUrl}/notes/update/${currentData.toLowerCase()}/${encodedFileName}`, {
-        noteIndex,
-        updatedText: editingNoteText
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      if (response.status === 200) {
-        console.log('Note updated successfully');
-        const updatedNotes = [...notes];
-        updatedNotes[noteIndex] = { ...updatedNotes[noteIndex], text: editingNoteText, addedOn: new Date() };
-        setNotes(updatedNotes);
-        setEditingNoteId(null);
-        setEditingNoteText('');
-        fetchData();
-        const logMessage = `${username} has updated a comment: "${oldComment}" to "${editingNoteText}" in ${currentData === 'Playlist' ? ' the Content Pool' : currentData === 'Ads' ? 'Ads' : (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? currentData : ''} for ${fileName}.`;
-        try {
-          await axios.post(`${baseUrl}/changelog`, { user: username, message: logMessage }, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-        } catch (error) {
-          console.log('Failed to log change:', error);
-        }
-      } else {
-        throw new Error('Failed to update note');
-      }
-    } catch (error) {
-      console.error('Error updating note:', error.response ? error.response.data : error);
-    }
-  };
-  //finished handleDeleteNote
-  const handleDeleteNote = async (noteIndex, fileName) => {
-    const baseUrl = process.env.REACT_APP_API_URL;
-    const encodedFileName = encodeURIComponent(fileName);
-    const category = currentData.toLowerCase();
-    const url = `${baseUrl}/notes/delete/${category}/${encodedFileName}/${noteIndex}`;
-    try {
-      const oldComment = notes[noteIndex].text; // Capture the old comment
-      const response = await axios.delete(url, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        }
-      });
-      if (response.status === 200) {
-        console.log('Note deleted successfully');
-        setNotes(notes.filter((_, index) => index !== noteIndex));
-        fetchData();
-        const logMessage = `${username} has deleted comment: "${oldComment}" in ${currentData === 'Playlist' ? ' the Content Pool' : currentData === 'Ads' ? 'Ads' : (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? currentData : ''} for ${fileName}`;
-        try {
-          await axios.post(`${baseUrl}/changelog`, { user: username, message: logMessage }, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-        } catch (error) {
-          console.log('Failed to log change:', error);
-        }
-      } else {
-        throw new Error('Failed to delete the note');
-      }
-    } catch (error) {
-      console.error('Error deleting note:', error.response ? error.response.data : error);
-    }
-  };
-  //finished handlesubmit
-  const handleSubmitSetModal = async (event, startDate, endDate, item, startTime, endTime) => {
-    event.preventDefault();
-    let baseUrl = process.env.REACT_APP_API_URL;
-    let url = `${baseUrl}/`;
-    switch (currentData) {
-      case 'Playlist Schedule':
-        url += 'createPlaylistSchedule';
-        break;
-      case 'Ads Schedule':
-        url += 'createAdsSchedule';
-        break;
-      default:
-        return;
-    }
 
-    const requestData = {
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-      items: item.map(item => ({ FileName: item.FileName, FileID: item.FileID })),
-      startTime: startTime.startTime, // Ensure it's a string
-      endTime: endTime.endTime         // Ensure it's a string
-    };
-
-
-    try {
-      const response = await axios.post(url, requestData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.status === 201 || response.status === 200) {
-        console.log('Schedule created successfully');
-        setData(prevData => [...prevData, response.data]);
-        setfolderViewNum(response.data.folder);
-        const itemsStringValues = requestData.items.map((i, index) => `${index + 1}.) ${i.FileName}`).join('\n');
-        const logMessage = `${username} has created a new ${currentData === 'Playlist Schedule' ? 'Playlist Set' : 'Ads Set'}: \nStart Date: ${requestData.startDate}\nEnd Date: ${requestData.endDate}\nItems:\n${itemsStringValues}\nDuration of ${currentData === 'Playlist Schedule' ? 'Playlist Set' : 'Ads Set'}: ${requestData.startTime} - ${requestData.endTime}`;
-        try {
-          await axios.post(`${baseUrl}/changelog`, { user: username, message: logMessage }, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-        } catch (error) {
-          console.log('Failed to log change:', error);
-        }
-        setItem([])
-        setAddedItems([])
-        setShowModal(false);
-      } else {
-        throw new Error('Failed to create schedule');
-      }
-    } catch (error) {
-      console.log('Error occurred. Please try again = ', error);
-      setItem([])
-      setAddedItems([])
-    }
-  };
-  //finished addItemToSchedule
-  const addItemToSchedule = async (itemToAdd, id) => {
-    let baseUrl = process.env.REACT_APP_API_URL;
-    let alterValue;
-    if (currentData === 'Playlist Schedule') {
-      alterValue = 'playlistSchedule';
-    } else if (currentData === 'Ads Schedule') {
-      alterValue = 'adsSchedule';
-    }
-
-    const itemWithId = {
-      ...itemToAdd,
-      FileID: id, // Replace generateUniqueId with your method of generating IDs if needed
-    };
-    const url = `${baseUrl}/${alterValue}/${folderViewNum}/add`;
-
-
-    try {
-      const response = await axios.post(url, { item: itemWithId }, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        }
-      });
-      if (response.status === 200) {
-        console.log('Item added successfully');
-        fetchData();
-        const logMessage = `${username} has added ${itemToAdd.FileName} to ${currentData} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum}`;
-        try {
-          await axios.post(`${baseUrl}/changelog`, { user: username, message: logMessage }, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-        } catch (error) {
-          console.log('Failed to log change:', error);
-        }
-      } else {
-        throw new Error('Failed to add the item');
-      }
-    } catch (error) {
-      console.error('Error adding item:', error.response ? error.response.data : error);
-    }
-  };
-  //finished addItemToScheule
-  const deleteItemFromSchedule = async (itemToDelete) => {
-    let baseUrl = process.env.REACT_APP_API_URL;
-    const encodedFileName = encodeURIComponent(JSON.stringify(itemToDelete));
-    let alterValue;
-    if (currentData === 'Playlist Schedule') {
-      alterValue = 'playlistSchedule';
-    } else if (currentData === 'Ads Schedule') {
-      alterValue = 'adsSchedule';
-    }
-    const url = `${baseUrl}/${alterValue}/${folderViewNum}/${encodedFileName}`;
-    try {
-      const response = await axios.delete(url, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        }
-      });
-      if (response.status === 200) {
-        console.log('Item deleted successfully');
-        fetchData();
-        const logMessage = `${username} has deleted ${itemToDelete.FileName} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum}.`
-        try {
-          await axios.post(`${baseUrl}/changelog`, { user: username, message: logMessage }, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-        } catch (error) {
-          console.log('Failed to log change:', error);
-        }
-      } else {
-        throw new Error('Failed to delete the item');
-      }
-    } catch (error) {
-      console.error('Error deleting item:', error.response ? error.response.data : error);
-    }
-  };
-
-  //finished MoveItem
-  const moveItemPlaylistSchedule = async (itemToMove, direction) => {
-    let baseUrl = process.env.REACT_APP_API_URL;
-    let alterValue;
-    if (currentData === 'Playlist Schedule') {
-      alterValue = 'playlistSchedule';
-    } else if (currentData === 'Ads Schedule') {
-      alterValue = 'adsSchedule';
-    }
-
-    const url = `${baseUrl}/${alterValue}/${folderViewNum}/move`;
-
-    try {
-      const response = await axios.post(url, { item: itemToMove, direction }, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        }
-      });
-      if (response.status === 200) {
-        console.log('Item moved successfully');
-        fetchData();
-        const logMessage = `${username} has moved ${itemToMove.FileName} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum} ${direction}.`
-        try {
-          await axios.post(`${baseUrl}/changelog`, { user: username, message: logMessage }, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-        } catch (error) {
-          console.log('Failed to log change:', error);
-        }
-      } else {
-        throw new Error('Failed to move the item');
-      }
-    } catch (error) {
-      console.error('Error moving item:', error.response ? error.response.data : error);
-    }
-  };
-
-  const handleSave = async (field) => {
-    const baseUrl = process.env.REACT_APP_API_URL;
-    let alterValue = currentData === 'Playlist Schedule' ? 'playlistSchedule' : 'adsSchedule';
-    const url = `${baseUrl}/${alterValue}/${folderViewNum}/update`;
-    const updatedData = {};
-    let logMessage = '';
-
-    if (field === 'duration') {
-      updatedData.startDate = newStartDate;
-      updatedData.endDate = newEndDate;
-      logMessage = `${username} has updated duration in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum} to ${formatDate(newStartDate)} - ${formatDate(newEndDate)}.`;
-    } else if (field === 'time') {
-      updatedData.startTime = newStartTime;
-      updatedData.endTime = newEndTime;
-      logMessage = `${username} has updated time in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum} to ${formatTime(newStartTime)} - ${formatTime(newEndTime)}.`;
-    }
-
-    try {
-      const response = await axios.put(url, updatedData, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        }
-      });
-      if (response.status === 200) {
-        console.log('Schedule updated successfully');
-        fetchData();
-        if (field === 'duration') {
-          setNewStartDate('');
-          setNewEndDate('');
-          setIsEditingDuration(false);
-        } else if (field === 'time') {
-          setNewStartTime('');
-          setNewEndTime('');
-          setIsEditingTime(false);
-        }
-
-        try {
-          await axios.post(`${baseUrl}/changelog`, { user: username, message: logMessage }, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-        } catch (error) {
-          console.log('Failed to log change:', error);
-        }
-      } else {
-        throw new Error('Failed to update schedule');
-      }
-    } catch (error) {
-      console.error('Error updating schedule:', error.response ? error.response.data : error);
-    }
-  };
-
-
-  //connect to endpoint to grab request data 
-  const fetchRequests = async () => {
-    let baseUrl = process.env.REACT_APP_API_URL;
-    const url = `${baseUrl}/requests`;
-
-    try {
-      const response = await axios.get(url, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      if (response.status === 200) {
-        setRequests(response.data);
-
-      } else {
-        throw new Error('Failed to fetch requests');
-      }
-    } catch (error) {
-      console.error('Error fetching requests:', error.response ? error.response.data : error);
-    }
-  };
-  const handleAddRequest = async () => {
-    let baseUrl = process.env.REACT_APP_API_URL;
-    const url = `${baseUrl}/request`;
-
-    try {
-      const response = await axios.post(url, {
-        description: newRequestDescription,
-        username
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      if (response.status === 201) {
-        console.log('Request added successfully');
-        setNewRequestDescription('');
-        fetchRequests();
-        const logMessage = `${username} has added a new request:\n${newRequestDescription}.`
-        try {
-          await axios.post(`${baseUrl}/changelog`, { user: username, message: logMessage }, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-        } catch (error) {
-          console.log('Failed to log change:', error);
-        }
-      } else {
-        throw new Error('Failed to add request');
-      }
-    } catch (error) {
-      console.error('Error adding request:', error.response ? error.response.data : error);
-      setRequestError('An error occurred. Please try again.');
-    }
-  };
-
-  const handleSaveSection = async () => {
-    const baseUrl = process.env.REACT_APP_API_URL;
-    const completedRequests = requests.filter(request => request.status === 'completed');
-    const unfinishedRequests = requests.filter(request => request.status === 'unfinished');
-
-    try {
-      await Promise.all(completedRequests.map(async (request) => {
-        const url = `${baseUrl}/requests/${request._id}`;
-        console.log(`Attempting to delete request with ID: ${request._id}`); // Log the ID here
-
-        try {
-          await axios.delete(url, {
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`
-            }
-          });
-          console.log(`Successfully deleted request with ID: ${request._id}`);
-        } catch (deleteError) {
-          console.error(`Failed to delete request with ID: ${request._id}`, deleteError);
-        }
-      }));
-
-      // Re-fetch requests after deletion
-      fetchRequests();
-
-      const logMessage = `Following requests finished:\n${completedRequests.map(req => req.description).join('\n')}\nFollowing requests unfinished:\n${unfinishedRequests.map(req => req.description).join('\n')}`;
-
-      try {
-        await axios.post(`${baseUrl}/changelog`, { user: username, message: logMessage }, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-      } catch (logError) {
-        console.log('Failed to log change:', logError);
-      }
-    } catch (error) {
-      console.error('Error deleting completed requests:', error);
-    }
-  };
   useEffect(() => {
     console.log('Current requests:', requests);
   }, [requests]);
 
-  const handleToggleStatus = async (request) => {
-    const newStatus = request.status === 'unfinished' ? 'completed' : 'unfinished';
-    try {
-      const baseUrl = process.env.REACT_APP_API_URL;
-      const url = `${baseUrl}/requests/${request._id}/status`;
-      await axios.put(url, { status: newStatus }, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        }
-      });
-      fetchRequests();
-    } catch (error) {
-      console.error('Error updating request status:', error);
-    }
-  };
 
   useEffect(() => {
     fetchRequests();

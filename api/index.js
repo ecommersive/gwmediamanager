@@ -782,25 +782,20 @@ app.delete('/requests/:id', verifyToken, async (req, res) => {
   const { id } = req.params;
 
   try {
-      console.log(`Attempting to delete request with ID: ${id}`);
 
       // Convert the ID to ObjectId
       if (!ObjectId.isValid(id)) {
-          console.log(`Invalid ID format: ${id}`);
           return res.status(400).json({ message: 'Invalid request ID' });
       }
 
       const objectId = new ObjectId(id);
       const deletedRequest = await Request.findByIdAndDelete(objectId);
       if (!deletedRequest) {
-          console.log(`Request with ID: ${id} not found`);
           return res.status(404).json({ message: 'Request not found' });
       }
 
-      console.log(`Request with ID: ${id} deleted successfully`);
       res.status(200).json({ message: 'Request deleted successfully' });
   } catch (error) {
-      console.error('Error deleting request:', error.message, error.stack); // Log error message and stack
       res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 });

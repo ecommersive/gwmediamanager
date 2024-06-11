@@ -18,8 +18,7 @@ import ViewList from '../Components/ViewTimeModal/ViewList';
 import RequestDetails from '../Components/RequestModal/RequestDetails';
 import { mediaInfoFactory } from 'mediainfo.js';
 import FormViewFile from '../Components/FormMainComponents/FormViewFile';
-import apiService from '../service';
-
+import apiService from '../api';
 const DataPage = () => {
   const [folderViewNum, setfolderViewNum] = useState(0)
   const [mode, setMode] = useState('');
@@ -62,19 +61,8 @@ const DataPage = () => {
   const [newStartTime, setNewStartTime] = useState('');
   const [newEndTime, setNewEndTime] = useState('');
   const [fileDetails, setFileDetails] = useState(null);
-
-
-  const handleModal = () => {
-    setShowModal(!showModal);
-  }
-  const ModalClose = () => {
-    setItem([])
-    setAddedItems([])
-    setState('')
-    setShowModal(false)
-    resetAll()
-    setFile('')
-  }
+  
+  //api calls
   const fetchData = useCallback(async () => {
     try {
       const data = await apiService.fetchData(currentData);
@@ -140,19 +128,26 @@ const DataPage = () => {
   const deleteItemFromSchedule = async (itemToDelete) => {
     await apiService.deleteItemFromSchedule({itemToDelete,currentData,folderViewNum,fetchData});
   };
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-  useEffect(() => {
-    console.log('catData:', catData);
-  }, [catData]);
+
+
+  // functions
+  const handleModal = () => {
+    setShowModal(!showModal);
+  }
+  const ModalClose = () => {
+    setItem([])
+    setAddedItems([])
+    setState('')
+    setShowModal(false)
+    resetAll()
+    setFile('')
+  }
   const handleFileNameChange = (event) => {
     setFileName(event.target.value);
   };
   const handlePhotoUrlChange = (event) => {
     setPhotoUrl(event.target.value);
   };
-
   const handleTagChange = (event) => {
     setTag(event.target.value);
   };
@@ -162,14 +157,12 @@ const DataPage = () => {
   const handleContentChange = (event) => {
     setContent(event.target.value);
   };
-
   const handleExpiryChange = (event) => {
     setExpiry(event.target.value);
   };
   const handleSelectedCategoryChange = (event) => {
     setCurrentData(event.target.value);
   };
-
   const handleDrop = async (event) => {
     event.preventDefault();
     const file = event.dataTransfer.files[0];
@@ -206,16 +199,13 @@ const DataPage = () => {
       console.error('Error analyzing file:', error);
     }
   };
-
   const handleDragOver = (event) => {
     event.preventDefault();
   };
-
   const formatDuration = (duration) => {
     const seconds = Math.floor(duration);
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
-
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
   const resetAll = () => {
@@ -227,16 +217,7 @@ const DataPage = () => {
     setRunTime('')
     setExpiry('')
   }
-
-
-  useEffect(() => {
-    if (catData === 'viewfile' && fileName) {
-      fetchFileDetails(fileName);
-    }
-  }, [catData, fileName]);
-
   const filteredData = useMemo(() => {
-
     return data.filter(item => {
       if (currentData === 'Playlist' || currentData === 'Ads') {
         return (
@@ -259,7 +240,6 @@ const DataPage = () => {
     });
 
   }, [searchTerm, data, currentData]);
-
   const handleAddItem = async (modalItem, id) => {
     await addItemToSchedule(modalItem, id);
     setAddedItems(prevItems => [...prevItems, id]);  // Update the added items state
@@ -277,13 +257,6 @@ const DataPage = () => {
       )
     );
   }, [modalSearchTerm, modalData, addedItems]);
-
-
-  useEffect(() => {
-    if (modalSearchTerm.length > 0) {
-      fetchDataModals();
-    }
-  }, [modalSearchTerm, fetchDataModals]);
   const handleDataSelection = (e) => {
     setCurrentData(e.target.value);
     setCurrentData(e.target.value);
@@ -293,7 +266,6 @@ const DataPage = () => {
     localStorage.removeItem('isAdmin');
     navigate('/');
   }
-  
   const handleEditNote = (noteId, text) => {
     setEditingNoteId(noteId);
     setEditingNoteText(text);
@@ -301,21 +273,10 @@ const DataPage = () => {
   const handleUpdateNoteText = (event) => {
     setEditingNoteText(event.target.value);
   };
-
-  useEffect(() => {
-    console.log('Current requests:', requests);
-  }, [requests]);
-
-
-  useEffect(() => {
-    fetchRequests();
-  }, [catData === 'requests'], fetchRequests);
-
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
   };
-
   const formatTime = (timeString) => {
     if (!timeString) return '';
     const [hours, minutes] = timeString.split(':');
@@ -323,22 +284,45 @@ const DataPage = () => {
     const adjustedHours = hours % 12 || 12;
     return `${adjustedHours}:${minutes} ${period}`;
   };
-  useEffect(() => {
-    if (item.length > 0) {
-      console.log('item updated:', item);
-    }
-  }, [item]);
-
-
   function handleAddToSet(event, fileName, _id) {
     event.preventDefault();
     setItem(prevItem => [...prevItem, { FileName: fileName, FileID: _id }]);
     console.log('item', item);
   }
-
   const itemExists = (fileName) => {
     return item.some(item => item.FileName === fileName);
   };
+
+
+
+  // Use effects
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+  useEffect(() => {
+    console.log('catData:', catData);
+  }, [catData]);
+  useEffect(() => {
+    if (catData === 'viewfile' && fileName) {
+      fetchFileDetails(fileName);
+    }
+  }, [catData, fileName]);
+  useEffect(() => {
+    if (modalSearchTerm.length > 0) {
+      fetchDataModals();
+    }
+  }, [modalSearchTerm, fetchDataModals]);
+  useEffect(() => {
+    console.log('Current requests:', requests);
+  }, [requests]);
+  useEffect(() => {
+    fetchRequests();
+  }, [catData === 'requests'], fetchRequests);
+  useEffect(() => {
+    if (item.length > 0) {
+      console.log('item updated:', item);
+    }
+  }, [item]);
   return (
     <main className="table">
       <section className="table_header">
@@ -368,7 +352,6 @@ const DataPage = () => {
             <RequestDetails catData={catData} state={state} setState={setState} handleAddRequest={handleAddRequest} newRequestDescription={newRequestDescription} setNewRequestDescription={setNewRequestDescription} error={requestError} requests={requests} handleToggleStatus={handleToggleStatus} handleSaveSection={handleSaveSection} isAdmin={isAdmin} username={username} />
           </>
         }
-
       </Modal>
     </main>
   );

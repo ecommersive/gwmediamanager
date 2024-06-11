@@ -7,17 +7,22 @@ const SetCreation = ({
   handleSubmitSetModal,
   modalSearchTerm,
   setModalSearchTerm,
-
   modalFilteredData,
   itemExists,
   handleAddToSet,
   item,
+  startDate, 
+  setStartDate,
+  endDate, 
+  setEndDate,
+  startTime, 
+  setStartTime,
+  endTime,
+  setEndTime,
+  error, 
+  setError
 }) => {
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
-  const [error, setError] = useState('');
+
   
   
 

@@ -104,7 +104,7 @@ const DataPage = () => {
     await apiService.handleAddNoteSubmit({event,fileName,newNote,currentData,setNotes,fetchData});
   };
   const handleSubmitSetModal = async (event, startDate, endDate, item, startTime, endTime) => {
-    await apiService.handleSubmitSetModal({event,startDate,endDate,item,startTime,endTime,currentData,setData,setfolderViewNum,setItem,setAddedItems,setShowModal});
+    await apiService.handleSubmitSetModal({event,startDate,endDate,item,startTime,endTime,currentData,setData,setfolderViewNum,setItem,setAddedItems,setShowModal, setStartDate, setEndDate, setStartTime, setEndTime, setError});
   };
   const addItemToSchedule = async (itemToAdd, id) => {
     await apiService.addItemToSchedule({itemToAdd,id,currentData,folderViewNum,fetchData});
@@ -146,6 +146,11 @@ const DataPage = () => {
     setShowModal(false)
     resetAll()
     setFile('')
+    setStartDate(null)
+    setEndDate(null)
+    setStartTime('')
+    setEndTime('') 
+    setError('')
   }
   const handleFileNameChange = (event) => {
     setFileName(event.target.value);

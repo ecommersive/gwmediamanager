@@ -264,7 +264,7 @@ const apiService = {
         console.error('Error adding note:', error);
       }
     },
-    handleSubmitSetModal: async ({event,startDate,endDate,item,startTime,endTime,currentData,setData,setfolderViewNum,setItem,setAddedItems,setShowModal}) => {
+    handleSubmitSetModal: async ({event,startDate,endDate,item,startTime,endTime,currentData,setData,setfolderViewNum,setItem,setAddedItems,setShowModal,setStartDate, setEndDate, setStartTime, setEndTime, setError}) => {
         event.preventDefault();
         let url = `${baseURL}/`;
         switch (currentData) {
@@ -303,6 +303,7 @@ const apiService = {
             setItem([]);
             setAddedItems([]);
             setShowModal(false);
+            
           } else {
             throw new Error('Failed to create schedule');
           }
@@ -311,6 +312,11 @@ const apiService = {
           setItem([]);
           setAddedItems([]);
         }
+        setStartDate(null)
+        setEndDate(null)
+        setStartTime('')
+        setEndTime('') 
+        setError('')
     },
     addItemToSchedule: async ({itemToAdd,id,currentData,folderViewNum,fetchData,}) => {
         let alterValue;

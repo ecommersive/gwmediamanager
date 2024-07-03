@@ -929,16 +929,6 @@ const deleteAllLogs = async () => {
     console.error('Error deleting logs:', error);
   }
 };
-// test works
-
-// Schedule the sendChangeLogEmail function to run every day at 10 PM Eastern Time
-// cron.schedule('*/5 * * * *', () => {
-//   console.log('Running change log email task...');
-//   sendChangeLogEmail().catch(error => console.error('Error in scheduled email task:', error));
-// }, {
-//   scheduled: true,
-//   timezone: "America/New_York"
-// });
 
 cron.schedule('0 22 * * *', () => {
   console.log('Running change log email task...');

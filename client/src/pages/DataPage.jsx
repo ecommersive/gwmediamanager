@@ -31,6 +31,8 @@ const DataPage = () => {
   const [newRequestDescription, setNewRequestDescription] = useState('');
   const [requestError, setRequestError] = useState('');
   const [fileName, setFileName] = useState('');
+  const [identifier, setIdentifier] = useState(folderViewNum);
+
   const [photoUrl, setPhotoUrl] = useState('');
   const [type, setType] = useState('Video');
   const [tag, setTag] = useState('');
@@ -100,8 +102,8 @@ const DataPage = () => {
   const handleSubmit = async (event) => {
     await apiService.handleSubmit({event,catData,result,fileName,photoUrl,type,tag,runTime,content,expiry,notes,currentData,fetchData,setShowModal,resetAll,setFile});
   };
-  const handleAddNoteSubmit = async (event, fileName) => {
-    await apiService.handleAddNoteSubmit({event,fileName,newNote,currentData,setNotes,fetchData});
+  const handleAddNoteSubmit = async (event, identifier) => {
+    await apiService.handleAddNoteSubmit({event,identifier,newNote,currentData,setNotes,fetchData});
   };
   const handleSubmitSetModal = async (event, startDate, endDate, item, startTime, endTime) => {
     await apiService.handleSubmitSetModal({event,startDate,endDate,item,startTime,endTime,currentData,setData,setfolderViewNum,setItem,setAddedItems,setShowModal, setStartDate, setEndDate, setStartTime, setEndTime, setError});
@@ -112,8 +114,8 @@ const DataPage = () => {
   const handleAddRequest = async () => {
     await apiService.handleAddRequest({newRequestDescription,fetchRequests,setNewRequestDescription,setRequestError});
   };
-  const handleDoneEditNote = async (noteIndex, fileName) => {
-    await apiService.handleDoneEditNote({noteIndex,fileName,editingNoteId,editingNoteText,notes,currentData,setNotes,setEditingNoteId,setEditingNoteText,fetchData});
+  const handleDoneEditNote = async (noteIndex, identifier) => {
+    await apiService.handleDoneEditNote({noteIndex,identifier,editingNoteId,editingNoteText,notes,currentData,setNotes,setEditingNoteId,setEditingNoteText,fetchData});
   };
   const handleSave = async (field) => {
     await apiService.handleSave({field,currentData,folderViewNum,newStartDate,newEndDate,newStartTime,newEndTime,setNewStartDate,setNewEndDate,setIsEditingDuration,setNewStartTime,setNewEndTime,setIsEditingTime,fetchData,formatDate,formatTime});
@@ -127,8 +129,8 @@ const DataPage = () => {
   const moveItemPlaylistSchedule = async (itemToMove, direction) => {
     await apiService.moveItemPlaylistSchedule({itemToMove,direction,currentData,folderViewNum,fetchData});
   };
-  const handleDeleteNote = async (noteIndex, fileName) => {
-    await apiService.handleDeleteNote({noteIndex,fileName,notes,currentData,setNotes,fetchData});
+  const handleDeleteNote = async (noteIndex, identifier) => {
+    await apiService.handleDeleteNote({noteIndex,identifier,notes,currentData,setNotes,fetchData});
   };
   const deleteItemFromSchedule = async (itemToDelete) => {
     await apiService.deleteItemFromSchedule({itemToDelete,currentData,folderViewNum,fetchData});
@@ -303,6 +305,8 @@ const DataPage = () => {
     return item.some(item => item.FileName === fileName);
   };
 
+  console.log('currentData =', currentData);
+
 
 
   // Use effects
@@ -333,6 +337,13 @@ const DataPage = () => {
       console.log('item updated:', item);
     }
   }, [item]);
+  useEffect(() => {
+    if (['Playlist', 'Ads'].includes(currentData)) {
+      setIdentifier(fileName);
+    } else if (['Playlist Schedule', 'Ads Schedule'].includes(currentData)) {
+      setIdentifier(folderViewNum); // Assuming `folder` is another state or prop
+    }
+  }, [currentData, fileName, folderViewNum]);
   return (
     <main className="table">
       <section className="table_header">
@@ -354,9 +365,9 @@ const DataPage = () => {
               <FormAddDataBody catData={catData} currentData={currentData} handleFileNameChange={handleFileNameChange} handleSelectedCategoryChange={handleSelectedCategoryChange} handlePhotoUrlChange={handlePhotoUrlChange} handleRunTimeChange={handleRunTimeChange} tag={tag} handleTagChange={handleTagChange} content={content} handleContentChange={handleContentChange} expiry={expiry} handleExpiryChange={handleExpiryChange} fileName={fileName} photoUrl={photoUrl} type={type} runTime={runTime} handleDrop={handleDrop} handleDragOver={handleDragOver} file={file} result={result} isAdmin={isAdmin} />
               <FormAllDataBody catData={catData} currentData={currentData} handleSelectedCategoryChange={handleSelectedCategoryChange} fileName={fileName} handleFileNameChange={handleFileNameChange} ModalClose={ModalClose} />
               <FormExpiry catData={catData} expiry={expiry} handleExpiryChange={handleExpiryChange} />
-              <FormButton catData={catData} fileName={fileName} photoUrl={photoUrl} type={type} runTime={runTime} content={content} handleSubmit={handleSubmit} />
+              <FormButton catData={catData} identifier={identifier} photoUrl={photoUrl} type={type} runTime={runTime} content={content} handleSubmit={handleSubmit} />
             </form>
-            <NotesForm catData={catData} fileName={fileName} notes={notes} editingNoteId={editingNoteId} editingNoteText={editingNoteText} handleUpdateNoteText={handleUpdateNoteText} handleDoneEditNote={handleDoneEditNote} handleEditNote={handleEditNote} handleDeleteNote={handleDeleteNote} handleAddNoteSubmit={handleAddNoteSubmit} newNote={newNote} setNewNote={setNewNote} username={username} setCatData={setCatData} isAdmin={isAdmin} />
+            <NotesForm catData={catData} data={data.find(d => d.folder === folderViewNum)} identifier={identifier} notes={notes} editingNoteId={editingNoteId} editingNoteText={editingNoteText} handleUpdateNoteText={handleUpdateNoteText} handleDoneEditNote={handleDoneEditNote} handleEditNote={handleEditNote} handleDeleteNote={handleDeleteNote} handleAddNoteSubmit={handleAddNoteSubmit} newNote={newNote} setNewNote={setNewNote} username={username} setCatData={setCatData} isAdmin={isAdmin} currentData={currentData}/>
             <SetCreation catData={catData} setShowModal={setShowModal} handleSubmitSetModal={handleSubmitSetModal} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} handleAddToSet={handleAddToSet} item={item} startDate={startDate} setStartDate={setStartDate} endDate={endDate} setEndDate={setEndDate} startTime={startTime} setStartTime={setStartTime} endTime={endTime} setEndTime={setEndTime} error={error} setError={setError}/>
             <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} modalState={modalState} setModalState={setModalState} deleteItemFromSchedule={deleteItemFromSchedule} addItemToSchedule={addItemToSchedule} handleAddToSet={handleAddToSet} moveItemPlaylistSchedule={moveItemPlaylistSchedule} handleAddItem={handleAddItem} fetchData={fetchData} formatDate={formatDate} formatTime={formatTime} isEditingDuration={isEditingDuration} isEditingTime={isEditingTime} setNewStartDate={setNewStartDate} setNewEndDate={setNewEndDate} setNewStartTime={setNewStartTime} setNewEndTime={setNewEndTime} handleSave={handleSave} newStartDate={newStartDate} newEndDate={newEndDate} setIsEditingDuration={setIsEditingDuration} newStartTime={newStartTime} newEndTime={newEndTime} setIsEditingTime={setIsEditingTime} />
             <RequestDetails catData={catData} state={state} setState={setState} handleAddRequest={handleAddRequest} newRequestDescription={newRequestDescription} setNewRequestDescription={setNewRequestDescription} error={requestError} requests={requests} handleToggleStatus={handleToggleStatus} handleSaveSection={handleSaveSection} isAdmin={isAdmin} username={username} />

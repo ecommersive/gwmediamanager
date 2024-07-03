@@ -450,29 +450,44 @@ app.listen(PORT, () => {
 
 
 //notes for files
-app.post('/notes/add/:category/:fileName', verifyToken, async (req, res) => {
-  const { category, fileName } = req.params;
-  const { text, addedOn, user } = req.body; 
+app.post('/notes/add/:category/:identifier', verifyToken, async (req, res) => {
+  const { category, identifier } = req.params;
+  const { text, addedOn, user } = req.body;
 
   const categoryModelMap = {
     playlist: Playlist,
     ads: Ads,
+    playlistschedule: PlaylistSchedule,
+    adsschedule: AdsSchedule
   };
 
+  const queryField = ['playlistschedule', 'adsschedule'].includes(category.toLowerCase()) ? 'folder' : 'FileName';
   const Model = categoryModelMap[category.toLowerCase()];
+  
   if (!Model) {
     return res.status(404).json({ error: 'Category not found' });
   }
 
+  let queryCondition;
+  if (queryField === 'folder') {
+    const folderId = parseInt(identifier); // Parse identifier as number if it's meant to be a folder
+    if (isNaN(folderId)) {
+      return res.status(400).json({ error: 'Folder identifier must be a number' });
+    }
+    queryCondition = { folder: folderId };
+  } else {
+    queryCondition = { FileName: { $regex: new RegExp(`^${identifier}$`, 'i') } }; // Use regex for string matching on FileName
+  }
+
   try {
     const result = await Model.findOneAndUpdate(
-      { FileName: new RegExp(`^${fileName}$`, 'i') }, 
-      { $push: { notes: { text, addedOn: new Date(addedOn), user } } }, 
+      queryCondition,
+      { $push: { notes: { text, addedOn: new Date(addedOn), user } } },
       { new: true, runValidators: true }
     );
 
     if (!result) {
-      return res.status(404).json({ message: 'File not found' });
+      return res.status(404).json({ message: 'Entity not found' });
     }
 
     res.status(200).json({ message: 'Note added successfully', data: result });
@@ -482,14 +497,17 @@ app.post('/notes/add/:category/:fileName', verifyToken, async (req, res) => {
   }
 });
 
-app.put('/notes/update/:category/:fileName', verifyToken, async (req, res) => {
-  const { category, fileName } = req.params;
+app.put('/notes/update/:category/:identifier', verifyToken, async (req, res) => {
+  const { category, identifier } = req.params;
   const { noteIndex, updatedText } = req.body; 
 
   const categoryModelMap = {
     playlist: Playlist,
     ads: Ads,
+    playlistschedule: PlaylistSchedule,
+    adsschedule: AdsSchedule
   };
+  const queryField = ['playlistschedule', 'adsschedule'].includes(category.toLowerCase()) ? 'folder' : 'FileName';
 
   const Model = categoryModelMap[category.toLowerCase()];
   if (!Model) {
@@ -500,16 +518,28 @@ app.put('/notes/update/:category/:fileName', verifyToken, async (req, res) => {
     return res.status(400).json({ error: 'Note index and updated text are required' });
   }
 
+  let queryCondition;
+  if (queryField === 'folder') {
+    const folderId = parseInt(identifier);
+    if (isNaN(folderId)) {
+      return res.status(400).json({ error: 'Folder identifier must be a number' });
+    }
+    queryCondition = { folder: folderId };
+  } else {
+    queryCondition = { FileName: { $regex: new RegExp(`^${identifier}$`, 'i') } };
+  }
+
   try {
-    const document = await Model.findOne({ FileName: new RegExp(`^${fileName}$`, 'i') });
+    const document = await Model.findOne(queryCondition);
     if (!document) {
-      return res.status(404).json({ error: 'File not found' });
+      return res.status(404).json({ error: 'Entity not found' });
     }
 
     if (noteIndex < 0 || noteIndex >= document.notes.length) {
       return res.status(404).json({ error: 'Note not found at the provided index' });
     }
 
+    // Update the text and the added on date of the specific note
     document.notes[noteIndex].text = updatedText;
     document.notes[noteIndex].addedOn = new Date(); 
 
@@ -522,28 +552,79 @@ app.put('/notes/update/:category/:fileName', verifyToken, async (req, res) => {
   }
 });
 
-app.delete('/notes/delete/:category/:fileName/:noteIndex', verifyToken, async (req, res) => {
-  const { category, fileName, noteIndex } = req.params;
-  const index = parseInt(noteIndex, 10); 
+
+// app.delete('/notes/delete/:category/:identifier/:noteIndex', verifyToken, async (req, res) => {
+//   const { category, identifier, noteIndex } = req.params;
+//   const index = parseInt(noteIndex, 10); 
+
+//   const categoryModelMap = {
+//     playlist: Playlist,
+//     ads: Ads,
+//     playlistschedule: PlaylistSchedule,
+//     adsschedule: AdsSchedule
+//   };
+//   const queryField = ['playlistschedule', 'adsschedule'].includes(category.toLowerCase()) ? 'folder' : 'FileName';
+
+
+//   const Model = categoryModelMap[category.toLowerCase()];
+//   if (!Model) {
+//     return res.status(404).json({ error: 'Category not found' });
+//   }
+
+//   try {
+//     const document = await Model.findOne({ [queryField]: new RegExp(`^${identifier}$`, 'i') });
+//     if (!document) {
+//       return res.status(404).json({ error: 'File not found' });
+//     }
+
+//     if (index >= 0 && index < document.notes.length) {
+//       document.notes.splice(index, 1);
+//       await document.save();
+//       res.status(200).json({ message: 'Note deleted successfully', data: document.notes });
+//     } else {
+//       return res.status(404).json({ error: 'Note index out of range' });
+//     }
+//   } catch (error) {
+//     console.error('Failed to delete note:', error);
+//     res.status(500).json({ error: 'Internal Server Error', details: error });
+//   }
+// });
+app.delete('/notes/delete/:category/:identifier/:noteIndex', verifyToken, async (req, res) => {
+  const { category, identifier, noteIndex } = req.params;
+  const index = parseInt(noteIndex, 10);  // Convert noteIndex to integer
 
   const categoryModelMap = {
     playlist: Playlist,
     ads: Ads,
+    playlistschedule: PlaylistSchedule,
+    adsschedule: AdsSchedule
   };
+  const queryField = ['playlistschedule', 'adsschedule'].includes(category.toLowerCase()) ? 'folder' : 'FileName';
 
   const Model = categoryModelMap[category.toLowerCase()];
   if (!Model) {
     return res.status(404).json({ error: 'Category not found' });
   }
 
+  let queryCondition;
+  if (queryField === 'folder') {
+    const folderId = parseInt(identifier);  // Ensure the identifier is a number if it's a folder
+    if (isNaN(folderId)) {
+      return res.status(400).json({ error: 'Folder identifier must be a number' });
+    }
+    queryCondition = { folder: folderId };
+  } else {
+    queryCondition = { FileName: { $regex: new RegExp(`^${identifier}$`, 'i') } };  // Use regex for file names
+  }
+
   try {
-    const document = await Model.findOne({ FileName: new RegExp(`^${fileName}$`, 'i') });
+    const document = await Model.findOne(queryCondition);
     if (!document) {
-      return res.status(404).json({ error: 'File not found' });
+      return res.status(404).json({ error: 'Entity not found' });
     }
 
     if (index >= 0 && index < document.notes.length) {
-      document.notes.splice(index, 1);
+      document.notes.splice(index, 1);  // Remove the note at the specified index
       await document.save();
       res.status(200).json({ message: 'Note deleted successfully', data: document.notes });
     } else {
@@ -555,22 +636,24 @@ app.delete('/notes/delete/:category/:fileName/:noteIndex', verifyToken, async (r
   }
 });
 
-app.get('/notes/:category/:filename', verifyToken, async (req, res) => {
-  const { category, filename } = req.params;
+app.get('/notes/:category/:identifier', verifyToken, async (req, res) => {
+  const { category, identifier } = req.params;
   const Model = { 'playlist': Playlist, 'ads': Ads }[category.toLowerCase()];
+  const queryField = ['playlist', 'ads'].includes(category.toLowerCase()) ? 'FileName' : 'folder';
+
   
   if (!Model) {
     return res.status(404).json({ error: 'Category not found' });
   }
 
   try {
-    const document = await Model.findOne({ FileName: new RegExp(`^${filename}$`, 'i') });
+    const document = await Model.findOne({ [queryField]: new RegExp(`^${identifier}$`, 'i') });
     if (!document) {
-      return res.status(404).json({ error: 'File not found' });
+      return res.status(404).json({ error: `${queryField} not found` });
     }
     res.json(document.notes || []);
   } catch (error) {
-    console.error(`Failed to fetch notes for file: ${filename} in category: ${category}`, error);
+    console.error(`Failed to fetch notes for file: ${identifier} in category: ${category}`, error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });

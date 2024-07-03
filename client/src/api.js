@@ -236,7 +236,17 @@ const apiService = {
         resetAll();
         setFile('');
     },
-    handleAddNoteSubmit: async ({ event, fileName, newNote, currentData, setNotes, fetchData }) => {
+    handleAddNoteSubmit: async ({ event, identifier, newNote, currentData, setNotes, fetchData }) => {
+      let data;
+      if(currentData === 'Playlist Schedule'){
+        data = 'playlistSchedule'
+      }else if(currentData === 'Ads Schedule'){
+        data = 'adsSchedule'
+      }else if(currentData === 'Playlist'){
+        data = 'playlist'
+      }else if(currentData === 'Playlist'){
+        data = 'ads'
+      }
       event.preventDefault();
       const noteToAdd = {
         text: newNote,
@@ -244,8 +254,9 @@ const apiService = {
         user: username
       };
       try {
-        const encodedFileName = encodeURIComponent(fileName);
-        const endpoint = `${baseURL}/notes/add/${currentData.toLowerCase()}/${encodedFileName}`;
+        console.log('currentdata =========', currentData);
+        const encodedIdentifier = encodeURIComponent(identifier);
+        const endpoint = `${baseURL}/notes/add/${data}/${encodedIdentifier}`;
         const response = await axios.post(endpoint, noteToAdd, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -255,7 +266,7 @@ const apiService = {
         if (response.status === 200) {
           setNotes(prevNotes => [...prevNotes, noteToAdd]);
           fetchData();
-          const logChangeMessage = `${username} has added a comment saying "${noteToAdd.text}" in ${currentData === 'Playlist' ? ' the Content Pool' : currentData === 'Ads' ? 'Ads' : (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? currentData : ''} to ${fileName}.`;
+          const logChangeMessage = `${username} has added a comment saying "${noteToAdd.text}" in ${currentData === 'Playlist' ? ' the Content Pool' : currentData === 'Ads' ? 'Ads' : (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? currentData : ''} to ${encodedIdentifier}.`;
           await apiService.logChange(logChangeMessage);
         } else {
           throw new Error('Failed to add note');
@@ -379,17 +390,27 @@ const apiService = {
           setRequestError('An error occurred. Please try again.');
         }
     },
-    handleDoneEditNote: async ({noteIndex,fileName,editingNoteId,editingNoteText,notes,currentData,setNotes,setEditingNoteId,setEditingNoteText,fetchData}) => {
+    handleDoneEditNote: async ({noteIndex,identifier,editingNoteId,editingNoteText,notes,currentData,setNotes,setEditingNoteId,setEditingNoteText,fetchData}) => {
+        let data;
+        if(currentData === 'Playlist Schedule'){
+          data = 'playlistSchedule'
+        }else if(currentData === 'Ads Schedule'){
+          data = 'adsSchedule'
+        }else if(currentData === 'Playlist'){
+          data = 'playlist'
+        }else if(currentData === 'Playlist'){
+          data = 'ads'
+        }
         if (editingNoteId === null || editingNoteText.trim() === '') {
           alert('You must provide updated note text.');
           return;
         }
     
         try {
-          const encodedFileName = encodeURIComponent(fileName);
+          const encodedIdentifier = encodeURIComponent(identifier);
           const oldComment = notes[noteIndex].text;
           const response = await axios.put(
-            `${baseURL}/notes/update/${currentData.toLowerCase()}/${encodedFileName}`,
+            `${baseURL}/notes/update/${data}/${encodedIdentifier}`,
             {
               noteIndex,
               updatedText: editingNoteText
@@ -409,7 +430,7 @@ const apiService = {
             setEditingNoteId(null);
             setEditingNoteText('');
             fetchData();
-            const logChangeMessage = `${username} has updated a comment: "${oldComment}" to "${editingNoteText}" in ${currentData === 'Playlist' ? ' the Content Pool' : currentData === 'Ads' ? 'Ads' : (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? currentData : ''} for ${fileName}.`;
+            const logChangeMessage = `${username} has updated a comment: "${oldComment}" to "${editingNoteText}" in ${currentData === 'Playlist' ? ' the Content Pool' : currentData === 'Ads' ? 'Ads' : (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? currentData : ''} for ${identifier}.`;
             await apiService.logChange(logChangeMessage);
           } else {
             throw new Error('Failed to update note');
@@ -534,10 +555,19 @@ const apiService = {
           console.error('Error moving item:', error.response ? error.response.data : error);
         }
     },
-    handleDeleteNote: async ({noteIndex,fileName,notes,currentData,setNotes,fetchData}) => {
-        const encodedFileName = encodeURIComponent(fileName);
-        const category = currentData.toLowerCase();
-        const url = `${baseURL}/notes/delete/${category}/${encodedFileName}/${noteIndex}`;
+    handleDeleteNote: async ({noteIndex,identifier,notes,currentData,setNotes,fetchData}) => {
+        let data;
+        if(currentData === 'Playlist Schedule'){
+          data = 'playlistSchedule'
+        }else if(currentData === 'Ads Schedule'){
+          data = 'adsSchedule'
+        }else if(currentData === 'Playlist'){
+          data = 'playlist'
+        }else if(currentData === 'Playlist'){
+          data = 'ads'
+        }
+        const encodedIdentifier = encodeURIComponent(identifier);
+        const url = `${baseURL}/notes/delete/${data}/${encodedIdentifier}/${noteIndex}`;
         try {
           const oldComment = notes[noteIndex].text; // Capture the old comment
           const response = await axios.delete(url, {
@@ -550,7 +580,7 @@ const apiService = {
             console.log('Note deleted successfully');
             setNotes(notes.filter((_, index) => index !== noteIndex));
             fetchData();
-            const logChangeMessage = `${username} has deleted comment: "${oldComment}" in ${currentData === 'Playlist' ? ' the Content Pool' : currentData === 'Ads' ? 'Ads' : (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? currentData : ''} for ${fileName}`;
+            const logChangeMessage = `${username} has deleted comment: "${oldComment}" in ${currentData === 'Playlist' ? ' the Content Pool' : currentData === 'Ads' ? 'Ads' : (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? currentData : ''} for ${identifier}`;
             await apiService.logChange(logChangeMessage);
           } else {
             throw new Error('Failed to delete the note');

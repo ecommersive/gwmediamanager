@@ -1,10 +1,12 @@
-const NotesForm = ({ catData, fileName, notes, editingNoteId, editingNoteText, handleUpdateNoteText, handleEditNote, handleDoneEditNote, handleDeleteNote, handleAddNoteSubmit, newNote, setNewNote = { setNewNote }, setCatData, username, isAdmin }) => {
+const NotesForm = ({ catData, identifier, data, notes, editingNoteId, editingNoteText, handleUpdateNoteText, handleEditNote, handleDoneEditNote, handleDeleteNote, handleAddNoteSubmit, newNote, setNewNote = { setNewNote }, username, isAdmin, currentData }) => {
   const shouldRenderNotes = catData === 'viewNotes' || catData === 'Comments'
+  console.log('data=======', data);
   return (
     <>
       {shouldRenderNotes && (
         <>
-          <p>Filename: {fileName}</p>
+          <p>{(currentData === 'Playlist' || currentData === 'Ads') ? 'Filename: ' : 'Folder: '}{(currentData === 'Playlist' || currentData === 'Ads') ? identifier : data.folder}</p>
+
           <br />
           <p>Comments</p>
           <ul>
@@ -14,7 +16,7 @@ const NotesForm = ({ catData, fileName, notes, editingNoteId, editingNoteText, h
                   {catData === 'Comments' && (editingNoteId === index) ? (
                     <>
                       <input type="text" value={editingNoteText} onChange={handleUpdateNoteText} />
-                      <button onClick={() => handleDoneEditNote(index, fileName)}>Done</button>
+                      <button onClick={() => handleDoneEditNote(index, identifier)}>Done</button>
                     </>
                   ) : (
                     <div style={{ display: 'flex' }}>
@@ -22,7 +24,7 @@ const NotesForm = ({ catData, fileName, notes, editingNoteId, editingNoteText, h
                       {(note.username === username || isAdmin) && (
                         <div>
                           <button style={{ marginLeft: '1rem' }} onClick={() => { handleEditNote(index, note.text) }}>Edit</button>
-                          <button style={{ marginLeft: '1rem' }} onClick={() => handleDeleteNote(index, fileName)}>Delete</button>
+                          <button style={{ marginLeft: '1rem' }} onClick={() => handleDeleteNote(index, identifier)}>Delete</button>
                         </div>
                       )}
                     </div>
@@ -44,7 +46,7 @@ const NotesForm = ({ catData, fileName, notes, editingNoteId, editingNoteText, h
             />
             <br />
             <br />
-            <button onClick={(e) => { handleAddNoteSubmit(e, fileName); setNewNote(''); }} onChange={handleUpdateNoteText} >Submit Note</button>
+            <button onClick={(e) => { handleAddNoteSubmit(e, identifier); setNewNote(''); }} onChange={handleUpdateNoteText} >Submit Note</button>
           </>
           <br />
         </>

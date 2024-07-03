@@ -305,8 +305,6 @@ const DataPage = () => {
     return item.some(item => item.FileName === fileName);
   };
 
-  console.log('currentData =', currentData);
-
 
 
   // Use effects

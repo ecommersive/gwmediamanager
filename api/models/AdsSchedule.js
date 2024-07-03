@@ -28,7 +28,8 @@ const adsScheduleSchema = new mongoose.Schema({
     },
     notes: [{
         text: { type: String },
-        addedOn: { type: Date, default: Date.now } // Automatically set the date when note is added
+        addedOn: { type: Date, default: Date.now }, // Automatically set the date when note is added
+        user: { type: String }
     }]
 });
 

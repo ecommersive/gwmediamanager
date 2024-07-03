@@ -452,7 +452,7 @@ app.listen(PORT, () => {
 //notes for files
 app.post('/notes/add/:category/:identifier', verifyToken, async (req, res) => {
   const { category, identifier } = req.params;
-  const { text, addedOn, user } = req.body;
+  const { text, addedOn, user  } = req.body;
 
   const categoryModelMap = {
     playlist: Playlist,
@@ -552,43 +552,6 @@ app.put('/notes/update/:category/:identifier', verifyToken, async (req, res) => 
   }
 });
 
-
-// app.delete('/notes/delete/:category/:identifier/:noteIndex', verifyToken, async (req, res) => {
-//   const { category, identifier, noteIndex } = req.params;
-//   const index = parseInt(noteIndex, 10); 
-
-//   const categoryModelMap = {
-//     playlist: Playlist,
-//     ads: Ads,
-//     playlistschedule: PlaylistSchedule,
-//     adsschedule: AdsSchedule
-//   };
-//   const queryField = ['playlistschedule', 'adsschedule'].includes(category.toLowerCase()) ? 'folder' : 'FileName';
-
-
-//   const Model = categoryModelMap[category.toLowerCase()];
-//   if (!Model) {
-//     return res.status(404).json({ error: 'Category not found' });
-//   }
-
-//   try {
-//     const document = await Model.findOne({ [queryField]: new RegExp(`^${identifier}$`, 'i') });
-//     if (!document) {
-//       return res.status(404).json({ error: 'File not found' });
-//     }
-
-//     if (index >= 0 && index < document.notes.length) {
-//       document.notes.splice(index, 1);
-//       await document.save();
-//       res.status(200).json({ message: 'Note deleted successfully', data: document.notes });
-//     } else {
-//       return res.status(404).json({ error: 'Note index out of range' });
-//     }
-//   } catch (error) {
-//     console.error('Failed to delete note:', error);
-//     res.status(500).json({ error: 'Internal Server Error', details: error });
-//   }
-// });
 app.delete('/notes/delete/:category/:identifier/:noteIndex', verifyToken, async (req, res) => {
   const { category, identifier, noteIndex } = req.params;
   const index = parseInt(noteIndex, 10);  // Convert noteIndex to integer

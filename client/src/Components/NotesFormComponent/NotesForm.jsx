@@ -1,6 +1,5 @@
 const NotesForm = ({ catData, identifier, data, notes, editingNoteId, editingNoteText, handleUpdateNoteText, handleEditNote, handleDoneEditNote, handleDeleteNote, handleAddNoteSubmit, newNote, setNewNote = { setNewNote }, username, isAdmin, currentData }) => {
   const shouldRenderNotes = catData === 'viewNotes' || catData === 'Comments'
-  console.log('data=======', data);
   return (
     <>
       {shouldRenderNotes && (
@@ -8,7 +7,7 @@ const NotesForm = ({ catData, identifier, data, notes, editingNoteId, editingNot
           <p>{(currentData === 'Playlist' || currentData === 'Ads') ? 'Filename: ' : 'Folder: '}{(currentData === 'Playlist' || currentData === 'Ads') ? identifier : data.folder}</p>
 
           <br />
-          <p>Comments</p>
+          {notes.length > 0 && <p>Comments</p>}
           <ul>
             {Array.isArray(notes) && notes.length > 0 ? (
               notes.map((note, index) => (
@@ -20,8 +19,8 @@ const NotesForm = ({ catData, identifier, data, notes, editingNoteId, editingNot
                     </>
                   ) : (
                     <div style={{ display: 'flex' }}>
-                      <p>{note.text} - <small>Added on {new Date(note.addedOn).toLocaleDateString()} by {username}</small></p>
-                      {(note.username === username || isAdmin) && (
+                      <p>{note.text} - <small>Added on {new Date(note.addedOn).toLocaleDateString()} by {note.user}</small></p>
+                      {(note.user === username || isAdmin) && (
                         <div>
                           <button style={{ marginLeft: '1rem' }} onClick={() => { handleEditNote(index, note.text) }}>Edit</button>
                           <button style={{ marginLeft: '1rem' }} onClick={() => handleDeleteNote(index, identifier)}>Delete</button>
@@ -32,8 +31,7 @@ const NotesForm = ({ catData, identifier, data, notes, editingNoteId, editingNot
                 </li>
               ))
             ) : (
-              <p>No comments found for this File.</p>
-
+              <p>No comments found for {(currentData === 'Playlist' || currentData === 'Ads') ? `${identifier}` : `${currentData} ${data.folder}`}</p>
             )}
           </ul>
           <br />

@@ -899,29 +899,40 @@ const sendChangeLogEmail = async () => {
       return moment(date).tz('America/New_York').format('hh:mm A');
     };
 
-    // Format the email body as a table
-    const emailBody = `
-      <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
-        <thead>
-          <tr>
-            <th>User</th>
-            <th>Date</th>
-            <th>Message</th>
-            <th>Time</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${logs.map(log => `
+    // Group logs by user
+    const groupedLogs = logs.reduce((acc, log) => {
+      acc[log.user] = acc[log.user] || [];
+      acc[log.user].push(log);
+      return acc;
+    }, {});
+
+    // Generate a separate table for each user
+    const emailBody = Object.keys(groupedLogs).map(user => {
+      const userLogs = groupedLogs[user];
+      return `
+        <h3>Logs for ${user}</h3>
+        <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+          <thead>
             <tr>
-              <td>${log.user}</td>
-              <td>${formatDate(log.timestamp)}</td>
-              <td>${log.message}</td>
-              <td>${formatTime(log.timestamp)}</td>
+              <th>User</th>
+              <th>Date</th>
+              <th>Message</th>
+              <th>Time</th>
             </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    `;
+          </thead>
+          <tbody>
+            ${userLogs.map(log => `
+              <tr>
+                <td>${log.user}</td>
+                <td>${formatDate(log.timestamp)}</td>
+                <td>${log.message}</td>
+                <td>${formatTime(log.timestamp)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }).join('<br>');  // Separate each table with a line break for clarity in the email
 
     // Create a workbook and add the logs to it
     const wb = xlsx.utils.book_new();

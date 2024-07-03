@@ -266,7 +266,7 @@ const apiService = {
         if (response.status === 200) {
           setNotes(prevNotes => [...prevNotes, noteToAdd]);
           fetchData();
-          const logChangeMessage = `${username} has added a comment saying "${noteToAdd.text}" in ${currentData === 'Playlist' ? ' the Content Pool' : currentData === 'Ads' ? 'Ads' : (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? currentData : ''} to ${encodedIdentifier}.`;
+          const logChangeMessage = `${username} has added a comment saying "${noteToAdd.text}" in ${currentData === 'Playlist' ? ' the Content Pool' : currentData === 'Ads' ? 'Ads' : (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? currentData : ''} to ${identifier}.`;
           await apiService.logChange(logChangeMessage);
         } else {
           throw new Error('Failed to add note');

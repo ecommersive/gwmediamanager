@@ -244,7 +244,7 @@ const apiService = {
         data = 'adsSchedule'
       }else if(currentData === 'Playlist'){
         data = 'playlist'
-      }else if(currentData === 'Playlist'){
+      }else if(currentData === 'Ads'){
         data = 'ads'
       }
       event.preventDefault();
@@ -253,6 +253,7 @@ const apiService = {
         addedOn: new Date(),
         user: username
       };
+      console.log(noteToAdd.user);
       try {
         console.log('currentdata =========', currentData);
         const encodedIdentifier = encodeURIComponent(identifier);
@@ -398,7 +399,7 @@ const apiService = {
           data = 'adsSchedule'
         }else if(currentData === 'Playlist'){
           data = 'playlist'
-        }else if(currentData === 'Playlist'){
+        }else if(currentData === 'Ads'){
           data = 'ads'
         }
         if (editingNoteId === null || editingNoteText.trim() === '') {
@@ -563,7 +564,7 @@ const apiService = {
           data = 'adsSchedule'
         }else if(currentData === 'Playlist'){
           data = 'playlist'
-        }else if(currentData === 'Playlist'){
+        }else if(currentData === 'Ads'){
           data = 'ads'
         }
         const encodedIdentifier = encodeURIComponent(identifier);

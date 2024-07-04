@@ -328,13 +328,17 @@ const DataPage = () => {
     console.log('Current requests:', requests);
   }, [requests]);
   useEffect(() => {
-    fetchRequests();
-  }, [catData === 'requests'], fetchRequests);
+    if (catData === 'requests') {
+      fetchRequests();
+    }
+  }, [catData]); // Only run the effect when catData changes
   useEffect(() => {
     if (item.length > 0) {
       console.log('item updated:', item);
     }
   }, [item]);
+
+  // fouund issue here
   useEffect(() => {
     if (['Playlist', 'Ads'].includes(currentData)) {
       setIdentifier(fileName);

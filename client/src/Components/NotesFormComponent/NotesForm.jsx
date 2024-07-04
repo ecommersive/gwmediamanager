@@ -22,7 +22,7 @@ const NotesForm = ({ catData, identifier, data, notes, editingNoteId, editingNot
                       <p>{note.text} - <small>Added on {new Date(note.addedOn).toLocaleDateString()} by {note.user}</small></p>
                       {(note.user === username || isAdmin) && (
                         <div>
-                          {note.user === username && <button style={{ marginLeft: '1rem' }} onClick={() => { handleEditNote(index, note.text) }}>Edit</button>}
+                          <button style={{ marginLeft: '1rem' }} onClick={() => { handleEditNote(index, note.text) }}>Edit</button>
                           <button style={{ marginLeft: '1rem' }} onClick={() => handleDeleteNote(index, identifier)}>Delete</button>
                         </div>
                       )}

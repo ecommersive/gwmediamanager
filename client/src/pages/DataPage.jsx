@@ -32,7 +32,6 @@ const DataPage = () => {
   const [requestError, setRequestError] = useState('');
   const [fileName, setFileName] = useState('');
   const [identifier, setIdentifier] = useState(folderViewNum);
-
   const [photoUrl, setPhotoUrl] = useState('');
   const [type, setType] = useState('Video');
   const [tag, setTag] = useState('');
@@ -40,7 +39,6 @@ const DataPage = () => {
   const [content, setContent] = useState('');
   const [expiry, setExpiry] = useState('');
   const navigate = useNavigate();
-  const token = localStorage.getItem('token');
   const username = localStorage.getItem('username');
   const [modalSearchTerm, setModalSearchTerm] = useState('');
   const [modalData, setModalData] = useState([]);
@@ -135,8 +133,6 @@ const DataPage = () => {
   const deleteItemFromSchedule = async (itemToDelete) => {
     await apiService.deleteItemFromSchedule({itemToDelete,currentData,folderViewNum,fetchData});
   };
-
-
   // functions
   const handleModal = () => {
     setShowModal(!showModal);
@@ -276,6 +272,7 @@ const DataPage = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('isAdmin');
+    localStorage.removeItem('user')
     navigate('/');
   }
   const handleEditNote = (noteId, text) => {

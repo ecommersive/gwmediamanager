@@ -7,7 +7,9 @@ const playlistScheduleSchema = new mongoose.Schema({
     },
     items: [{
         FileName: { type: String },
-        FileID: { type: mongoose.Schema.Types.ObjectId, ref: 'Playlist' }
+        FileID: { type: mongoose.Schema.Types.ObjectId, ref: 'Playlist' },
+        startTime: {type: String},
+        endTime: {type: String},
     }],
     startDate: {
         type: Date,

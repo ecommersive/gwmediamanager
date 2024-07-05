@@ -7,7 +7,9 @@ const adsScheduleSchema = new mongoose.Schema({
     },
     items: [{
         FileName: { type: String },
-        FileID: { type: mongoose.Schema.Types.ObjectId, ref: 'Ads' }
+        FileID: { type: mongoose.Schema.Types.ObjectId, ref: 'Ads' },
+        startTime: {type: String},
+        endTime: {type: String},
     }],
    
     startDate: {

@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import '../styles/homepage.css'
 
 
 const HomePage = () => {
-    const navigate = useNavigate();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
@@ -26,7 +24,7 @@ const HomePage = () => {
           localStorage.setItem('token', data.token);  
           localStorage.setItem('isAdmin', data.isAdmin);
           localStorage.setItem('username', username);
-          navigate('/home');
+          window.location.href = '/home';
         } else {
           const errorText = await response.text(); 
           setErrorMessage(errorText);

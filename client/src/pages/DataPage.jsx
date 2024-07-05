@@ -272,8 +272,8 @@ const DataPage = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('isAdmin');
-    localStorage.removeItem('user')
-    navigate('/');
+    localStorage.removeItem('username')
+    window.location.href = '/';
   }
   const handleEditNote = (noteId, text) => {
     setEditingNoteId(noteId);

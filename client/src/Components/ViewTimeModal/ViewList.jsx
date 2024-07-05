@@ -1,7 +1,7 @@
 import React from 'react';
 import SearchInput from '../SearchInput';
 
-const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchTerm, modalFilteredData, itemExists, modalState, setModalState, deleteItemFromSchedule, moveItemPlaylistSchedule, handleAddItem, fetchData, formatDate, formatTime, isEditingDuration, isEditingTime, setNewStartDate, setNewEndDate, setNewStartTime, setNewEndTime, handleSave, newStartDate, newEndDate, setIsEditingDuration, newStartTime, newEndTime, setIsEditingTime}) => {
+const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchTerm, modalFilteredData, itemExists, modalState, setModalState, deleteItemFromSchedule, moveItemPlaylistSchedule, handleAddItem, fetchData, formatDate, formatTime, isEditingDuration, isEditingTime, setNewStartDate, setNewEndDate, setNewStartTime, setNewEndTime, handleSave, newStartDate, newEndDate, setIsEditingDuration, newStartTime, newEndTime, setIsEditingTime, isAdmin}) => {
 
   return (
     <>
@@ -43,7 +43,7 @@ const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchT
                   ) : (
                     <div style={{display: 'flex', gap: '1rem'}}>
                       <p>{currentData === 'Playlist Schedule' ? `Duration of Playlist ${data.folder}` : `Duration of Ads ${data.folder}`}: {formatDate(data.startDate)} - {formatDate(data.endDate)}</p>
-                      <button onClick={() => setIsEditingDuration(true)}>Change</button>
+                      {isAdmin && <button onClick={() => setIsEditingDuration(true)}>Change</button>}
                     </div>
                   )}
                 </div>
@@ -58,7 +58,7 @@ const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchT
                   ) : (
                     <div style={{display: 'flex', gap: '1rem'}}>
                       <p>{currentData === 'Playlist Schedule' ? `Times Playlist ${data.folder}` : `Times Ads ${data.folder}`} being played: {formatTime(data.startTime)} - {formatTime(data.endTime)}</p>
-                      <button onClick={() => setIsEditingTime(true)}>Change</button>
+                      {isAdmin && <button onClick={() => setIsEditingTime(true)}>Change</button>}
                     </div>
                   )}
                 </div>

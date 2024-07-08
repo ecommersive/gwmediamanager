@@ -767,6 +767,42 @@ app.put('/:scheduleType/:folder/update', verifyToken, async (req, res) => {
 });
 
 
+app.put('/:scheduleType/:scheduleId/items/:itemId', verifyToken, async (req, res) => {
+  const { scheduleType, scheduleId, itemId } = req.params;
+  const { startTime, endTime } = req.body;
+
+  const Model = getModel(scheduleType);
+
+  if (!Model) {
+    return res.status(400).json({ message: 'Invalid schedule type' });
+  }
+
+  try {
+    const schedule = await Model.findById(scheduleId);
+
+    if (!schedule) {
+      return res.status(404).json({ message: 'Schedule not found' });
+    }
+
+    const item = schedule.items.id(itemId);
+
+    if (!item) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
+
+    item.startTime = startTime;
+    item.endTime = endTime;
+
+    await schedule.save();
+
+    res.json({ message: 'Item updated successfully', schedule });
+  } catch (error) {
+    console.error(`Error updating item in ${scheduleType} schedule:`, error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
 //requests
 app.post('/request', verifyToken, async (req, res) => {
   const { description, username } = req.body;

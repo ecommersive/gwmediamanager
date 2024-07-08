@@ -63,6 +63,7 @@ const DataPage = () => {
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [error, setError] = useState('');
+  const [editedTimes, setEditedTimes] = useState({});
   
   //api calls
   const fetchData = useCallback(async () => {
@@ -106,6 +107,26 @@ const DataPage = () => {
   const addItemToSchedule = async (itemToAdd, id) => {
     await apiService.addItemToSchedule({itemToAdd,id,currentData,folderViewNum,fetchData});
   };
+  const saveEditedTimes = async (index) => {
+    const updatedItem = editedTimes[index];
+    const scheduleId = data._id; // The ID of the current schedule
+    const itemId = data.items[index]._id; // The ID of the item being edited
+  
+    if (!updatedItem || !updatedItem.startTime || !updatedItem.endTime) {
+      console.error('Start time or end time is missing for the item:', itemId);
+      return;
+    }
+  
+    try {
+      await apiService.updateItemTimes(currentData, scheduleId, itemId, updatedItem.startTime, updatedItem.endTime);
+      const logChangeMessage = `${username} has updated times for item ${itemId} in ${currentData} schedule: start time to ${updatedItem.startTime}, end time to ${updatedItem.endTime}.`;
+      await apiService.logChange(logChangeMessage);
+      fetchData(); // Refresh data after update
+    } catch (error) {
+      console.error('There was an error updating the item!', error);
+    }
+  };
+  
   const handleAddRequest = async () => {
     await apiService.handleAddRequest({newRequestDescription,fetchRequests,setNewRequestDescription,setRequestError});
   };
@@ -300,7 +321,17 @@ const DataPage = () => {
     return item.some(item => item.FileName === fileName);
   };
 
-
+  const handleTimeChange = (index, field, value) => {
+    setEditedTimes(prevTimes => {
+      const updatedTimes = [...prevTimes];
+      if (!updatedTimes[index]) {
+        updatedTimes[index] = { startTime: '', endTime: '' };
+      }
+      updatedTimes[index][field] = value;
+      return updatedTimes;
+    });
+  };
+  
 
   // Use effects
   useEffect(() => {
@@ -343,6 +374,11 @@ const DataPage = () => {
       setIdentifier(folderViewNum); // Assuming `folder` is another state or prop
     }
   }, [currentData, fileName, folderViewNum]);
+  useEffect(() => {
+    if (data && data.items) {
+      setEditedTimes(data.items.map(item => ({ startTime: item.startTime, endTime: item.endTime })));
+    }
+  }, [data]);
   return (
     <main className="table">
       <section className="table_header">
@@ -368,7 +404,7 @@ const DataPage = () => {
             </form>
             <NotesForm catData={catData} data={data.find(d => d.folder === folderViewNum)} identifier={identifier} notes={notes} editingNoteId={editingNoteId} editingNoteText={editingNoteText} handleUpdateNoteText={handleUpdateNoteText} handleDoneEditNote={handleDoneEditNote} handleEditNote={handleEditNote} handleDeleteNote={handleDeleteNote} handleAddNoteSubmit={handleAddNoteSubmit} newNote={newNote} setNewNote={setNewNote} username={username} setCatData={setCatData} isAdmin={isAdmin} currentData={currentData}/>
             <SetCreation catData={catData} setShowModal={setShowModal} handleSubmitSetModal={handleSubmitSetModal} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} handleAddToSet={handleAddToSet} item={item} startDate={startDate} setStartDate={setStartDate} endDate={endDate} setEndDate={setEndDate} startTime={startTime} setStartTime={setStartTime} endTime={endTime} setEndTime={setEndTime} error={error} setError={setError}/>
-            <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} modalState={modalState} setModalState={setModalState} deleteItemFromSchedule={deleteItemFromSchedule} addItemToSchedule={addItemToSchedule} handleAddToSet={handleAddToSet} moveItemPlaylistSchedule={moveItemPlaylistSchedule} handleAddItem={handleAddItem} fetchData={fetchData} formatDate={formatDate} formatTime={formatTime} isEditingDuration={isEditingDuration} isEditingTime={isEditingTime} setNewStartDate={setNewStartDate} setNewEndDate={setNewEndDate} setNewStartTime={setNewStartTime} setNewEndTime={setNewEndTime} handleSave={handleSave} newStartDate={newStartDate} newEndDate={newEndDate} setIsEditingDuration={setIsEditingDuration} newStartTime={newStartTime} newEndTime={newEndTime} setIsEditingTime={setIsEditingTime} isAdmin={isAdmin}/>
+            <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} modalState={modalState} setModalState={setModalState} deleteItemFromSchedule={deleteItemFromSchedule} addItemToSchedule={addItemToSchedule} handleAddToSet={handleAddToSet} moveItemPlaylistSchedule={moveItemPlaylistSchedule} handleAddItem={handleAddItem} fetchData={fetchData} formatDate={formatDate} formatTime={formatTime} isEditingDuration={isEditingDuration} isEditingTime={isEditingTime} setNewStartDate={setNewStartDate} setNewEndDate={setNewEndDate} setNewStartTime={setNewStartTime} setNewEndTime={setNewEndTime} handleSave={handleSave} newStartDate={newStartDate} newEndDate={newEndDate} setIsEditingDuration={setIsEditingDuration} newStartTime={newStartTime} newEndTime={newEndTime} setIsEditingTime={setIsEditingTime} isAdmin={isAdmin} saveEditedTimes={saveEditedTimes} handleTimeChange={handleTimeChange} editedTimes={editedTimes}/>
             <RequestDetails catData={catData} state={state} setState={setState} handleAddRequest={handleAddRequest} newRequestDescription={newRequestDescription} setNewRequestDescription={setNewRequestDescription} error={requestError} requests={requests} handleToggleStatus={handleToggleStatus} handleSaveSection={handleSaveSection} isAdmin={isAdmin} username={username} />
           </>
         }

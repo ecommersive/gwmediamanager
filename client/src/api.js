@@ -363,6 +363,32 @@ const apiService = {
           console.error('Error adding item:', error.response ? error.response.data : error);
         }
     },
+    updateItemTimes: async ({currentData, scheduleId, itemId, startTime, endTime}) => {
+      let alterValue;
+        if (currentData === 'Playlist Schedule') {
+          alterValue = 'playlistSchedule';
+        } else if (currentData === 'Ads Schedule') {
+          alterValue = 'adsSchedule';
+        }
+      const url = `${baseURL}/${alterValue}/${scheduleId}/items/${itemId}`;
+      try {
+          const response = await axios.put(url, { startTime, endTime }, {
+              headers: {
+                  Authorization: `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+              },
+          });
+          if (response.status === 200) {
+              console.log('Item times updated successfully');
+              return response.data;
+          } else {
+              throw new Error('Failed to update item times');
+          }
+      } catch (error) {
+          console.error('Error updating item times:', error.response ? error.response.data : error);
+          throw error;
+      }
+    },
     handleAddRequest: async ({newRequestDescription,fetchRequests,setNewRequestDescription,setRequestError,}) => {
         const url = `${baseURL}/request`;
     

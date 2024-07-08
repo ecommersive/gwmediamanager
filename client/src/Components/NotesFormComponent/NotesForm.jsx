@@ -7,7 +7,7 @@ const NotesForm = ({ catData, identifier, data, notes, editingNoteId, editingNot
           <p>{(currentData === 'Playlist' || currentData === 'Ads') ? 'Filename: ' : 'Folder: '}{(currentData === 'Playlist' || currentData === 'Ads') ? identifier : data.folder}</p>
 
           <br />
-          <ul>
+          <ul style={(currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? { listStyleType: 'none', padding: 0, margin: 0 } : {}}>
             {Array.isArray(notes) && notes.length > 0 ? (
               notes.map((note, index) => (
                 <li key={index}>

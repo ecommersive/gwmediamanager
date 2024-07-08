@@ -11,9 +11,7 @@ import FormButton from '../Components/FormMainComponents/FormButton';
 import NotesForm from '../Components/NotesFormComponent/NotesForm';
 import SetCreation from '../Components/SetCreationComponent/SetCreation';
 import SwitchSections from '../Components/SwitchSections';
-import { useNavigate } from 'react-router-dom';
 import '../styles/datapage.css';
-import axios from 'axios';
 import ViewList from '../Components/ViewTimeModal/ViewList';
 import RequestDetails from '../Components/RequestModal/RequestDetails';
 import { mediaInfoFactory } from 'mediainfo.js';
@@ -38,7 +36,6 @@ const DataPage = () => {
   const [runTime, setRunTime] = useState('');
   const [content, setContent] = useState('');
   const [expiry, setExpiry] = useState('');
-  const navigate = useNavigate();
   const username = localStorage.getItem('username');
   const [modalSearchTerm, setModalSearchTerm] = useState('');
   const [modalData, setModalData] = useState([]);

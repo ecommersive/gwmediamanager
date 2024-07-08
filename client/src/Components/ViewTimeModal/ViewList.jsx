@@ -87,6 +87,8 @@ const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchT
                             {index !== data.items.length - 1 && <button className='action-button' onClick={() => moveItemPlaylistSchedule(item, 'down')}>Down</button>}
                           </>
                         )}
+                        <input type="Time" />
+                        <input type="Time" />
                       </li>
                     ))}
                   </ul>

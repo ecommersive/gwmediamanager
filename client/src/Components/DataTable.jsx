@@ -14,7 +14,7 @@ const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileNa
                 <th>Ending Date</th>
                 {currentData === 'Ads Schedule' && <th>Times set of ads being played at</th>}
                 {isAdmin && <th>Alter {currentData}</th>}
-                <th>Comments</th>
+                <th>{currentData === 'Playlist Schedule' || currentData === 'Ads Schedule' ? 'Requests' : 'Comments'}</th>
               </tr>
             ) : (
               <tr>
@@ -56,7 +56,7 @@ const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileNa
                     <td>{formatDate(item.endDate)}</td>
                     {currentData === 'Ads Schedule' && <td>{formatTime(item.startTime)} - {formatTime(item.endTime)}</td>}
                     {isAdmin && <td><button className="action-button" onClick={() => { setShowModal(true); setMode('configureData'); setCatData('alterTable'); setfolderViewNum(item.folder) }}>Alter {currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} Schedule</button></td>}
-                    <td><button className='action-button' onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setCatData('Comments'); setMode('configureData');setfolderViewNum(item.folder)  }}>Comments</button></td>
+                    <td><button className='action-button' onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setCatData('Comments'); setMode('configureData');setfolderViewNum(item.folder)  }}>Requests</button></td>
                   </tr>
                 );
               }

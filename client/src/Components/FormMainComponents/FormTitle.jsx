@@ -1,6 +1,6 @@
 import React from 'react';
 
-const FormTitle = ({ catData }) => {
+const FormTitle = ({ catData, currentData }) => {
   const catToFormTitle = {
     addData: 'Add New Data',
     viewfile: 'Admin Info',
@@ -8,7 +8,7 @@ const FormTitle = ({ catData }) => {
     DeleteData: 'Delete Data',
     viewNotes: 'View Notes',
     AddNote: 'Add Note',
-    Comments: 'Comments',
+    Comments: (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? 'Request':'Comments',
     DeleteNote: 'Delete Note',
     playlistSchedule: 'Create Playlist Set',
     adsSchedule: 'Create Ads Set',

@@ -7,7 +7,6 @@ const NotesForm = ({ catData, identifier, data, notes, editingNoteId, editingNot
           <p>{(currentData === 'Playlist' || currentData === 'Ads') ? 'Filename: ' : 'Folder: '}{(currentData === 'Playlist' || currentData === 'Ads') ? identifier : data.folder}</p>
 
           <br />
-          {notes.length > 0 && <p>Comments</p>}
           <ul>
             {Array.isArray(notes) && notes.length > 0 ? (
               notes.map((note, index) => (
@@ -19,7 +18,7 @@ const NotesForm = ({ catData, identifier, data, notes, editingNoteId, editingNot
                     </>
                   ) : (
                     <div style={{ display: 'flex' }}>
-                      <p>{note.text} - <small>Added on {new Date(note.addedOn).toLocaleDateString()} by {note.user}</small></p>
+                      <p>{(currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? `${index + 1}. ` : ''}{note.text} - <small>Added on {new Date(note.addedOn).toLocaleDateString()} by {note.user}</small></p>
                       {(note.user === username || isAdmin) && (
                         <div>
                           <button style={{ marginLeft: '1rem' }} onClick={() => { handleEditNote(index, note.text) }}>Edit</button>
@@ -31,7 +30,7 @@ const NotesForm = ({ catData, identifier, data, notes, editingNoteId, editingNot
                 </li>
               ))
             ) : (
-              <p>No comments found for {(currentData === 'Playlist' || currentData === 'Ads') ? `${identifier}` : `${currentData} ${data.folder}`}</p>
+              <p>{(currentData === 'Playlist' || currentData === 'Ads') ? `No comments found for ${identifier}` : `No Requests for ${currentData} ${data.folder}`}</p>
             )}
           </ul>
           <br />
@@ -44,7 +43,7 @@ const NotesForm = ({ catData, identifier, data, notes, editingNoteId, editingNot
             />
             <br />
             <br />
-            <button onClick={(e) => { handleAddNoteSubmit(e, identifier); setNewNote(''); }} onChange={handleUpdateNoteText} >Submit Note</button>
+            <button onClick={(e) => { handleAddNoteSubmit(e, identifier); setNewNote(''); }} onChange={handleUpdateNoteText} >Submit {(currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? `Request` : `Note`}</button>
             
           </>
           <br />

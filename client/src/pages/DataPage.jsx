@@ -146,6 +146,7 @@ const DataPage = () => {
     setStartTime('')
     setEndTime('') 
     setError('')
+    setModalState('')
   }
   const handleFileNameChange = (event) => {
     setFileName(event.target.value);
@@ -331,6 +332,8 @@ const DataPage = () => {
       console.log('item updated:', item);
     }
   }, [item]);
+
+  
 
   // fouund issue here
   useEffect(() => {

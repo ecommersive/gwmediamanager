@@ -31,56 +31,52 @@ const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchT
           )}
           {data && (
             <div>
-              {modalState === '' && (catData === 'viewTimes' || catData === 'alterTable') && (
+              {modalState === '' && (
                 <>
-                <div>
-                  {isEditingDuration ? (
-                    <div>
-                      <input type="date" value={newStartDate} onChange={(e) => setNewStartDate(e.target.value)} />
-                      <input type="date" value={newEndDate} onChange={(e) => setNewEndDate(e.target.value)} />
-                      <button onClick={() => handleSave('duration')}>Done</button>
-                    </div>
-                  ) : (
-                    <div style={{display: 'flex', gap: '1rem'}}>
-                      <p>{currentData === 'Playlist Schedule' ? `Duration of Playlist ${data.folder}` : `Duration of Ads ${data.folder}`}: {formatDate(data.startDate)} - {formatDate(data.endDate)}</p>
-                      {isAdmin && <button onClick={() => setIsEditingDuration(true)}>Change</button>}
-                    </div>
-                  )}
-                </div>
-          
-                <div>
+                  
+                  <div>
+                    {isEditingDuration ? (
+                      <div>
+                        <input type="date" value={newStartDate} onChange={(e) => setNewStartDate(e.target.value)} />
+                        <input type="date" value={newEndDate} onChange={(e) => setNewEndDate(e.target.value)} />
+                        {isAdmin && catData === 'alterTable' && <button onClick={() => handleSave('duration')}>Done</button>}
+                      </div>
+                    ) : (
+                      <div style={{display: 'flex', gap: '1rem'}}>
+                        <p>{currentData === 'Playlist Schedule' ? `Duration of Playlist ${data.folder}` : `Duration of Ads ${data.folder}`}: {formatDate(data.startDate)} - {formatDate(data.endDate)}</p>
+                        {isAdmin && catData === 'alterTable' && <button onClick={() => setIsEditingDuration(true)}>Change</button>}
+                      </div>
+                    )}
+                  </div>
+                  <div>
                   {isEditingTime ? (
                     <div>
                       <input type="time" value={newStartTime} onChange={(e) => setNewStartTime(e.target.value)} />
                       <input type="time" value={newEndTime} onChange={(e) => setNewEndTime(e.target.value)} />
-                      <button onClick={() => handleSave('time')}>Done</button>
+                      {isAdmin && catData === 'alterTable' && <button onClick={() => handleSave('time')}>Done</button>}
                     </div>
                   ) : (
                     <div style={{display: 'flex', gap: '1rem'}}>
                       <p>{currentData === 'Playlist Schedule' ? `Times Playlist ${data.folder}` : `Times Ads ${data.folder}`} being played: {formatTime(data.startTime)} - {formatTime(data.endTime)}</p>
-                      {isAdmin && <button onClick={() => setIsEditingTime(true)}>Change</button>}
+                      {isAdmin && catData === 'alterTable' && <button onClick={() => setIsEditingTime(true)}>Change</button>}
                     </div>
                   )}
                 </div>
-              </>
-              )}
-              {modalState === '' && catData === 'alterTable' && (
-                <>
-                  <h1>Alter {currentData === 'Playlist Schedule' ? ` Playlist ${data.folder}` : ` Ads ${data.folder}`}</h1>
-                  <div style={{ display: 'flex', margin: '0 10px' }}>
+                  {catData === 'alterTable' && <h1>Alter {currentData === 'Playlist Schedule' ? ` Playlist ${data.folder}` : ` Ads ${data.folder}`}</h1>}
+                  {catData === 'alterTable' && <div style={{ display: 'flex', margin: '0 10px' }}>
                     <button className='action-button' style={{ margin: '0 10px' }} onClick={() => setModalState('Add')}>Add</button>
                     <button className='action-button' style={{ margin: '0 10px' }} onClick={() => setModalState('Delete')}>Delete</button>
                     <button className='action-button' style={{ margin: '0 10px' }} onClick={() => setModalState('Move')}>Move</button>
-                  </div>
+                  </div>}
                 </>
               )}
               {data.items && (
                 <div>
-                  <h2>Items</h2>
-                  <ul>
+                  <h2>Ordered Schedule</h2>
+                  <ul style={{ listStyleType: 'none', padding: 0, margin: 0 }}>
                     {data.items.map((item, index) => (
                       <li key={index}>
-                        {item.FileName}
+                        <p>{index+1}. {item.FileName}</p>
                         {modalState === 'Delete' && (
                           <button className='action-button' onClick={() => deleteItemFromSchedule(item)}>Delete</button>
                           

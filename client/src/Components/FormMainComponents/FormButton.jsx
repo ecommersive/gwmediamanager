@@ -1,8 +1,8 @@
 const FormButton = ({ catData, fileName, photoUrl, type, runTime, content, handleSubmit }) => {
     const shouldRenderButton = (catData === 'addData')|| catData === 'DeleteData' || catData === 'ExtendExpiry' || catData === 'deleteScheduleData';
   
-    const isButtonDisabled = (catData === 'addData') ? !fileName || !photoUrl || !type || !runTime || !content : catData === 'DeleteData' || catData === 'ExtendExpiry' ? !fileName : null || catData === 'deleteScheduleData' ? !fileName : null;
-    console.log('isButton disabled ======', isButtonDisabled);
+    const isButtonDisabled = (catData === 'addData') ? !fileName || !photoUrl || !type || !runTime || !content : catData === 'DeleteData' || catData === 'ExtendExpiry' ? !fileName : null || catData === 'deleteScheduleData' ? fileName : null;
+    console.log('isButton disabled ======', isButtonDisabled, fileName);
     return (
       <>
         {shouldRenderButton && (

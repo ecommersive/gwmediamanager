@@ -1025,6 +1025,35 @@ const deleteAllLogs = async () => {
   }
 };
 
+// Function to update schedules
+const updateSchedules = async () => {
+  try {
+    // Calculate the start and end dates for the next month
+    const nextMonthStart = moment().tz('America/New_York').add(1, 'month').startOf('month');
+    const nextMonthEnd = moment(nextMonthStart).endOf('month');
+
+    // Update Playlist Schedules
+    await PlaylistSchedule.updateMany({}, {
+      $set: {
+        startDate: nextMonthStart.toDate(),
+        endDate: nextMonthEnd.toDate()
+      }
+    });
+
+    // Update Ads Schedules
+    await AdsSchedule.updateMany({}, {
+      $set: {
+        startDate: nextMonthStart.toDate(),
+        endDate: nextMonthEnd.toDate()
+      }
+    });
+
+    console.log('Schedules updated successfully');
+  } catch (error) {
+    console.error('Error updating schedules:', error);
+  }
+};
+
 cron.schedule('0 22 * * *', () => {
   console.log('Running change log email task...');
   sendChangeLogEmail().catch(error => console.error('Error in scheduled email task:', error));
@@ -1038,6 +1067,20 @@ cron.schedule('0 22 * * *', () => {
 cron.schedule('0 0 * * 0', () => {
   console.log('Running delete all logs task...');
   deleteAllLogs().catch(error => console.error('Error in scheduled delete logs task:', error));
+}, {
+  scheduled: true,
+  timezone: "America/New_York"
+});
+
+// Schedule the cron job to run at 11:59 PM on the last day of every month
+cron.schedule('59 23 28-31 * *', async () => {
+  const today = moment().tz('America/New_York').date();
+  const lastDayOfMonth = moment().tz('America/New_York').endOf('month').date();
+
+  if (today === lastDayOfMonth) {
+    console.log('Running schedule update cron job...');
+    await updateSchedules();
+  }
 }, {
   scheduled: true,
   timezone: "America/New_York"

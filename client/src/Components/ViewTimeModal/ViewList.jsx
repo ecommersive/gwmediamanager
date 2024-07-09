@@ -1,7 +1,7 @@
 import React from 'react';
 import SearchInput from '../SearchInput';
 
-const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchTerm, modalFilteredData, itemExists, modalState, setModalState, deleteItemFromSchedule, moveItemPlaylistSchedule, handleAddItem, fetchData, formatDate, formatTime, isEditingDuration, isEditingTime, setNewStartDate, setNewEndDate, setNewStartTime, setNewEndTime, handleSave, newStartDate, newEndDate, setIsEditingDuration, newStartTime, newEndTime, setIsEditingTime, isAdmin, saveEditedTimes, handleTimeChange, editedTimes }) => {
+const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchTerm, modalFilteredData, itemExists, modalState, setModalState, deleteItemFromSchedule, moveItemPlaylistSchedule, handleAddItem, fetchData, formatDate, formatTime, isEditingDuration, isEditingTime, setNewStartDate, setNewEndDate, setNewStartTime, setNewEndTime, handleSave, newStartDate, newEndDate, setIsEditingDuration, newStartTime, newEndTime, setIsEditingTime, isAdmin, saveEditedTimes, handleTimeChange, editedTimes}) => {
 
   return (
     <>
@@ -87,7 +87,7 @@ const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchT
                                 type="time" 
                                 value={editedTimes[index]?.startTime || item.startTime}
                                 onChange={(e) => handleTimeChange(index, 'startTime', e.target.value)}
-                              />
+                            />
                               <p>End Time: </p>
                               <input
                                 type="time"

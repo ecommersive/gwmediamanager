@@ -382,6 +382,9 @@ const apiService = {
         });
         if (response.status === 200) {
           console.log('Item check successful:', response.data);
+          // Log the change
+          const logChangeMessage = `${username} has updated item ${itemId} in ${alterValue} schedule ${scheduleId} with startTime: ${startTime} and endTime: ${endTime}.`;
+          await apiService.logChange(logChangeMessage);
           return response.data;
         } else {
           throw new Error('Failed to check item');

@@ -63,7 +63,7 @@ const DataPage = () => {
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [error, setError] = useState('');
-  const [editedTimes, setEditedTimes] = useState({});
+  const [editedTimes, setEditedTimes] = useState([]);
   
   //api calls
   const fetchData = useCallback(async () => {
@@ -108,24 +108,52 @@ const DataPage = () => {
     await apiService.addItemToSchedule({itemToAdd,id,currentData,folderViewNum,fetchData});
   };
   const saveEditedTimes = async (index) => {
-    const updatedItem = editedTimes[index];
-    const scheduleId = data._id; // The ID of the current schedule
-    const itemId = data.items[index]._id; // The ID of the item being edited
+    console.log('Current editedTimes:', editedTimes);
+    console.log('folder selected =====', folderViewNum);
   
-    if (!updatedItem || !updatedItem.startTime || !updatedItem.endTime) {
-      console.error('Start time or end time is missing for the item:', itemId);
-      return;
-    }
+    // Ensure data exists and is an array
+    if (Array.isArray(data)) {
+      // Log the items within the selected folder
+      const selectedFolderData = data.find(folder => folder.folder === folderViewNum);
+      if (selectedFolderData) {
+        // ensures items exist within the selected folder
+        const items = selectedFolderData.items;
+        if (Array.isArray(items) && items[index]) {
+          console.log('Specific item data ============', items[index]);
   
-    try {
-      await apiService.updateItemTimes(currentData, scheduleId, itemId, updatedItem.startTime, updatedItem.endTime);
-      const logChangeMessage = `${username} has updated times for item ${itemId} in ${currentData} schedule: start time to ${updatedItem.startTime}, end time to ${updatedItem.endTime}.`;
-      await apiService.logChange(logChangeMessage);
-      fetchData(); // Refresh data after update
-    } catch (error) {
-      console.error('There was an error updating the item!', error);
+          const updatedItem = editedTimes[index];
+          const scheduleId = selectedFolderData._id; // The ID of the current schedule
+          const itemId = items[index]._id; // The ID of the item being edited
+  
+          if (!updatedItem) {
+            console.error('Item is missing:', itemId);
+            return;
+          }
+  
+          try {
+            const response = await apiService.updateItemTimes({
+              currentData,
+              scheduleId,
+              itemId,
+              startTime: updatedItem.startTime,
+              endTime: updatedItem.endTime
+            });
+            console.log('Response from API:', response); // Log the response data
+            fetchData(); // Refresh data after update
+          } catch (error) {
+            console.error('There was an error checking the item!', error);
+          }
+        }
+      } else {
+        console.error('Selected folder not found in data');
+      }
+    } else {
+      console.error('Data is not an array or not properly set');
     }
   };
+  
+  
+  
   
   const handleAddRequest = async () => {
     await apiService.handleAddRequest({newRequestDescription,fetchRequests,setNewRequestDescription,setRequestError});
@@ -323,7 +351,7 @@ const DataPage = () => {
 
   const handleTimeChange = (index, field, value) => {
     setEditedTimes(prevTimes => {
-      const updatedTimes = [...prevTimes];
+      const updatedTimes = Array.isArray(prevTimes) ? [...prevTimes] : [];
       if (!updatedTimes[index]) {
         updatedTimes[index] = { startTime: '', endTime: '' };
       }
@@ -365,8 +393,6 @@ const DataPage = () => {
   }, [item]);
 
   
-
-  // fouund issue here
   useEffect(() => {
     if (['Playlist', 'Ads'].includes(currentData)) {
       setIdentifier(fileName);
@@ -375,8 +401,11 @@ const DataPage = () => {
     }
   }, [currentData, fileName, folderViewNum]);
   useEffect(() => {
-    if (data && data.items) {
-      setEditedTimes(data.items.map(item => ({ startTime: item.startTime, endTime: item.endTime })));
+    if (data && Array.isArray(data.items)) {
+      setEditedTimes(data.items.map(item => ({
+        startTime: item.startTime || '',
+        endTime: item.endTime || '',
+      })));
     }
   }, [data]);
   return (

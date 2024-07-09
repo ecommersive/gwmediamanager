@@ -766,7 +766,7 @@ app.put('/:scheduleType/:folder/update', verifyToken, async (req, res) => {
   }
 });
 
-
+//need to edit
 app.put('/:scheduleType/:scheduleId/items/:itemId', verifyToken, async (req, res) => {
   const { scheduleType, scheduleId, itemId } = req.params;
   const { startTime, endTime } = req.body;
@@ -792,15 +792,17 @@ app.put('/:scheduleType/:scheduleId/items/:itemId', verifyToken, async (req, res
 
     item.startTime = startTime;
     item.endTime = endTime;
-
     await schedule.save();
 
+
     res.json({ message: 'Item updated successfully', schedule });
+
   } catch (error) {
-    console.error(`Error updating item in ${scheduleType} schedule:`, error);
+    console.error(`Error checking item in ${scheduleType} schedule:`, error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
 
 
 //requests

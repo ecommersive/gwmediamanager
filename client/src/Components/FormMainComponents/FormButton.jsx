@@ -6,7 +6,7 @@ const FormButton = ({ catData, fileName, photoUrl, type, runTime, content, handl
     return (
       <>
         {shouldRenderButton && (
-          <button type="submit" disabled={isButtonDisabled} onClick={handleSubmit}>
+          <button type="submit" onClick={handleSubmit}>
             {(catData === 'addData') ? 'Add Data' : catData === 'ExtendExpiry' ? 'Extend Expiry Date' : catData === 'DeleteData' ? 'Delete Data' : catData === 'deleteScheduleData' ? 'Delete Schedule Set' : ''}
           </button>
         )}

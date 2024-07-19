@@ -10,7 +10,7 @@ const FormTitle = ({ catData, currentData }) => {
     AddNote: 'Add Note',
     Comments: (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? 'Request':'Comments',
     DeleteNote: 'Delete Note',
-    playlistSchedule: 'Create Playlist Set',
+    playlistSchedule: 'Create Content Set',
     adsSchedule: 'Create Ads Set',
     deleteScheduleData: 'Delete Schedule Set'
   };

@@ -64,6 +64,9 @@ const DataPage = () => {
   const [endTime, setEndTime] = useState('');
   const [error, setError] = useState('');
   const [editedTimes, setEditedTimes] = useState([]);
+  const [scheduleEditMode, setScheduleEditMode] = useState();
+  const [scheduledData, setScheduledData] = useState([]);
+  const [compareData, setCompareData] = useState([])
 
   //api calls
   const fetchData = useCallback(async () => {
@@ -76,6 +79,17 @@ const DataPage = () => {
       console.error('Error fetching data:', error);
     }
   }, [currentData])
+  useEffect(() => {
+    const fetchAllForSchedules = async () => {
+      if (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') {
+        const data = await apiService.fetchForSchedule(currentData);
+        setScheduledData(data);
+      }
+    };
+
+    fetchAllForSchedules();
+  }, [currentData]);
+  
   const fetchFileDetails = async (fileName) => {
     try {
       const data = await apiService.fetchFileDetails(fileName);
@@ -311,6 +325,7 @@ const DataPage = () => {
   const handleDataSelection = (e) => {
     setCurrentData(e.target.value);
     setCurrentData(e.target.value);
+    setScheduleEditMode('off')
   };
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -408,10 +423,10 @@ const DataPage = () => {
         </div>
         <div className="header-controls">
           {(currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? '' : <SearchInput searchTerm={searchTerm} setSearchTerm={setSearchTerm} />}
-          <HeaderButtons currentData={currentData} isAdmin={isAdmin} handleModal={handleModal} setMode={setMode} setCatData={setCatData} handleLogout={handleLogout} />
+          <HeaderButtons currentData={currentData} isAdmin={isAdmin} handleModal={handleModal} setMode={setMode} setCatData={setCatData} handleLogout={handleLogout} catData={catData} data={data.find(d => d.folder === folderViewNum)} setShowModal={setShowModal} setfolderViewNum={setfolderViewNum} setScheduleEditMode={setScheduleEditMode} scheduleEditMode={scheduleEditMode}/>
         </div>
       </section>
-      <DataTable currentData={currentData} isAdmin={isAdmin} setMode={setMode} searchTerm={searchTerm} filteredData={filteredData} setShowModal={setShowModal} setFileName={setFileName} setNotes={setNotes} setCatData={setCatData} setfolderViewNum={setfolderViewNum} formatDate={formatDate} formatTime={formatTime} />
+      <DataTable currentData={currentData} isAdmin={isAdmin} setMode={setMode} searchTerm={searchTerm} filteredData={filteredData} setShowModal={setShowModal} setFileName={setFileName} setNotes={setNotes} setCatData={setCatData} setfolderViewNum={setfolderViewNum} formatDate={formatDate} formatTime={formatTime} catData={catData} setScheduleEditMode={setScheduleEditMode} scheduleEditMode={scheduleEditMode} scheduledData={scheduledData} compareData={compareData} setCompareData={setCompareData}/>
       <Modal isOpen={showModal} onClose={() => { ModalClose(); if (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') { setModalSearchTerm(''); } }}>
         {mode === 'configureData' &&
           <>

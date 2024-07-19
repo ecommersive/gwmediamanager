@@ -19,6 +19,33 @@ const apiService = {
           console.log('Failed to log change:', error);
         }
     },
+    fetchForSchedule: async (currentData) => {
+      let url = `${baseURL}/mediaAll?type=`;
+      
+      switch(currentData) {
+        case 'Playlist Schedule':
+          url += 'Playlist Schedule';
+          break;
+        case 'Ads Schedule':
+          url += 'Ads Schedule';
+          break;
+        default:
+          console.error('Invalid data type');
+          return;
+      }
+    
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        return [];
+      }
+    },
     fetchData: async (currentData) => {
         let url = `${baseURL}/`
         switch(currentData){

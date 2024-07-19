@@ -1,6 +1,7 @@
 import React from 'react';
 import '../styles/headerbuttons.css'
-const HeaderButtons = ({ currentData, isAdmin, handleModal, setMode, setCatData, handleLogout}) => {
+const HeaderButtons = ({ currentData, isAdmin, handleModal, setMode, setCatData, handleLogout, data, setShowModal, setfolderViewNum, setScheduleEditMode, scheduleEditMode}) => {
+  
   return (
     <div>
       {(currentData === 'Playlist' || currentData === 'Ads') ? (
@@ -16,17 +17,23 @@ const HeaderButtons = ({ currentData, isAdmin, handleModal, setMode, setCatData,
       ) : (
         (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') && (
           <>
-            { 
-            isAdmin && (
+            { isAdmin && (
               <>
-                <button className="action-button" onClick={() => { handleModal(true); setMode('configureData'); setCatData(currentData === 'Playlist Schedule' ? 'playlistSchedule' : 'adsSchedule'); }}>
-                  {currentData === 'Playlist Schedule' ? 'Configure Playlist Schedule' : 'Configure Ads Schedule'}
-                </button>
-                <button className="action-button" onClick={()=>{console.log('BUTTON CLICKED'); handleModal(true); setMode('configureData'); setCatData('deleteScheduleData');}}>Delete {currentData}</button>
+                {(scheduleEditMode === 'off' || scheduleEditMode === '') && <>
+                  <button className="action-button" onClick={() => { handleModal(true); setMode('configureData'); setCatData(currentData === 'Playlist Schedule' ? 'playlistSchedule' : 'adsSchedule'); }}>
+                    {currentData === 'Playlist Schedule' ? 'Configure Content Schedule' : 'Configure Ads Schedule'}
+                  </button>
+                  <button className="action-button" onClick={()=>{console.log('BUTTON CLICKED'); handleModal(true); setMode('configureData'); setCatData('deleteScheduleData');}}>Delete {currentData}</button>
+                </>}
+                {scheduleEditMode === 'on' && 
+                <>
+                  <button className="action-button" onClick={() => { setShowModal(true); setMode('configureData'); setCatData('alterTable'); setfolderViewNum(data.folder) }}>Alter {currentData === 'Playlist Schedule' ? 'Content ' : 'Ads '} Schedule</button>
+                </>}
               </>
               )
             }
-            <button className="action-button" onClick={() => { handleModal(true); setMode('configureData'); setCatData('requests'); }}>SCSD Requests</button>
+            {(scheduleEditMode === 'off' || scheduleEditMode === '') && <button className="action-button" onClick={() => { handleModal(true); setMode('configureData'); setCatData('requests'); }}>SCSD Requests</button>}
+            {scheduleEditMode === 'on' && <button onClick={() => {setScheduleEditMode('off')}} className="action-button">Go Back</button>}
           </>
         )
         

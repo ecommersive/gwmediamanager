@@ -105,6 +105,24 @@ app.get('/ads', async (req, res) => {
   }
 });
 
+app.get('/mediaAll', async (req, res) => {
+  try {
+    const { type } = req.query;
+
+    if (type === 'Playlist Schedule') {
+      const playlists = await Playlist.find({});
+      res.json(playlists);
+    } else if (type === 'Ads Schedule') {
+      const ads = await Ads.find({});
+      res.json(ads);
+    } else {
+      res.status(400).send('Invalid type parameter');
+    }
+  } catch (err) {
+    console.error('Error fetching media:', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
 app.get('/adsSchedule', async (req, res) => {
   try {
     const adsSchedule = await AdsSchedule.find({});

@@ -7,7 +7,7 @@ const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchT
     <>
       {((currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') && (catData === 'viewTimes' || catData === 'alterTable')) && (
         <>
-          <h1>{currentData === 'Playlist Schedule' ? 'Playlist Schedule' : 'Ads Schedule'}</h1>
+          <h1>{currentData === 'Playlist Schedule' ? 'Content Schedule' : 'Ads Schedule'}</h1>
           {modalState === 'Add' && (
             <>
               <SearchInput searchTerm={modalSearchTerm} setSearchTerm={setModalSearchTerm} />
@@ -38,7 +38,7 @@ const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchT
                 </div>
               ) : (
                 <div style={{ display: 'flex', gap: '1rem' }}>
-                  {catData === 'alterTable' && modalState === '' && <p>{currentData === 'Playlist Schedule' ? `Duration of Playlist ${data.folder}` : `Duration of Ads ${data.folder}`}: {formatDate(data.startDate)} - {formatDate(data.endDate)}</p>}
+                  {catData === 'alterTable' && modalState === '' && <p>{currentData === 'Playlist Schedule' ? `Duration of Content ${data.folder}` : `Duration of Ads ${data.folder}`}: {formatDate(data.startDate)} - {formatDate(data.endDate)}</p>}
                   {isAdmin && catData === 'alterTable' && modalState === '' && <button onClick={() => setIsEditingDuration(true)}>Change</button>}
                 </div>
               )}
@@ -50,7 +50,7 @@ const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchT
                 </div>
               ) : (
                 <div style={{ display: 'flex', gap: '1rem' }}>
-                  {catData === 'alterTable' && modalState === '' && <p>{currentData === 'Playlist Schedule' ? `Times Playlist ${data.folder}` : `Times Ads ${data.folder}`} being played: {formatTime(data.startTime)} - {formatTime(data.endTime)}</p>}
+                  {catData === 'alterTable' && modalState === '' && <p>{currentData === 'Playlist Schedule' ? `Times Content ${data.folder}` : `Times Ads ${data.folder}`} being played: {formatTime(data.startTime)} - {formatTime(data.endTime)}</p>}
                   {isAdmin && catData === 'alterTable' && modalState === '' && <button onClick={() => setIsEditingTime(true)}>Change</button>}
                 </div>
               )}

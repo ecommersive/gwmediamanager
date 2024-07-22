@@ -17,7 +17,7 @@ const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchT
                   modalFilteredData.filter(modalItem => !itemExists(modalItem.FileName)).map((modalItem, index) => (
                     <div key={index}>
                       <span>{modalItem.FileName}</span>
-                      <button onClick={() => { handleAddItem(modalItem, modalItem._id) }}>Add</button>
+                      <button onClick={() => { handleAddItem(modalItem, modalItem._id); fetchData() }}>Add</button>
                     </div>
                   ))
                 ) : (
@@ -71,12 +71,12 @@ const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchT
                       <li key={index}>
                         <p>{index + 1}. {item.FileName}</p>
                         {modalState === 'Delete' && (
-                          <button className='action-button' onClick={() => deleteItemFromSchedule(item)}>Delete</button>
+                          <button className='action-button' onClick={() => {deleteItemFromSchedule(item); fetchData()}}>Delete</button>
                         )}
                         {modalState === 'Move' && (
                           <>
-                            {index !== 0 && <button className='action-button' onClick={() => moveItemPlaylistSchedule(item, 'up')}>Up</button>}
-                            {index !== data.items.length - 1 && <button className='action-button' onClick={() => moveItemPlaylistSchedule(item, 'down')}>Down</button>}
+                            {index !== 0 && <button className='action-button' onClick={() => {moveItemPlaylistSchedule(item, 'up'); fetchData()}}>Up</button>}
+                            {index !== data.items.length - 1 && <button className='action-button' onClick={() => {moveItemPlaylistSchedule(item, 'down'); fetchData()}}>Down</button>}
                           </>
                         )}
                         {modalState === 'alterTimes' && (
@@ -114,7 +114,7 @@ const ViewList = ({ currentData, catData, data, modalSearchTerm, setModalSearchT
                 </div>
               )}
               {(modalState === 'Add' || modalState === 'Delete' || modalState === 'Move' || modalState === 'alterTimes') && (
-                <button className='action-button' onClick={() => { setModalState(''); setModalSearchTerm(''); fetchData() }}>Exit</button>
+                <button className='action-button' onClick={() => { setModalState(''); setModalSearchTerm('');}}>Exit</button>
               )}
             </div>
           )}

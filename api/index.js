@@ -643,7 +643,29 @@ app.get('/notes/:category/:identifier', verifyToken, async (req, res) => {
 const getModel = (scheduleType) => {
   return scheduleType === 'playlistSchedule' ? PlaylistSchedule : AdsSchedule;
 };
+app.get('/:scheduleType/:folder', async (req, res) => {
+  try {
+    const { scheduleType, folder } = req.params;
 
+    let result;
+    if (scheduleType === 'Playlist Schedule') {
+      result = await Playlist.findOne({ folder });
+    } else if (scheduleType === 'Ads Schedule') {
+      result = await Ads.findOne({ folder });
+    } else {
+      return res.status(400).send('Invalid scheduleType parameter');
+    }
+
+    if (!result) {
+      return res.status(404).send('Folder not found');
+    }
+
+    res.json(result.items); // assuming each schedule has an 'items' field that contains the list of items
+  } catch (err) {
+    console.error('Error fetching media:', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
 app.post('/:scheduleType/:folder/add', verifyToken, async (req, res) => {
   const { scheduleType, folder } = req.params;
   const { item } = req.body;
@@ -990,23 +1012,33 @@ const sendChangeLogEmail = async () => {
       `;
     }).join('<br>');  // Separate each table with a line break for clarity in the email
 
-    // Create a workbook and add the logs to it
-    const wb = xlsx.utils.book_new();
-    const wsData = [
-      ["User", "Date", "Message", "Time"],
-      ...logs.map(log => [
-        log.user,
-        formatDate(log.timestamp),
-        log.message,
-        formatTime(log.timestamp)
-      ])
-    ];
-    const ws = xlsx.utils.aoa_to_sheet(wsData);
-    xlsx.utils.book_append_sheet(wb, ws, "Logs");
-
-    // Generate the Excel file in memory and convert to base64
     const wbOpts = { bookType: 'xlsx', type: 'base64' };
-    const base64Excel = xlsx.write(wb, wbOpts);
+    const attachments = Object.keys(groupedLogs).map(user => {
+      const userLogs = groupedLogs[user];
+      const wb = xlsx.utils.book_new();
+      const wsData = [
+        ["User", "Date", "Message", "Time"],
+        ...userLogs.map(log => [
+          log.user,
+          formatDate(log.timestamp),
+          log.message,
+          formatTime(log.timestamp)
+        ])
+      ];
+      const ws = xlsx.utils.aoa_to_sheet(wsData);
+      xlsx.utils.book_append_sheet(wb, ws, user);
+
+      // Generate the Excel file in memory and convert to base64
+      const base64Excel = xlsx.write(wb, wbOpts);
+
+      return {
+        content: base64Excel,
+        filename: `${user}.xlsx`,
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        disposition: 'attachment'
+      };
+    });
+
     const recipients = ['tom@commersive.ca', 'remi@commersive.ca', 'richard@commersive.ca'];
     const msg = {
       to: recipients,
@@ -1014,14 +1046,7 @@ const sendChangeLogEmail = async () => {
       subject: `Change Log - ${currentDate}`,
       text: logs.map(log => `User: ${log.user}\nDate: ${formatDate(log.timestamp)}\nMessage: ${log.message}\nTime: ${formatTime(log.timestamp)}`).join('\n\n'),
       html: emailBody,
-      attachments: [
-        {
-          content: base64Excel,
-          filename: `${currentDate}.xlsx`,
-          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          disposition: 'attachment'
-        }
-      ]
+      attachments: attachments
     };
 
     // Send email
@@ -1031,6 +1056,7 @@ const sendChangeLogEmail = async () => {
     console.error('Error sending change log email:', error);
   }
 };
+
 
 // Deletes all logs, will schedule this every Sunday
 const deleteAllLogs = async () => {

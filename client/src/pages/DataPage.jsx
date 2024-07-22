@@ -68,6 +68,7 @@ const DataPage = () => {
   const [scheduledData, setScheduledData] = useState([]);
   const [compareData, setCompareData] = useState([])
 
+
   //api calls
   const fetchData = useCallback(async () => {
     try {
@@ -90,6 +91,7 @@ const DataPage = () => {
     fetchAllForSchedules();
   }, [currentData]);
   
+
   const fetchFileDetails = async (fileName) => {
     try {
       const data = await apiService.fetchFileDetails(fileName);
@@ -118,6 +120,17 @@ const DataPage = () => {
   const handleSubmitSetModal = async (event, startDate, endDate, item, startTime, endTime) => {
     await apiService.handleSubmitSetModal({ event, startDate, endDate, item, startTime, endTime, currentData, setData, setfolderViewNum, setItem, setAddedItems, setShowModal, setStartDate, setEndDate, setStartTime, setEndTime, setError });
   };
+
+  const fetchItemsByFolder = useCallback(async () => {
+    try {
+      const data = await apiService.fetchItemsByFolder(currentData, folderViewNum);
+      setCompareData(data);
+      console.log('folderData:', data); // Log the fetched data
+    } catch (error) {
+      console.error('Error fetching items by folder:', error);
+    }
+  }, [currentData, folderViewNum]);
+
   const addItemToSchedule = async (itemToAdd, id) => {
     await apiService.addItemToSchedule({ itemToAdd, id, currentData, folderViewNum, fetchData });
   };
@@ -182,12 +195,15 @@ const DataPage = () => {
   };
   const moveItemPlaylistSchedule = async (itemToMove, direction) => {
     await apiService.moveItemPlaylistSchedule({ itemToMove, direction, currentData, folderViewNum, fetchData });
+    await fetchItemsByFolder();
   };
   const handleDeleteNote = async (noteIndex, identifier) => {
     await apiService.handleDeleteNote({ noteIndex, identifier, notes, currentData, setNotes, fetchData });
   };
   const deleteItemFromSchedule = async (itemToDelete) => {
     await apiService.deleteItemFromSchedule({ itemToDelete, currentData, folderViewNum, fetchData });
+    await fetchItemsByFolder();
+
   };
   // functions
   const handleModal = () => {
@@ -308,6 +324,7 @@ const DataPage = () => {
   const handleAddItem = async (modalItem, id) => {
     await addItemToSchedule(modalItem, id);
     setAddedItems(prevItems => [...prevItems, id]);  // Update the added items state
+    await fetchItemsByFolder();
   };
   const modalFilteredData = useMemo(() => {
     return modalData.filter(item =>
@@ -322,10 +339,11 @@ const DataPage = () => {
       )
     );
   }, [modalSearchTerm, modalData, addedItems]);
-  const handleDataSelection = (e) => {
+  const handleDataSelection = async (e) => {
     setCurrentData(e.target.value);
     setCurrentData(e.target.value);
-    setScheduleEditMode('off')
+    setScheduleEditMode('off');
+    await fetchItemsByFolder();
   };
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -370,6 +388,13 @@ const DataPage = () => {
       return updatedTimes;
     });
   };
+  const matchAndOrderScheduledData = useCallback(() => {
+    if (!compareData || !compareData.items) return [];
+    const compareIDs = compareData.items.map(item => item._id);
+    return compareIDs.map(id => scheduledData.find(scheduledItem => scheduledItem._id === id)).filter(item => item !== undefined);
+  }, [compareData, scheduledData]);
+  const orderedScheduledData = useMemo(() => matchAndOrderScheduledData(), [matchAndOrderScheduledData]);
+
   // Use effects
   useEffect(() => {
     fetchData();
@@ -426,7 +451,7 @@ const DataPage = () => {
           <HeaderButtons currentData={currentData} isAdmin={isAdmin} handleModal={handleModal} setMode={setMode} setCatData={setCatData} handleLogout={handleLogout} catData={catData} data={data.find(d => d.folder === folderViewNum)} setShowModal={setShowModal} setfolderViewNum={setfolderViewNum} setScheduleEditMode={setScheduleEditMode} scheduleEditMode={scheduleEditMode}/>
         </div>
       </section>
-      <DataTable currentData={currentData} isAdmin={isAdmin} setMode={setMode} searchTerm={searchTerm} filteredData={filteredData} setShowModal={setShowModal} setFileName={setFileName} setNotes={setNotes} setCatData={setCatData} setfolderViewNum={setfolderViewNum} formatDate={formatDate} formatTime={formatTime} catData={catData} setScheduleEditMode={setScheduleEditMode} scheduleEditMode={scheduleEditMode} scheduledData={scheduledData} compareData={compareData} setCompareData={setCompareData}/>
+      <DataTable currentData={currentData} isAdmin={isAdmin} setMode={setMode} searchTerm={searchTerm} filteredData={filteredData} setShowModal={setShowModal} setFileName={setFileName} setNotes={setNotes} setCatData={setCatData} setfolderViewNum={setfolderViewNum} formatDate={formatDate} formatTime={formatTime} catData={catData} setScheduleEditMode={setScheduleEditMode} scheduleEditMode={scheduleEditMode} scheduledData={scheduledData} setCompareData={setCompareData} orderedScheduledData={orderedScheduledData}/>
       <Modal isOpen={showModal} onClose={() => { ModalClose(); if (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') { setModalSearchTerm(''); } }}>
         {mode === 'configureData' &&
           <>

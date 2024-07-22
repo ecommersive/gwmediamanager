@@ -1,12 +1,7 @@
 import React from 'react';
 import '../styles/datatable.css';
 
-const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileName, setMode, setNotes, setCatData, setfolderViewNum, formatDate, formatTime, scheduleEditMode, setScheduleEditMode, scheduledData, compareData, setCompareData }) => {
-  // Extract the IDs from compareData
-  const compareIDs = compareData.items ? compareData.items.map(item => item._id) : [];
-
-  // Filter scheduledData based on compareData IDs
-  const filteredScheduledData = scheduledData.filter(scheduledItem => compareIDs.includes(scheduledItem._id));
+const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileName, setMode, setNotes, setCatData, setfolderViewNum, formatDate, formatTime, scheduleEditMode, setScheduleEditMode, setCompareData, orderedScheduledData  }) => {
 
   return (
     <section className="table_body">
@@ -87,7 +82,7 @@ const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileNa
               }
             })}
 
-            {scheduleEditMode === 'on' && filteredScheduledData.map((scheduledItem, idx) => (
+            {scheduleEditMode === 'on' && orderedScheduledData.map((scheduledItem, idx) => (
               <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? 'transparent' : '#f0f0f0' }}>
                 <td>{scheduledItem.FileName}</td>
                 <td>{scheduledItem.Type}</td>
@@ -99,7 +94,6 @@ const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileNa
                 {isAdmin && <td><button className='action-button' onClick={() => { setShowModal(true); setFileName(scheduledItem.FileName); setMode('configureData'); setCatData('viewfile') }}>Details</button></td>}
               </tr>
             ))}
-            {console.log('compareData ===', compareData)}
 
           </tbody>
         </table>

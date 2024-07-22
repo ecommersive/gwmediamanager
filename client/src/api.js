@@ -123,6 +123,32 @@ const apiService = {
           console.error('Error fetching requests:', error.response ? error.response.data : error);
         }
     },
+
+    fetchItemsByFolder: async (currentData, folder) => {
+      let alterValue;
+      if (currentData === 'Playlist Schedule') {
+        alterValue = 'playlistSchedule';
+      } else if (currentData === 'Ads Schedule') {
+        alterValue = 'adsSchedule';
+      }
+      const url = `${baseURL}/${alterValue}/${encodeURIComponent(folder)}`;
+    
+      try {
+        const response = await axios.get(url, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        if (response.status === 200) {
+          return response.data;
+        } else {
+          throw new Error('Failed to fetch items');
+        }
+      } catch (error) {
+        console.error('Error fetching items:', error.response ? error.response.data : error);
+        return [];
+      }
+    },
     handleSubmit: async ({event, catData, result, fileName,photoUrl,type,tag,runTime,content,expiry,notes,currentData,fetchData,setShowModal,resetAll,setFile}) => {
         event.preventDefault();
         let logChangeMessage = '';

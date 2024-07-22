@@ -125,7 +125,6 @@ const DataPage = () => {
     try {
       const data = await apiService.fetchItemsByFolder(currentData, folderViewNum);
       setCompareData(data);
-      console.log('folderData:', data); // Log the fetched data
     } catch (error) {
       console.error('Error fetching items by folder:', error);
     }

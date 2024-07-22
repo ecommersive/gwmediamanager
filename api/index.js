@@ -1106,7 +1106,6 @@ cron.schedule('0 22 * * *', () => {
   timezone: "America/New_York"
 });
 
-
 // Schedule the cleanup task to run every Sunday at midnight Eastern Time
 cron.schedule('0 0 * * 0', () => {
   console.log('Running delete all logs task...');

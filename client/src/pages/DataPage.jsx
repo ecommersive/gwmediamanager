@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Modal from '../Components/Modal';
+import { v4 as uuidv4 } from 'uuid';
 import SearchInput from '../Components/SearchInput';
 import HeaderButtons from '../Components/HeaderButtons';
+import VideoViewer from '../Components/videoViewer';
 import DataTable from '../Components/DataTable';
 import FormTitle from '../Components/FormMainComponents/FormTitle';
 import FormAddDataBody from '../Components/FormMainComponents/FormAddDataBody';
@@ -67,6 +69,10 @@ const DataPage = () => {
   const [scheduleEditMode, setScheduleEditMode] = useState();
   const [scheduledData, setScheduledData] = useState([]);
   const [compareData, setCompareData] = useState([])
+  const [videoUrl, setVideoURL] = useState('')
+  const [currentVideoUrl, setCurrentVideoUrl] = useState('');
+  const [videoKey, setVideoKey] = useState(uuidv4());
+
 
 
   //api calls
@@ -112,7 +118,7 @@ const DataPage = () => {
     await apiService.fetchRequests(setRequests);
   };
   const handleSubmit = async (event) => {
-    await apiService.handleSubmit({ event, catData, result, fileName, photoUrl, type, tag, runTime, content, expiry, notes, currentData, fetchData, setShowModal, resetAll, setFile });
+    await apiService.handleSubmit({ event, catData, result, fileName, photoUrl, videoUrl, type, tag, runTime, content, expiry, notes, currentData, fetchData, setShowModal, resetAll, setFile });
   };
   const handleAddNoteSubmit = async (event, identifier) => {
     await apiService.handleAddNoteSubmit({ event, identifier, newNote, currentData, setNotes, fetchData });
@@ -393,7 +399,11 @@ const DataPage = () => {
     return compareIDs.map(id => scheduledData.find(scheduledItem => scheduledItem._id === id)).filter(item => item !== undefined);
   }, [compareData, scheduledData]);
   const orderedScheduledData = useMemo(() => matchAndOrderScheduledData(), [matchAndOrderScheduledData]);
-
+  const handleVideoClick = (videoUrl) => {
+    setCurrentVideoUrl(videoUrl);
+    setShowModal(true);
+    setVideoKey(uuidv4());
+  };
   // Use effects
   useEffect(() => {
     fetchData();
@@ -450,8 +460,9 @@ const DataPage = () => {
           <HeaderButtons currentData={currentData} isAdmin={isAdmin} handleModal={handleModal} setMode={setMode} setCatData={setCatData} handleLogout={handleLogout} catData={catData} data={data.find(d => d.folder === folderViewNum)} setShowModal={setShowModal} setfolderViewNum={setfolderViewNum} setScheduleEditMode={setScheduleEditMode} scheduleEditMode={scheduleEditMode}/>
         </div>
       </section>
-      <DataTable currentData={currentData} isAdmin={isAdmin} setMode={setMode} searchTerm={searchTerm} filteredData={filteredData} setShowModal={setShowModal} setFileName={setFileName} setNotes={setNotes} setCatData={setCatData} setfolderViewNum={setfolderViewNum} formatDate={formatDate} formatTime={formatTime} catData={catData} setScheduleEditMode={setScheduleEditMode} scheduleEditMode={scheduleEditMode} scheduledData={scheduledData} setCompareData={setCompareData} orderedScheduledData={orderedScheduledData}/>
-      <Modal isOpen={showModal} onClose={() => { ModalClose(); if (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') { setModalSearchTerm(''); } }}>
+      <DataTable currentData={currentData} isAdmin={isAdmin} setMode={setMode} handleVideoClick={handleVideoClick} filteredData={filteredData} setShowModal={setShowModal} setFileName={setFileName} setNotes={setNotes} setCatData={setCatData} setfolderViewNum={setfolderViewNum} formatDate={formatDate} formatTime={formatTime} catData={catData} setScheduleEditMode={setScheduleEditMode} scheduleEditMode={scheduleEditMode} scheduledData={scheduledData} setCompareData={setCompareData} orderedScheduledData={orderedScheduledData}/>
+      <Modal style={mode === 'viewvideo' ? { height: '100%' } : {}} isOpen={showModal} onClose={() => { ModalClose(); if (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') { setModalSearchTerm(''); } }}>
+        {mode === 'viewvideo' && <VideoViewer videoUrl={currentVideoUrl} key={videoKey} />}
         {mode === 'configureData' &&
           <>
             <form onSubmit={handleSubmit}>

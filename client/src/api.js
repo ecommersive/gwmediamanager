@@ -149,7 +149,7 @@ const apiService = {
         return [];
       }
     },
-    handleSubmit: async ({event, catData, result, fileName,photoUrl,type,tag,runTime,content,expiry,notes,currentData,fetchData,setShowModal,resetAll,setFile}) => {
+    handleSubmit: async ({event, catData, result, fileName,photoUrl, videoUrl,type,tag,runTime,content,expiry,notes,currentData,fetchData,setShowModal,resetAll,setFile}) => {
         event.preventDefault();
         let logChangeMessage = '';
     
@@ -178,6 +178,7 @@ const apiService = {
           const formData = {
             FileName: fileName,
             PhotoUrl: photoUrl,
+            videoUrl: videoUrl,
             Type: type,
             Tag: tag,
             Run_Time: runTime,

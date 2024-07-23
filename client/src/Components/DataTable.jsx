@@ -1,7 +1,7 @@
 import React from 'react';
 import '../styles/datatable.css';
 
-const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileName, setMode, setNotes, setCatData, setfolderViewNum, formatDate, formatTime, scheduleEditMode, setScheduleEditMode, setCompareData, orderedScheduledData  }) => {
+const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setShowModal, setFileName, setMode, setNotes, setCatData, setfolderViewNum, formatDate, formatTime, scheduleEditMode, setScheduleEditMode, setCompareData, orderedScheduledData  }) => {
 
   return (
     <section className="table_body">
@@ -15,6 +15,7 @@ const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileNa
                     <th>Order</th>
                     <th>File Name</th>
                     <th>File Type</th>
+                    <th>Video Url</th>
                     <th>Tag</th>
                     <th>Run Time</th>
                     <th>Type</th>
@@ -33,6 +34,7 @@ const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileNa
                 <>
                   <th>File Name</th>
                   <th>File Type</th>
+                  <th>Video Url</th>
                   <th>Tag</th>
                   <th>Run Time</th>
                   <th>Type</th>
@@ -50,6 +52,7 @@ const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileNa
                   <tr key={index} style={{ backgroundColor: index % 2 === 0 ? 'transparent' : '#f0f0f0' }}>
                     <td>{item.FileName}</td>
                     <td>{item.Type}</td>
+                    <td><button onClick={() => { handleVideoClick(item.videoUrl); setMode('viewvideo')}}>View</button></td>
                     <td>{item.Tag}</td>
                     <td>{item.Run_Time}</td>
                     <td>{item.Content}</td>
@@ -88,6 +91,7 @@ const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileNa
                 <td>{idx+1}</td>
                 <td>{scheduledItem.FileName}</td>
                 <td>{scheduledItem.Type}</td>
+                <td><button onClick={() => { handleVideoClick(scheduledItem.videoUrl); setMode('viewvideo')}}>View</button></td>
                 <td>{scheduledItem.Tag}</td>
                 <td>{scheduledItem.Run_Time}</td>
                 <td>{scheduledItem.Content}</td>

@@ -11,6 +11,9 @@ const adsSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  videoUrl:{
+    type:String
+  },
   Type: {
     type: String,
     required: true,

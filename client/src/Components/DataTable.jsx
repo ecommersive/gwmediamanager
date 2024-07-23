@@ -12,6 +12,7 @@ const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileNa
               {currentData === 'Playlist Schedule' || currentData === 'Ads Schedule' ? (
                 scheduleEditMode === 'on' ? (
                   <>
+                    <th>Order</th>
                     <th>File Name</th>
                     <th>File Type</th>
                     <th>Tag</th>
@@ -84,6 +85,7 @@ const DataTable = ({ currentData, isAdmin, filteredData, setShowModal, setFileNa
 
             {scheduleEditMode === 'on' && orderedScheduledData.map((scheduledItem, idx) => (
               <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? 'transparent' : '#f0f0f0' }}>
+                <td>{idx+1}</td>
                 <td>{scheduledItem.FileName}</td>
                 <td>{scheduledItem.Type}</td>
                 <td>{scheduledItem.Tag}</td>

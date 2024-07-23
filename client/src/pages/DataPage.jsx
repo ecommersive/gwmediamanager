@@ -234,6 +234,9 @@ const DataPage = () => {
   const handlePhotoUrlChange = (event) => {
     setPhotoUrl(event.target.value);
   };
+  const handleVideoUrlChange = (event) =>{
+    setVideoURL(event.target.value)
+  }
   const handleTagChange = (event) => {
     setTag(event.target.value);
   };
@@ -272,6 +275,7 @@ const DataPage = () => {
       handleFileNameChange({ target: { value: file.name } });
       handleSelectedCategoryChange({ target: { value: currentData } });
       handlePhotoUrlChange({ target: { value: file.name } });
+      handleVideoUrlChange({ target: { value: file.name } });
 
       if (result) {
         const videoInfo = result.media.track.find((track) => track['@type'] === 'Video');
@@ -468,7 +472,7 @@ const DataPage = () => {
             <form onSubmit={handleSubmit}>
               <FormTitle catData={catData} currentData={currentData} />
               <FormViewFile catData={catData} isAdmin={isAdmin} fileDetails={fileDetails} />
-              <FormAddDataBody catData={catData} currentData={currentData} handleFileNameChange={handleFileNameChange} handleSelectedCategoryChange={handleSelectedCategoryChange} handlePhotoUrlChange={handlePhotoUrlChange} handleRunTimeChange={handleRunTimeChange} tag={tag} handleTagChange={handleTagChange} content={content} handleContentChange={handleContentChange} expiry={expiry} handleExpiryChange={handleExpiryChange} fileName={fileName} photoUrl={photoUrl} type={type} runTime={runTime} handleDrop={handleDrop} handleDragOver={handleDragOver} file={file} result={result} isAdmin={isAdmin} />
+              <FormAddDataBody catData={catData} currentData={currentData} handleFileNameChange={handleFileNameChange} handleSelectedCategoryChange={handleSelectedCategoryChange} handleRunTimeChange={handleRunTimeChange} tag={tag} handleTagChange={handleTagChange} content={content} handleContentChange={handleContentChange} expiry={expiry} handleExpiryChange={handleExpiryChange} fileName={fileName} photoUrl={photoUrl} type={type} runTime={runTime} handleDrop={handleDrop} handleDragOver={handleDragOver} file={file} result={result} isAdmin={isAdmin} />
               <FormAllDataBody catData={catData} currentData={currentData} handleSelectedCategoryChange={handleSelectedCategoryChange} fileName={fileName} handleFileNameChange={handleFileNameChange} ModalClose={ModalClose} />
               <FormExpiry catData={catData} expiry={expiry} handleExpiryChange={handleExpiryChange} />
               <FormButton catData={catData} identifier={identifier} photoUrl={photoUrl} type={type} runTime={runTime} content={content} handleSubmit={handleSubmit} />

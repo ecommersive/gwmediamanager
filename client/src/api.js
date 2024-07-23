@@ -188,6 +188,7 @@ const apiService = {
             videoData,
             audioData,
           };
+          console.log('formData ===========', formData);
     
           if (notes.length > 0) {
             formData.notes = notes.map(noteText => ({

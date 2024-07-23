@@ -92,7 +92,22 @@ const generateThumbnail = async (fileBuffer, fileName) => {
   await promisify(fs.unlink)(thumbnailPath);
   return thumbnailBuffer;
 };
+const uploadToS3 = async (buffer, key, mimeType) => {
+  const params = {
+    Bucket: process.env.AWS_BUCKET_NAME, // Ensure your bucket name is set in your environment variables
+    Key: key,
+    Body: buffer,
+    ContentType: mimeType,
+  };
 
+  try {
+    const data = await s3.upload(params).promise();
+    return data.Location; // Return the URL of the uploaded file
+  } catch (err) {
+    console.error('Error uploading to S3:', err);
+    throw err;
+  }
+};
 app.get('/playlists', async (req, res) => {
   try {
     const playlists = await Playlist.find({});
@@ -314,14 +329,15 @@ app.post('/uploadPlaylist', verifyToken, upload.single('file'), async (req, res)
     return res.status(400).json({ message: `File name already exists in ${foundIn.join(', ')}.` });
   }
 
+  
   try {
     let thumbnailUrl = '';
-    let fileUrl = await uploadToS3(file.buffer, `gwfolder/${mediaType}/${file.originalname}`, file.mimetype);
+    let fileUrl = await uploadToS3(file.buffer, `gwfolder/${Type === 'Video' ? 'gwvideos':'gwphotos'}/${file.originalname}`, file.mimetype);
 
     // If the file is a video, generate a thumbnail
     if (file.mimetype.startsWith('video/')) {
       const thumbnailBuffer = await generateThumbnail(file.buffer, file.originalname);
-      thumbnailUrl = await uploadToS3(thumbnailBuffer, `gwfolder/${mediaType}/thumbnails/${file.originalname}.png`, 'image/png');
+      thumbnailUrl = await uploadToS3(thumbnailBuffer, `gwfolder/gwphotos/${file.originalname}.png`, 'image/png');
     }
 
     const newPlaylistItem = new Playlist({

@@ -108,7 +108,6 @@ const FormAddDataBody = ({ catData, currentData, tag, handleTagChange, content, 
                       <input name="tag" value={tag} onChange={handleTagChange} />
                     </label>
                     <br />
-                    <p>Photo URL: {file.name}</p>
                     <label>
                       Type:
                       <input type="text" name="content" value={content} onChange={handleContentChange} required />

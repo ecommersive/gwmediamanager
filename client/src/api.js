@@ -149,7 +149,7 @@ const apiService = {
         return [];
       }
     },
-    handleSubmit: async ({event, catData, result, fileName,photoUrl, videoUrl,type,tag,runTime,content,expiry,notes,currentData,fetchData,setShowModal,resetAll,setFile}) => {
+    handleSubmit: async ({event, catData, result, fileName,photoUrl, videoUrl,type,tag,runTime,content,expiry,notes,currentData,fetchData,setShowModal,resetAll,setFile,file}) => {
         event.preventDefault();
         let logChangeMessage = '';
     
@@ -175,34 +175,54 @@ const apiService = {
             CompressionMode: audioInfo?.Compression_Mode || 'N/A',
           };
     
-          const formData = {
-            FileName: fileName,
-            PhotoUrl: photoUrl,
-            videoUrl: videoUrl,
-            Type: type,
-            Tag: tag,
-            Run_Time: runTime,
-            Content: content,
-            Expiry: expiry,
-            generalData,
-            videoData,
-            audioData,
-          };
-          console.log('formData ===========', formData);
+          // const formData = {
+          //   FileName: fileName,
+          //   PhotoUrl: photoUrl,
+          //   videoUrl: videoUrl,
+          //   Type: type,
+          //   Tag: tag,
+          //   Run_Time: runTime,
+          //   Content: content,
+          //   Expiry: expiry,
+          //   generalData,
+          //   videoData,
+          //   audioData,
+          // };
+          // console.log('formData ===========', formData);
     
-          if (notes.length > 0) {
-            formData.notes = notes.map(noteText => ({
+          // if (notes.length > 0) {
+          //   formData.notes = notes.map(noteText => ({
+          //     text: noteText,
+          //     addedOn: new Date(),
+          //   }));
+          // }
+          const formData = new FormData();
+          formData.append('FileName', fileName);
+          formData.append('PhotoUrl', photoUrl);
+          formData.append('videoUrl', videoUrl);
+          formData.append('Type', type);
+          formData.append('Tag', tag);
+          formData.append('Run_Time', runTime);
+          formData.append('Content', content);
+          formData.append('Expiry', expiry);
+          formData.append('notes', JSON.stringify(notes.map(noteText => ({
               text: noteText,
               addedOn: new Date(),
-            }));
+          }))));
+          formData.append('generalData', JSON.stringify(generalData));
+          formData.append('videoData', JSON.stringify(videoData));
+          formData.append('audioData', JSON.stringify(audioData));
+          if (file) {
+              formData.append('file', file);
           }
+
     
           const endpoint = currentData === 'Playlist' ? 'uploadPlaylist' : 'uploadAds';
           try {
             const response = await axios.post(`${baseURL}/${endpoint}`, formData, {
               headers: {
                 Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
+                'Content-Type': 'multipart/form-data',
               },
             });
     

@@ -118,7 +118,7 @@ const DataPage = () => {
     await apiService.fetchRequests(setRequests);
   };
   const handleSubmit = async (event) => {
-    await apiService.handleSubmit({ event, catData, result, fileName, photoUrl, videoUrl, type, tag, runTime, content, expiry, notes, currentData, fetchData, setShowModal, resetAll, setFile });
+    await apiService.handleSubmit({ event, catData, result, fileName, photoUrl, videoUrl, type, tag, runTime, content, expiry, notes, currentData, fetchData, setShowModal, resetAll, setFile, file });
   };
   const handleAddNoteSubmit = async (event, identifier) => {
     await apiService.handleAddNoteSubmit({ event, identifier, newNote, currentData, setNotes, fetchData });

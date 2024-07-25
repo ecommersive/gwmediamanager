@@ -72,6 +72,7 @@ const DataPage = () => {
   const [videoUrl, setVideoURL] = useState('')
   const [currentVideoUrl, setCurrentVideoUrl] = useState('');
   const [videoKey, setVideoKey] = useState(uuidv4());
+  const [previewUrl, setPreviewUrl] = useState(null);
 
 
 
@@ -227,6 +228,7 @@ const DataPage = () => {
     setEndTime('')
     setError('')
     setModalState('')
+    setPreviewUrl(null)
   }
   const handleFileNameChange = (event) => {
     setFileName(event.target.value);
@@ -254,6 +256,8 @@ const DataPage = () => {
   };
   const handleDrop = async (event) => {
     event.preventDefault();
+    console.log('preview url =', previewUrl);
+    setPreviewUrl(null)
     const file = event.dataTransfer.files[0];
     setFile(file);
 
@@ -288,6 +292,7 @@ const DataPage = () => {
     } catch (error) {
       console.error('Error analyzing file:', error);
     }
+    
   };
   const handleDragOver = (event) => {
     event.preventDefault();
@@ -413,9 +418,6 @@ const DataPage = () => {
     fetchData();
   }, [fetchData]);
   useEffect(() => {
-    console.log('catData:', catData);
-  }, [catData]);
-  useEffect(() => {
     if (catData === 'viewfile' && fileName) {
       fetchFileDetails(fileName);
     }
@@ -425,9 +427,7 @@ const DataPage = () => {
       fetchDataModals();
     }
   }, [modalSearchTerm, fetchDataModals]);
-  useEffect(() => {
-    console.log('Current requests:', requests);
-  }, [requests]);
+
   useEffect(() => {
     if (catData === 'requests') {
       fetchRequests();
@@ -472,7 +472,7 @@ const DataPage = () => {
             <form onSubmit={handleSubmit}>
               <FormTitle catData={catData} currentData={currentData} />
               <FormViewFile catData={catData} isAdmin={isAdmin} fileDetails={fileDetails} />
-              <FormAddDataBody catData={catData} currentData={currentData} handleFileNameChange={handleFileNameChange} handleSelectedCategoryChange={handleSelectedCategoryChange} handleRunTimeChange={handleRunTimeChange} tag={tag} handleTagChange={handleTagChange} content={content} handleContentChange={handleContentChange} expiry={expiry} handleExpiryChange={handleExpiryChange} fileName={fileName} photoUrl={photoUrl} type={type} runTime={runTime} handleDrop={handleDrop} handleDragOver={handleDragOver} file={file} result={result} isAdmin={isAdmin} />
+              <FormAddDataBody catData={catData} currentData={currentData} handleFileNameChange={handleFileNameChange} handleSelectedCategoryChange={handleSelectedCategoryChange} handleRunTimeChange={handleRunTimeChange} tag={tag} handleTagChange={handleTagChange} content={content} handleContentChange={handleContentChange} expiry={expiry} handleExpiryChange={handleExpiryChange} fileName={fileName} photoUrl={photoUrl} type={type} runTime={runTime} handleDrop={handleDrop} handleDragOver={handleDragOver} file={file} result={result} isAdmin={isAdmin} previewUrl={previewUrl} setPreviewUrl={setPreviewUrl}/>
               <FormAllDataBody catData={catData} currentData={currentData} handleSelectedCategoryChange={handleSelectedCategoryChange} fileName={fileName} handleFileNameChange={handleFileNameChange} ModalClose={ModalClose} />
               <FormExpiry catData={catData} expiry={expiry} handleExpiryChange={handleExpiryChange} />
               <FormButton catData={catData} identifier={identifier} photoUrl={photoUrl} type={type} runTime={runTime} content={content} handleSubmit={handleSubmit} />

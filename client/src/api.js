@@ -149,6 +149,24 @@ const apiService = {
         return [];
       }
     },
+
+    handleUpload: async (file, fileType) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('fileType', fileType);
+  
+      try {
+        const response = await axios.post(`${baseURL}/upload`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        return response.data.fileUrl;
+      } catch (error) {
+        console.error('Error uploading file:', error);
+        throw new Error('Error uploading file');
+      }
+    },  
     handleSubmit: async ({event, catData, result, fileName,photoUrl, videoUrl,type,tag,runTime,content,expiry,notes,currentData,fetchData,setShowModal,resetAll,setFile,file}) => {
         event.preventDefault();
         let logChangeMessage = '';
@@ -174,47 +192,39 @@ const apiService = {
             BitRate: audioInfo?.BitRate_Mode || 'N/A',
             CompressionMode: audioInfo?.Compression_Mode || 'N/A',
           };
+          const fileType = ['JPG', 'PNG', 'JPEG'].includes(type) ? 'photo' : 'video';
+          const uploadedFileUrl = await apiService.handleUpload(file, fileType);
+
+          if (fileType === 'photo') {
+            photoUrl = uploadedFileUrl;
+          } else {
+            videoUrl = uploadedFileUrl;
+          }
+
     
-          // const formData = {
-          //   FileName: fileName,
-          //   PhotoUrl: photoUrl,
-          //   videoUrl: videoUrl,
-          //   Type: type,
-          //   Tag: tag,
-          //   Run_Time: runTime,
-          //   Content: content,
-          //   Expiry: expiry,
-          //   generalData,
-          //   videoData,
-          //   audioData,
-          // };
-          // console.log('formData ===========', formData);
+          const formData = {
+            FileName: fileName,
+            PhotoUrl: photoUrl,
+            videoUrl: videoUrl,
+            Type: type,
+            Tag: tag,
+            Run_Time: runTime,
+            Content: content,
+            Expiry: expiry,
+            generalData,
+            videoData,
+            audioData,
+          };
+          console.log('formData ===========', formData);
     
-          // if (notes.length > 0) {
-          //   formData.notes = notes.map(noteText => ({
-          //     text: noteText,
-          //     addedOn: new Date(),
-          //   }));
-          // }
-          const formData = new FormData();
-          formData.append('FileName', fileName);
-          formData.append('PhotoUrl', photoUrl);
-          formData.append('videoUrl', videoUrl);
-          formData.append('Type', type);
-          formData.append('Tag', tag);
-          formData.append('Run_Time', runTime);
-          formData.append('Content', content);
-          formData.append('Expiry', expiry);
-          formData.append('notes', JSON.stringify(notes.map(noteText => ({
+          if (notes.length > 0) {
+            formData.notes = notes.map(noteText => ({
               text: noteText,
               addedOn: new Date(),
-          }))));
-          formData.append('generalData', JSON.stringify(generalData));
-          formData.append('videoData', JSON.stringify(videoData));
-          formData.append('audioData', JSON.stringify(audioData));
-          if (file) {
-              formData.append('file', file);
+            }));
           }
+         
+          console.log('formdata ===', formData);
 
     
           const endpoint = currentData === 'Playlist' ? 'uploadPlaylist' : 'uploadAds';
@@ -222,7 +232,7 @@ const apiService = {
             const response = await axios.post(`${baseURL}/${endpoint}`, formData, {
               headers: {
                 Authorization: `Bearer ${token}`,
-                'Content-Type': 'multipart/form-data',
+                'Content-Type': 'application/json',
               },
             });
     
@@ -272,6 +282,7 @@ const apiService = {
                 },
               }
             );
+            
             if (response.status === 200) {
               logChangeMessage = `${username} has deleted ${encodedFileName} in ${currentData === 'Playlist' ? ' the Content Pool' : currentData === 'Ads' ? 'Ads' : (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? currentData : ''}.`;
               console.log('Deletion successful');
@@ -311,6 +322,7 @@ const apiService = {
         resetAll();
         setFile('');
     },
+
     handleAddNoteSubmit: async ({ event, identifier, newNote, currentData, setNotes, fetchData }) => {
       let data;
       if(currentData === 'Playlist Schedule'){

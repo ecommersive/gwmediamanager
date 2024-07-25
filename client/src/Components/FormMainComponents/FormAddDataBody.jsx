@@ -1,7 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
-const FormAddDataBody = ({ catData, currentData, tag, handleTagChange, content, handleContentChange, expiry, handleExpiryChange, handleDrop, handleDragOver, file, result, isAdmin }) => {
-  
+
+const FormAddDataBody = ({ catData, currentData, tag, handleTagChange, content, handleContentChange, expiry, handleExpiryChange, handleDrop, handleDragOver, file, result, isAdmin, previewUrl, setPreviewUrl }) => {
+  useEffect(() => {
+    if (file) {
+      const objectUrl = URL.createObjectURL(file);
+      console.log('preview url =', previewUrl);
+      setPreviewUrl(objectUrl);
+      console.log('preview url =', previewUrl);
+      return () => URL.revokeObjectURL(objectUrl);
+    }
+    
+  }, [file, setPreviewUrl]);
   const renderInfo = (info) => {
     return Object.entries(info).map(([key, value]) => {
       if (typeof value === 'object') {
@@ -93,13 +103,27 @@ const FormAddDataBody = ({ catData, currentData, tag, handleTagChange, content, 
         <div
           onDrop={handleDrop}
           onDragOver={handleDragOver}
-          style={{ border: '1px solid black', padding: '20px', width: '300px' }}
+          style={{ border: '1px solid black', padding: '20px', width: '500px' }}
         >
           {file ? (
             <div>
+              {previewUrl && (
+                <div>
+                  <h1>Content</h1>
+                  {file.type.startsWith('video/') ? (
+                    <video width="350" controls>
+                      <source src={previewUrl} type={file.type} />
+                      Your browser does not support the video tag.
+                    </video>
+                  ) : (
+                    <img src={previewUrl} alt="Preview" width="300" />
+                  )}
+                </div>
+              )}
               {result && (
                 <>
                   <div>
+                    <h1>Data</h1>
                     <p>Category: {currentData === 'Playlist' ? 'Content' : currentData === 'Ads' ? 'Ads' :''}</p>
                     <p>File name: {file.name}</p>
                     {renderResult(result)}

@@ -1,6 +1,4 @@
 require('dotenv').config();
-const { promisify } = require('util');
-const fs = require('fs');  // Import the fs module
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -18,12 +16,13 @@ const path = require('path');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const xlsx = require('xlsx');
-const { S3Client } = require('@aws-sdk/client-s3');
-const { Upload } = require('@aws-sdk/lib-storage');
+const { S3Client, PutObjectCommand, DeleteObjectCommand  } = require('@aws-sdk/client-s3');
+const { v4: uuidv4 } = require('uuid');
 const multer = require('multer');
-const ffmpeg = require('fluent-ffmpeg');
-const ffmpegPath = require('ffmpeg-static');
+
+
 const ObjectId = mongoose.Types.ObjectId;
+
 
 const moment = require('moment-timezone');
 
@@ -63,86 +62,31 @@ const checkFileExistence = async (fileName) => {
   return foundIn;
 };
 
-const s3 = new S3Client({
+
+const upload = multer(); // Initialize multer
+
+const s3Client = new S3Client({
   region: process.env.AWS_REGION,
-  credentials:{
+  credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  }
+  },
 });
 
-const upload = multer({ storage: multer.memoryStorage() });
-const tempDir = path.join(__dirname, 'temp');
-if (!fs.existsSync(tempDir)) {
-  fs.mkdirSync(tempDir);
-}
-ffmpeg.setFfmpegPath(ffmpegPath);
+const uploadFile = async (file, folder) => {
+  const fileExtension = file.originalname.split('.').pop();
+  const fileName = `${folder}/${uuidv4()}.${fileExtension}`;
 
-const generateThumbnail = async (fileBuffer, fileName) => {
-  const tempFilePath = path.join(tempDir, fileName);
-  await promisify(fs.writeFile)(tempFilePath, fileBuffer);
+  const params = {
+    Bucket: process.env.AWS_S3_BUCKET,
+    Key: fileName,
+    Body: file.buffer,
+    ContentType: file.mimetype,
+  };
 
-  const thumbnailPath = path.join(tempDir, `${fileName}.png`);
-
-  await new Promise((resolve, reject) => {
-    ffmpeg(tempFilePath)
-      .screenshots({
-        count: 1,
-        folder: path.dirname(thumbnailPath),
-        filename: path.basename(thumbnailPath),
-        size: '320x240',
-        timemarks: ['3'],
-      })
-      .on('end', resolve)
-      .on('error', reject);
-  });
-
-  const thumbnailBuffer = await promisify(fs.readFile)(thumbnailPath);
-  await promisify(fs.unlink)(tempFilePath);
-  await promisify(fs.unlink)(thumbnailPath);
-  return thumbnailBuffer;
-};
-
-const uploadToS3 = async (buffer, key, mimeType) => {
-  const upload = new Upload({
-    client: s3,
-    params:{
-      Bucket: process.env.AWS_S3_BUCKET, // Ensure your bucket name is set in your environment variables
-      Key: key,
-      Body: buffer,
-      ContentType: mimeType,
-    }
-  });
-  
-
-  try {
-    const data = await upload.done();
-    return data.Location; // Return the URL of the uploaded file
-  } catch (err) {
-    console.error('Error uploading to S3:', err);
-    throw err;
-  }
-};
-
-const generateVideoFromImage = async (imageBuffer, fileName) => {
-  const tempImagePath = path.join(tempDir, fileName);
-  const tempVideoPath = path.join(tempDir, `${fileName}.mp4`);
-  await promisify(fs.writeFile)(tempImagePath, imageBuffer);
-
-  await new Promise((resolve, reject) => {
-    ffmpeg(tempImagePath)
-      .loop(5) // 5 seconds video
-      .outputOptions('-vf', 'scale=320:240') // Set resolution
-      .output(tempVideoPath)
-      .on('end', resolve)
-      .on('error', reject)
-      .run();
-  });
-
-  const videoBuffer = await promisify(fs.readFile)(tempVideoPath);
-  await promisify(fs.unlink)(tempImagePath);
-  await promisify(fs.unlink)(tempVideoPath);
-  return videoBuffer;
+  const command = new PutObjectCommand(params);
+  await s3Client.send(command);
+  return `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
 };
 
 app.get('/playlists', async (req, res) => {
@@ -167,7 +111,17 @@ app.get('/playlists', async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 });
-
+app.post('/upload', upload.single('file'), async (req, res) => {
+  try {
+    const { fileType } = req.body; // 'photo' or 'video'
+    const folder = fileType === 'photo' ? 'gwfolder/gwphotos' : 'gwfolder/gwvideos';
+    const fileUrl = await uploadFile(req.file, folder);
+    res.status(200).send({ fileUrl });
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    res.status(500).send({ error: 'Error uploading file' });
+  }
+});
 app.get('/ads', async (req, res) => {
   try {
     const ads = await Ads.find({});
@@ -328,192 +282,74 @@ app.get('/adsSchedule/:folder', verifyToken, async (req, res) => {
 });
 
 
-// app.post('/uploadPlaylist', verifyToken, async (req, res) => {
-//   const { FileName, PhotoUrl, videoUrl, Type, Tag, Run_Time, Content, Expiry, notes, generalData, videoData, audioData } = req.body;
-//   const foundIn = await checkFileExistence(FileName);
-//   if (foundIn.length > 0) {
-//     return res.status(400).json({ message: `File name already exists in ${foundIn.join(', ')}.` });
-//   }
-
-//   const newPlaylistItem = new Playlist({
-//     FileName,
-//     PhotoUrl,
-//     videoUrl,
-//     Type,
-//     Tag,
-//     Run_Time,
-//     Content,
-//     Expiry,
-//     notes,
-//     generalData,
-//     videoData,
-//     audioData,
-//   });
-
-//   try {
-//     const savedItem = await newPlaylistItem.save();
-//     res.status(201).json(savedItem);
-//   } catch (err) {
-//     console.error('Error saving new playlist item:', err);
-//     res.status(500).send('Internal Server Error');
-//   }
-// });
-app.post('/uploadPlaylist', verifyToken, upload.single('file'), async (req, res) => {
-  const { FileName, Type, Tag, Run_Time, Content, Expiry, notes, generalData, videoData, audioData } = req.body;
-  const file = req.file;
-
-  if (!file) {
-    console.error('No file uploaded.');
-    return res.status(400).json({ message: 'No file uploaded.' });
-  }
-
+app.post('/uploadPlaylist', verifyToken, async (req, res) => {
+  const { FileName, PhotoUrl, videoUrl, Type, Tag, Run_Time, Content, Expiry, notes, generalData, videoData, audioData } = req.body;
+  console.log('req body', req.body)
   const foundIn = await checkFileExistence(FileName);
   if (foundIn.length > 0) {
     return res.status(400).json({ message: `File name already exists in ${foundIn.join(', ')}.` });
   }
 
+  const newPlaylistItem = new Playlist({
+    FileName,
+    PhotoUrl,
+    videoUrl,
+    Type,
+    Tag,
+    Run_Time,
+    Content,
+    Expiry,
+    notes,
+    generalData,
+    videoData,
+    audioData,
+  });
+
   try {
-    let fileUrl = await uploadToS3(file.buffer, `gwfolder/${Type === 'Video' ? 'gwvideos' : 'gwphotos'}/${file.originalname}`, file.mimetype);
-
-    let thumbnailUrl = '';
-    let videoUrl = '';
-
-    if (file.mimetype.startsWith('video/')) {
-      const thumbnailBuffer = await generateThumbnail(file.buffer, file.originalname);
-      thumbnailUrl = await uploadToS3(thumbnailBuffer, `gwfolder/gwphotos/${file.originalname}.png`, 'image/png');
-      videoUrl = fileUrl;
-    } else if (file.mimetype.startsWith('image/')) {
-      // Generate a video from the photo
-      const videoBuffer = await generateVideoFromImage(file.buffer, file.originalname);
-      videoUrl = await uploadToS3(videoBuffer, `gwfolder/gwvideos/${file.originalname}.mp4`, 'video/mp4');
-      thumbnailUrl = fileUrl; // The photo URL will be used as the thumbnail URL
-    }
-
-    let parsedNotes = [];
-    try {
-      parsedNotes = JSON.parse(notes).map(note => ({
-        text: note.text,
-        addedOn: new Date(note.addedOn)
-      }));
-    } catch (err) {
-      console.error('Error parsing notes:', err);
-    }
-
-    const newPlaylistItem = new Playlist({
-      FileName,
-      PhotoUrl: thumbnailUrl || fileUrl,
-      videoUrl,
-      Type,
-      Tag,
-      Run_Time,
-      Content,
-      Expiry,
-      notes: parsedNotes,
-      generalData,
-      videoData,
-      audioData,
-    });
-
     const savedItem = await newPlaylistItem.save();
     res.status(201).json(savedItem);
   } catch (err) {
-    console.error('Error uploading file to S3 or saving new playlist item:', err);
+    console.error('Error saving new playlist item:', err);
     res.status(500).send('Internal Server Error');
   }
 });
 
 
 
-// app.post('/uploadAds', verifyToken, async (req, res) => {
-//   const { FileName, PhotoUrl, Type, Tag, Run_Time, Content,  Expiry, notes, generalData, videoData, audioData  } = req.body;
 
-//   const foundIn = await checkFileExistence(FileName);
-//   if (foundIn.length > 0) {
-//     return res.status(400).json({ message: `File name already exists in ${foundIn.join(', ')}.` });
-//   }
 
-//   const newAdsItem = new Ads({
-//     FileName,
-//     PhotoUrl,
-//     Type,
-//     Tag,
-//     Run_Time,
-//     Content,
-//     Expiry,
-//     notes,
-//     generalData,
-//     videoData,
-//     audioData,
-//   });
-
-//   try {
-//     const savedItem = await newAdsItem.save();
-//     res.status(201).json(savedItem);
-//   } catch (err) {
-//     console.error('Error saving new playlist item:', err);
-//     res.status(500).send('Internal Server Error');
-//   }
-// });
-app.post('/uploadAds', verifyToken, upload.single('file'), async (req, res) => {
-  const { FileName, Type, Tag, Run_Time, Content, Expiry, notes, generalData, videoData, audioData } = req.body;
-  const file = req.file;
-
-  if (!file) {
-    console.error('No file uploaded.');
-    return res.status(400).json({ message: 'No file uploaded.' });
-  }
+app.post('/uploadAds', verifyToken, async (req, res) => {
+  const { FileName, PhotoUrl, Type, Tag, Run_Time, Content,  Expiry, notes, generalData, videoData, audioData  } = req.body;
 
   const foundIn = await checkFileExistence(FileName);
   if (foundIn.length > 0) {
     return res.status(400).json({ message: `File name already exists in ${foundIn.join(', ')}.` });
   }
 
+  const newAdsItem = new Ads({
+    FileName,
+    PhotoUrl,
+    Type,
+    Tag,
+    Run_Time,
+    Content,
+    Expiry,
+    notes,
+    generalData,
+    videoData,
+    audioData,
+  });
+
   try {
-    let fileUrl = await uploadToS3(file.buffer, `gwfolder/${Type === 'Video' ? 'gwvideos':'gwphotos'}/${file.originalname}`, file.mimetype);
-
-    let thumbnailUrl = '';
-    if (file.mimetype.startsWith('video/')) {
-      const thumbnailBuffer = await generateThumbnail(file.buffer, file.originalname);
-      thumbnailUrl = await uploadToS3(thumbnailBuffer, `gwfolder/gwphotos/${file.originalname}.png`, 'image/png');
-      videoUrl = fileUrl;
-    } else if (file.mimetype.startsWith('image/')) {
-      // Generate a video from the photo
-      const videoBuffer = await generateVideoFromImage(file.buffer, file.originalname);
-      videoUrl = await uploadToS3(videoBuffer, `gwfolder/gwvideos/${file.originalname}.mp4`, 'video/mp4');
-      thumbnailUrl = fileUrl; // The photo URL will be used as the thumbnail URL
-    }
-    let parsedNotes = [];
-    try {
-      parsedNotes = JSON.parse(notes).map(note => ({
-        text: note.text,
-        addedOn: new Date(note.addedOn)
-      }));
-    } catch (err) {
-      console.error('Error parsing notes:', err);
-    }
-
-    const newAdsItem = new Ads({
-      FileName,
-      PhotoUrl: thumbnailUrl || fileUrl,
-      videoUrl: file.mimetype.startsWith('video/') ? fileUrl : '',
-      Type,
-      Tag,
-      Run_Time,
-      Content,
-      Expiry,
-      notes: parsedNotes,
-      generalData,
-      videoData,
-      audioData,
-    });
-
     const savedItem = await newAdsItem.save();
     res.status(201).json(savedItem);
   } catch (err) {
-    console.error('Error uploading file to S3 or saving new playlist item:', err);
+    console.error('Error saving new playlist item:', err);
     res.status(500).send('Internal Server Error');
   }
 });
+
+
 
 app.get('/fileDetails/:fileName', verifyToken, async (req, res) => {
   try {
@@ -566,6 +402,9 @@ app.post('/register', async (req, res) => {
 });
 
 
+const escapeRegExp = (string) => {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+};
 
 app.delete('/deleteData/:category/:fileName', verifyToken, async (req, res) => {
   const { category, fileName } = req.params;
@@ -582,28 +421,21 @@ app.delete('/deleteData/:category/:fileName', verifyToken, async (req, res) => {
   }
 
   try {
-    const regex = new RegExp('^' + fileName + '$', 'i');
-    const document = await Model.findOne({FileName: regex})
+    const escapedFileName = escapeRegExp(fileName);
+    const regex = new RegExp(`^${escapedFileName}$`, 'i');
+    
+    const document = await Model.findOne({ FileName: regex });
     if (!document) {
       return res.status(404).send({ error: 'File not found' });
     }
-    const photoUrl = document.PhotoUrl;
-    const videoUrl = document.videoUrl;
-
-    const deleteFromS3 = async (url) => {
-      const urlParts = url.split('/');
-      const key = urlParts.slice(urlParts.indexOf('gwfolder')).join('/');
-      const params = { Bucket: process.env.AWS_S3_BUCKET, Key: key };
-
-      try {
-        await s3.deleteObject(params).promise();
-        console.log(`Successfully deleted ${key} from S3`);
-      } catch (err) {
-        console.error(`Error deleting ${key} from S3`, err);
-      }
+    const fileUrl = document.videoUrl || document.photoUrl;
+    const fileKey = decodeURIComponent(fileUrl.split('.com/')[1]); // Extract the key after the bucket URL
+    const params = {
+      Bucket: process.env.AWS_S3_BUCKET,
+      Key: fileKey,
     };
-    if (photoUrl) await deleteFromS3(photoUrl);
-    if (videoUrl) await deleteFromS3(videoUrl);
+    const command = new DeleteObjectCommand(params);
+    await s3Client.send(command);
     const deletedDocument = await Model.findOneAndDelete({ FileName: regex });
     res.send({ message: 'File deleted successfully', deletedDocument });
   } catch (error) {
@@ -611,6 +443,7 @@ app.delete('/deleteData/:category/:fileName', verifyToken, async (req, res) => {
     res.status(500).send({ error: 'Internal Server Error' });
   }
 });
+
 app.post('/setExpiry/:category/:fileName', verifyToken, async (req, res) => {
   const { category, fileName } = req.params;
   const { newExpiryDate } = req.body;

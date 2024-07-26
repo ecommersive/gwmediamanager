@@ -59,7 +59,7 @@ const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setSh
                     <td>{item.Tag}</td>
                     <td>{item.Run_Time}</td>
                     <td>{item.Content}</td>
-                    <td>{formatDate(item.Expiry)}</td>
+                    <td>{item.Expiry ? formatDate(item.Expiry) : item.Expiry}</td>
                     <td><button className='action-button' onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setCatData('Comments'); setMode('configureData') }}>Comments</button></td>
                     {isAdmin && <td><button className='action-button' onClick={() => { setShowModal(true); setFileName(item.FileName); setMode('configureData'); setCatData('viewfile') }}>Details</button></td>}
                   </tr>

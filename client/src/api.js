@@ -167,7 +167,7 @@ const apiService = {
         throw new Error('Error uploading file');
       }
     },  
-    handleSubmit: async ({event, catData, result, fileName,photoUrl, videoUrl,type,tag,runTime,content,expiry,notes,currentData,fetchData,setShowModal,resetAll,setFile,file}) => {
+    handleSubmit: async ({event, catData, result, fileName,photoUrl, videoUrl,type,tag,runTime,content,expiry,notes,currentData,fetchData,setShowModal,resetAll,setFile,file, generateThumbnailFromVideo, setPhotoUrl}) => {
         event.preventDefault();
         let logChangeMessage = '';
     
@@ -193,13 +193,16 @@ const apiService = {
             CompressionMode: audioInfo?.Compression_Mode || 'N/A',
           };
           const fileType = ['JPG', 'PNG', 'JPEG'].includes(type) ? 'photo' : 'video';
-          // const uploadedFileUrl = await apiService.handleUpload(file, fileType);
-
-          // if (fileType === 'photo') {
-          //   photoUrl = uploadedFileUrl;
-          // } else {
-          //   videoUrl = uploadedFileUrl;
-          // }
+          const uploadedFileUrl = await apiService.handleUpload(file, fileType);
+      
+          if (fileType === 'photo') {
+            photoUrl = uploadedFileUrl;
+          } else {
+            videoUrl = uploadedFileUrl;
+            // Generate and upload the thumbnail
+            const thumbnailUrl = await generateThumbnailFromVideo(file);
+            setPhotoUrl(thumbnailUrl);
+          }
 
     
           const formData = {

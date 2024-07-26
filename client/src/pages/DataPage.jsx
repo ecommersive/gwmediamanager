@@ -76,11 +76,6 @@ const DataPage = () => {
   const [videoKey, setVideoKey] = useState(uuidv4());
   const [previewUrl, setPreviewUrl] = useState(null);
 
-  // const { getRootProps, getInputProps } = useDropzone({
-  //   onDrop: (acceptedFiles) => handleDrop(acceptedFiles),
-  //   accept: 'image/*,video/*',
-  //   multiple: false,
-  // });
 
 
   //api calls
@@ -126,7 +121,7 @@ const DataPage = () => {
     await apiService.fetchRequests(setRequests);
   };
   const handleSubmit = async (event) => {
-    await apiService.handleSubmit({ event, catData, result, fileName, photoUrl, videoUrl, type, tag, runTime, content, expiry, notes, currentData, fetchData, setShowModal, resetAll, setFile, file });
+    await apiService.handleSubmit({ event, catData, result, fileName, photoUrl, videoUrl, type, tag, runTime, content, expiry, notes, currentData, fetchData, setShowModal, resetAll, setFile, file, generateThumbnailFromVideo, setPhotoUrl});
   };
   const handleAddNoteSubmit = async (event, identifier) => {
     await apiService.handleAddNoteSubmit({ event, identifier, newNote, currentData, setNotes, fetchData });
@@ -301,6 +296,7 @@ const DataPage = () => {
     }
     
   };
+
   const handleDragOver = (event) => {
     event.preventDefault();
   };
@@ -420,6 +416,57 @@ const DataPage = () => {
     setShowModal(true);
     setVideoKey(uuidv4());
   };
+  const generateThumbnailFromVideo = (videoFile) => {
+    return new Promise((resolve, reject) => {
+      const videoElement = document.createElement('video');
+      videoElement.src = URL.createObjectURL(videoFile);
+      videoElement.currentTime = 1; // Capture frame at 1 second
+  
+      videoElement.onloadeddata = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = videoElement.videoWidth;
+        canvas.height = videoElement.videoHeight;
+        const context = canvas.getContext('2d');
+        context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+  
+        canvas.toBlob(async (blob) => {
+          const thumbnailFile = new File([blob], `${uuidv4()}.jpg`, { type: 'image/jpeg' });
+          const thumbnailUrl = await apiService.handleUpload(thumbnailFile, 'photo');
+          resolve(thumbnailUrl);
+        }, 'image/jpeg');
+      };
+  
+      videoElement.onerror = (error) => {
+        reject(error);
+      };
+    });
+  };
+  
+  const generateThumbnailFromImage = (imageFile) => {
+    return new Promise((resolve, reject) => {
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(imageFile);
+  
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const context = canvas.getContext('2d');
+        context.drawImage(img, 0, 0, canvas.width, canvas.height);
+  
+        canvas.toBlob(async (blob) => {
+          const thumbnailFile = new File([blob], `${uuidv4()}.jpg`, { type: 'image/jpeg' });
+          const thumbnailUrl = await apiService.handleUpload(thumbnailFile, 'photo');
+          resolve(thumbnailUrl);
+        }, 'image/jpeg');
+      };
+  
+      img.onerror = (error) => {
+        reject(error);
+      };
+    });
+  };
+  
   // Use effects
   useEffect(() => {
     fetchData();
@@ -479,6 +526,7 @@ const DataPage = () => {
             <form onSubmit={handleSubmit}>
               <FormTitle catData={catData} currentData={currentData} />
               <FormViewFile catData={catData} isAdmin={isAdmin} fileDetails={fileDetails} />
+            
               <FormAddDataBody catData={catData} currentData={currentData} handleFileNameChange={handleFileNameChange} handleSelectedCategoryChange={handleSelectedCategoryChange} handleRunTimeChange={handleRunTimeChange} tag={tag} handleTagChange={handleTagChange} content={content} handleContentChange={handleContentChange} expiry={expiry} handleExpiryChange={handleExpiryChange} fileName={fileName} photoUrl={photoUrl} type={type} runTime={runTime} handleDrop={handleDrop} handleDragOver={handleDragOver} file={file} result={result} isAdmin={isAdmin} previewUrl={previewUrl} setPreviewUrl={setPreviewUrl}/>
               <FormAllDataBody catData={catData} currentData={currentData} handleSelectedCategoryChange={handleSelectedCategoryChange} fileName={fileName} handleFileNameChange={handleFileNameChange} ModalClose={ModalClose} />
               <FormExpiry catData={catData} expiry={expiry} handleExpiryChange={handleExpiryChange} />

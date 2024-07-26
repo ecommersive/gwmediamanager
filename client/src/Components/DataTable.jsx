@@ -59,7 +59,7 @@ const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setSh
                     <td>{item.Tag}</td>
                     <td>{item.Run_Time}</td>
                     <td>{item.Content}</td>
-                    <td>{item.Expiry}</td>
+                    <td>{formatDate(item.Expiry)}</td>
                     <td><button className='action-button' onClick={() => { setShowModal(true); setFileName(item.FileName); setNotes(item.notes); setCatData('Comments'); setMode('configureData') }}>Comments</button></td>
                     {isAdmin && <td><button className='action-button' onClick={() => { setShowModal(true); setFileName(item.FileName); setMode('configureData'); setCatData('viewfile') }}>Details</button></td>}
                   </tr>
@@ -99,7 +99,7 @@ const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setSh
                 <td>{scheduledItem.Tag}</td>
                 <td>{scheduledItem.Run_Time}</td>
                 <td>{scheduledItem.Content}</td>
-                <td>{scheduledItem.Expiry}</td>
+                <td>{formatDate(scheduledItem.Expiry)}</td>
                 <td><button className='action-button' onClick={() => { setShowModal(true); setFileName(scheduledItem.FileName); setNotes(scheduledItem.notes); setCatData('Comments'); setMode('configureData') }}>Comments</button></td>
                 {isAdmin && <td><button className='action-button' onClick={() => { setShowModal(true); setFileName(scheduledItem.FileName); setMode('configureData'); setCatData('viewfile') }}>Details</button></td>}
               </tr>

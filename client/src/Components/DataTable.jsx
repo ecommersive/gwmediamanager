@@ -99,7 +99,7 @@ const DataTable = ({ currentData, isAdmin, handleVideoClick, filteredData, setSh
                 <td>{scheduledItem.Tag}</td>
                 <td>{scheduledItem.Run_Time}</td>
                 <td>{scheduledItem.Content}</td>
-                <td>{formatDate(scheduledItem.Expiry)}</td>
+                <td>{scheduledItem.Expiry ? formatDate(scheduledItem.Expiry) : scheduledItem.Expiry}</td>
                 <td><button className='action-button' onClick={() => { setShowModal(true); setFileName(scheduledItem.FileName); setNotes(scheduledItem.notes); setCatData('Comments'); setMode('configureData') }}>Comments</button></td>
                 {isAdmin && <td><button className='action-button' onClick={() => { setShowModal(true); setFileName(scheduledItem.FileName); setMode('configureData'); setCatData('viewfile') }}>Details</button></td>}
               </tr>

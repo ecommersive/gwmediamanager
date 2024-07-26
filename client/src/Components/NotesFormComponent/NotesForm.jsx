@@ -43,7 +43,7 @@ const NotesForm = ({ catData, identifier, data, notes, editingNoteId, editingNot
             />
             <br />
             <br />
-            <button onClick={(e) => { handleAddNoteSubmit(e, identifier); setNewNote(''); }} onChange={handleUpdateNoteText} >Submit {(currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') ? `Request` : `Note`}</button>
+            <button onClick={(e) => { handleAddNoteSubmit(e, identifier); setNewNote(''); }} onChange={handleUpdateNoteText} >Submit Comment</button>
             
           </>
           <br />

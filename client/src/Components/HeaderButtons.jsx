@@ -32,7 +32,7 @@ const HeaderButtons = ({ currentData, isAdmin, handleModal, setMode, setCatData,
               </>
               )
             }
-            {(scheduleEditMode === 'off' || scheduleEditMode === '') && <button className="action-button" onClick={() => { handleModal(true); setMode('configureData'); setCatData('requests'); }}>SCSD Requests</button>}
+            {(scheduleEditMode === 'off' || scheduleEditMode === '') && <button className="action-button" onClick={() => { handleModal(true); setMode('configureData'); setCatData('requests'); }}>Requests</button>}
             {scheduleEditMode === 'on' && <button onClick={() => {setScheduleEditMode('off')}} className="action-button">Go Back</button>}
           </>
         )

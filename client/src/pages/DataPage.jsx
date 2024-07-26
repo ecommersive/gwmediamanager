@@ -19,6 +19,8 @@ import RequestDetails from '../Components/RequestModal/RequestDetails';
 import { mediaInfoFactory } from 'mediainfo.js';
 import FormViewFile from '../Components/FormMainComponents/FormViewFile';
 import apiService from '../api';
+import { useDropzone } from 'react-dropzone';
+
 const DataPage = () => {
   const [folderViewNum, setfolderViewNum] = useState(0)
   const [mode, setMode] = useState('');
@@ -74,6 +76,11 @@ const DataPage = () => {
   const [videoKey, setVideoKey] = useState(uuidv4());
   const [previewUrl, setPreviewUrl] = useState(null);
 
+  // const { getRootProps, getInputProps } = useDropzone({
+  //   onDrop: (acceptedFiles) => handleDrop(acceptedFiles),
+  //   accept: 'image/*,video/*',
+  //   multiple: false,
+  // });
 
 
   //api calls

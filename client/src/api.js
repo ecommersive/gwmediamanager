@@ -193,13 +193,13 @@ const apiService = {
             CompressionMode: audioInfo?.Compression_Mode || 'N/A',
           };
           const fileType = ['JPG', 'PNG', 'JPEG'].includes(type) ? 'photo' : 'video';
-          const uploadedFileUrl = await apiService.handleUpload(file, fileType);
+          // const uploadedFileUrl = await apiService.handleUpload(file, fileType);
 
-          if (fileType === 'photo') {
-            photoUrl = uploadedFileUrl;
-          } else {
-            videoUrl = uploadedFileUrl;
-          }
+          // if (fileType === 'photo') {
+          //   photoUrl = uploadedFileUrl;
+          // } else {
+          //   videoUrl = uploadedFileUrl;
+          // }
 
     
           const formData = {

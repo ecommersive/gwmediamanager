@@ -55,7 +55,7 @@ const DataTable = ({ currentData, isAdmin, handleUrlClick, filteredData, setShow
                     <td><img src={item.PhotoUrl} style={{ width: '50px', height: 'auto' }} /></td>                    
                     <td>{item.FileName}</td>
                     <td>{item.Type}</td>
-                    <td><button onClick={() => { handleUrlClick(item.PhotoUrl, item.videoUrl); setMode('viewvideo')}}>View</button></td>
+                    <td><button className='action-button' onClick={() => { handleUrlClick(item.PhotoUrl, item.videoUrl); setMode('viewvideo')}}>View</button></td>
                     <td>{item.Tag}</td>
                     <td>{item.Run_Time}</td>
                     <td>{item.Content}</td>
@@ -95,7 +95,7 @@ const DataTable = ({ currentData, isAdmin, handleUrlClick, filteredData, setShow
                 <td><img src={scheduledItem.PhotoUrl} style={{ width: '50px', height: 'auto' }} /></td>
                 <td>{scheduledItem.FileName}</td>
                 <td>{scheduledItem.Type}</td>
-                <td><button onClick={() => { handleUrlClick(scheduledItem.PhotoUrl, scheduledItem.videoUrl); setMode('viewvideo')}}>View</button></td>
+                <td><button className='action-button' onClick={() => { handleUrlClick(scheduledItem.PhotoUrl, scheduledItem.videoUrl); setMode('viewvideo')}}>View</button></td>
                 <td>{scheduledItem.Tag}</td>
                 <td>{scheduledItem.Run_Time}</td>
                 <td>{scheduledItem.Content}</td>

@@ -114,7 +114,7 @@ app.get('/playlists', async (req, res) => {
 app.post('/upload', upload.single('file'), async (req, res) => {
   try {
     const { fileType } = req.body; // 'photo' or 'video'
-    const folder = fileType === 'photo' ? 'gwfolder/gwphotos' : 'gwfolder/gwvideos';
+    const folder = fileType === 'Photo' ? 'gwfolder/gwphotos' : 'gwfolder/gwvideos';
     const fileUrl = await uploadFile(req.file, folder);
     res.status(200).send({ fileUrl });
   } catch (error) {
@@ -428,14 +428,26 @@ app.delete('/deleteData/:category/:fileName', verifyToken, async (req, res) => {
     if (!document) {
       return res.status(404).send({ error: 'File not found' });
     }
-    const fileUrl = document.videoUrl || document.photoUrl;
-    const fileKey = decodeURIComponent(fileUrl.split('.com/')[1]); // Extract the key after the bucket URL
-    const params = {
-      Bucket: process.env.AWS_S3_BUCKET,
-      Key: fileKey,
-    };
-    const command = new DeleteObjectCommand(params);
-    await s3Client.send(command);
+
+
+    const urlsToDelete = [];
+    if (document.videoUrl) {
+      urlsToDelete.push(document.videoUrl);
+    }
+    if (document.PhotoUrl) {
+      urlsToDelete.push(document.PhotoUrl);
+    }
+    console.log('document deleted successfully = ', document);
+
+    for (const url of urlsToDelete) {
+      const fileKey = decodeURIComponent(url.split('.com/')[1]); // Extract the key after the bucket URL
+      const params = {
+        Bucket: process.env.AWS_S3_BUCKET,
+        Key: fileKey,
+      };
+      const command = new DeleteObjectCommand(params);
+      await s3Client.send(command);
+    }
     const deletedDocument = await Model.findOneAndDelete({ FileName: regex });
     res.send({ message: 'File deleted successfully', deletedDocument });
   } catch (error) {

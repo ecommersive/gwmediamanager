@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 
 
-const FormAddDataBody = ({ catData, currentData, tag, handleTagChange, content, handleContentChange, expiry, handleExpiryChange, handleDrop, handleDragOver, file, result, isAdmin, previewUrl, setPreviewUrl }) => {
+const FormAddDataBody = ({ catData, currentData, tag, handleTagChange, content, handleContentChange, expiry, handleExpiryChange, handleDrop, handleDragOver, file, result, isAdmin, previewUrl, type, setPreviewUrl, setType }) => {
   useEffect(() => {
     if (file) {
       const objectUrl = URL.createObjectURL(file);
@@ -41,8 +41,10 @@ const FormAddDataBody = ({ catData, currentData, tag, handleTagChange, content, 
     let fileType;
     if (videoInfo) {
       fileType = videoInfo['@type'];
+      setType('Video')
     } else {
       fileType = generalInfo.Format;
+      setType("Photo")
     }
 
     return (

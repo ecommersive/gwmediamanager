@@ -154,6 +154,7 @@ const apiService = {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('fileType', fileType);
+      
   
       try {
         const response = await axios.post(`${baseURL}/upload`, formData, {
@@ -167,7 +168,7 @@ const apiService = {
         throw new Error('Error uploading file');
       }
     },  
-    handleSubmit: async ({event, catData, result, fileName,photoUrl, videoUrl,type,tag,runTime,content,expiry,notes,currentData,fetchData,setShowModal,resetAll,setFile,file, generateThumbnailFromVideo, setPhotoUrl}) => {
+    handleSubmit: async ({event, catData, result, fileName,photoUrl, videoUrl,type,tag,runTime,content,expiry,notes,currentData,fetchData,setShowModal,resetAll,setFile,file, generateThumbnailFromVideo, generateThumbnailFromImage}) => {
         event.preventDefault();
         let logChangeMessage = '';
     
@@ -192,16 +193,17 @@ const apiService = {
             BitRate: audioInfo?.BitRate_Mode || 'N/A',
             CompressionMode: audioInfo?.Compression_Mode || 'N/A',
           };
-          const fileType = ['JPG', 'PNG', 'JPEG'].includes(type) ? 'photo' : 'video';
-          const uploadedFileUrl = await apiService.handleUpload(file, fileType);
-      
-          if (fileType === 'photo') {
+  
+          const uploadedFileUrl = await apiService.handleUpload(file, type);
+          let thumbnailUrl = ''
+          if (type === 'Photo') {
             photoUrl = uploadedFileUrl;
+            thumbnailUrl = await generateThumbnailFromImage(file);
+            videoUrl = thumbnailUrl;
           } else {
             videoUrl = uploadedFileUrl;
-            // Generate and upload the thumbnail
             const thumbnailUrl = await generateThumbnailFromVideo(file);
-            setPhotoUrl(thumbnailUrl);
+            photoUrl = thumbnailUrl
           }
 
     

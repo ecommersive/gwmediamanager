@@ -19,7 +19,6 @@ import RequestDetails from '../Components/RequestModal/RequestDetails';
 import { mediaInfoFactory } from 'mediainfo.js';
 import FormViewFile from '../Components/FormMainComponents/FormViewFile';
 import apiService from '../api';
-import { useDropzone } from 'react-dropzone';
 
 const DataPage = () => {
   const [folderViewNum, setfolderViewNum] = useState(0)
@@ -35,7 +34,7 @@ const DataPage = () => {
   const [fileName, setFileName] = useState('');
   const [identifier, setIdentifier] = useState(folderViewNum);
   const [photoUrl, setPhotoUrl] = useState('');
-  const [type, setType] = useState('Video');
+  const [type, setType] = useState('');
   const [tag, setTag] = useState('');
   const [runTime, setRunTime] = useState('');
   const [content, setContent] = useState('');
@@ -72,7 +71,7 @@ const DataPage = () => {
   const [scheduledData, setScheduledData] = useState([]);
   const [compareData, setCompareData] = useState([])
   const [videoUrl, setVideoURL] = useState('')
-  const [currentVideoUrl, setCurrentVideoUrl] = useState('');
+  const [currentViewUrl, setCurrentViewUrl] = useState('');
   const [videoKey, setVideoKey] = useState(uuidv4());
   const [previewUrl, setPreviewUrl] = useState(null);
 
@@ -121,7 +120,7 @@ const DataPage = () => {
     await apiService.fetchRequests(setRequests);
   };
   const handleSubmit = async (event) => {
-    await apiService.handleSubmit({ event, catData, result, fileName, photoUrl, videoUrl, type, tag, runTime, content, expiry, notes, currentData, fetchData, setShowModal, resetAll, setFile, file, generateThumbnailFromVideo, setPhotoUrl});
+    await apiService.handleSubmit({ event, catData, result, fileName, photoUrl, videoUrl, type, tag, runTime, content, expiry, notes, currentData, fetchData, setShowModal, resetAll, setFile, file, generateThumbnailFromVideo, generateThumbnailFromImage});
   };
   const handleAddNoteSubmit = async (event, identifier) => {
     await apiService.handleAddNoteSubmit({ event, identifier, newNote, currentData, setNotes, fetchData });
@@ -231,6 +230,8 @@ const DataPage = () => {
     setError('')
     setModalState('')
     setPreviewUrl(null)
+    setType('')
+    setVideoURL('')
   }
   const handleFileNameChange = (event) => {
     setFileName(event.target.value);
@@ -314,6 +315,8 @@ const DataPage = () => {
     setContent('')
     setRunTime('')
     setExpiry('')
+    setType('')
+    setVideoURL('')
   }
   const filteredData = useMemo(() => {
     return data.filter(item => {
@@ -411,11 +414,12 @@ const DataPage = () => {
     return compareIDs.map(id => scheduledData.find(scheduledItem => scheduledItem._id === id)).filter(item => item !== undefined);
   }, [compareData, scheduledData]);
   const orderedScheduledData = useMemo(() => matchAndOrderScheduledData(), [matchAndOrderScheduledData]);
-  const handleVideoClick = (videoUrl) => {
-    setCurrentVideoUrl(videoUrl);
+  const handleUrlClick = (videoUrl, photoUrl) => {
+    data.Type === 'Video' ?  setCurrentViewUrl(videoUrl) : setCurrentViewUrl(photoUrl)
     setShowModal(true);
     setVideoKey(uuidv4());
   };
+  
   const generateThumbnailFromVideo = (videoFile) => {
     return new Promise((resolve, reject) => {
       const videoElement = document.createElement('video');
@@ -431,7 +435,7 @@ const DataPage = () => {
   
         canvas.toBlob(async (blob) => {
           const thumbnailFile = new File([blob], `${uuidv4()}.jpg`, { type: 'image/jpeg' });
-          const thumbnailUrl = await apiService.handleUpload(thumbnailFile, 'photo');
+          const thumbnailUrl = await apiService.handleUpload(thumbnailFile, 'Photo');
           resolve(thumbnailUrl);
         }, 'image/jpeg');
       };
@@ -441,7 +445,6 @@ const DataPage = () => {
       };
     });
   };
-  
   const generateThumbnailFromImage = (imageFile) => {
     return new Promise((resolve, reject) => {
       const img = document.createElement('img');
@@ -455,9 +458,13 @@ const DataPage = () => {
         context.drawImage(img, 0, 0, canvas.width, canvas.height);
   
         canvas.toBlob(async (blob) => {
-          const thumbnailFile = new File([blob], `${uuidv4()}.jpg`, { type: 'image/jpeg' });
-          const thumbnailUrl = await apiService.handleUpload(thumbnailFile, 'photo');
-          resolve(thumbnailUrl);
+          try {
+            const thumbnailFile = new File([blob], `${uuidv4()}.jpg`, { type: 'image/jpeg' });
+            const thumbnailUrl = await apiService.handleUpload(thumbnailFile, 'photo');
+            resolve(thumbnailUrl);
+          } catch (error) {
+            reject(error);
+          }
         }, 'image/jpeg');
       };
   
@@ -466,7 +473,8 @@ const DataPage = () => {
       };
     });
   };
-  
+  const isVideo = /\.(mp4|webm|ogg)$/i.test(currentViewUrl);
+
   // Use effects
   useEffect(() => {
     fetchData();
@@ -507,6 +515,7 @@ const DataPage = () => {
       })));
     }
   }, [data]);
+
   return (
     <main className="table">
       <section className="table_header">
@@ -518,16 +527,16 @@ const DataPage = () => {
           <HeaderButtons currentData={currentData} isAdmin={isAdmin} handleModal={handleModal} setMode={setMode} setCatData={setCatData} handleLogout={handleLogout} catData={catData} data={data.find(d => d.folder === folderViewNum)} setShowModal={setShowModal} setfolderViewNum={setfolderViewNum} setScheduleEditMode={setScheduleEditMode} scheduleEditMode={scheduleEditMode}/>
         </div>
       </section>
-      <DataTable currentData={currentData} isAdmin={isAdmin} setMode={setMode} handleVideoClick={handleVideoClick} filteredData={filteredData} setShowModal={setShowModal} setFileName={setFileName} setNotes={setNotes} setCatData={setCatData} setfolderViewNum={setfolderViewNum} formatDate={formatDate} formatTime={formatTime} catData={catData} setScheduleEditMode={setScheduleEditMode} scheduleEditMode={scheduleEditMode} scheduledData={scheduledData} setCompareData={setCompareData} orderedScheduledData={orderedScheduledData}/>
+      <DataTable currentData={currentData} isAdmin={isAdmin} setMode={setMode} handleUrlClick={handleUrlClick} filteredData={filteredData} setShowModal={setShowModal} setFileName={setFileName} setNotes={setNotes} setCatData={setCatData} setfolderViewNum={setfolderViewNum} formatDate={formatDate} formatTime={formatTime} catData={catData} setScheduleEditMode={setScheduleEditMode} scheduleEditMode={scheduleEditMode} scheduledData={scheduledData} setCompareData={setCompareData} orderedScheduledData={orderedScheduledData}/>
       <Modal style={mode === 'viewvideo' ? { height: '100%' } : {}} isOpen={showModal} onClose={() => { ModalClose(); if (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') { setModalSearchTerm(''); } }}>
-        {mode === 'viewvideo' && <VideoViewer videoUrl={currentVideoUrl} key={videoKey} />}
+        {mode === 'viewvideo' && <VideoViewer key={videoKey} currentViewUrl={currentViewUrl} isVideo={isVideo}/>}
         {mode === 'configureData' &&
           <>
             <form onSubmit={handleSubmit}>
-              <FormTitle catData={catData} currentData={currentData} />
+              <FormTitle catData={catData} currentData={currentData}/>
               <FormViewFile catData={catData} isAdmin={isAdmin} fileDetails={fileDetails} />
             
-              <FormAddDataBody catData={catData} currentData={currentData} handleFileNameChange={handleFileNameChange} handleSelectedCategoryChange={handleSelectedCategoryChange} handleRunTimeChange={handleRunTimeChange} tag={tag} handleTagChange={handleTagChange} content={content} handleContentChange={handleContentChange} expiry={expiry} handleExpiryChange={handleExpiryChange} fileName={fileName} photoUrl={photoUrl} type={type} runTime={runTime} handleDrop={handleDrop} handleDragOver={handleDragOver} file={file} result={result} isAdmin={isAdmin} previewUrl={previewUrl} setPreviewUrl={setPreviewUrl}/>
+              <FormAddDataBody catData={catData} currentData={currentData} handleFileNameChange={handleFileNameChange} handleSelectedCategoryChange={handleSelectedCategoryChange} handleRunTimeChange={handleRunTimeChange} tag={tag} handleTagChange={handleTagChange} content={content} handleContentChange={handleContentChange} expiry={expiry} handleExpiryChange={handleExpiryChange} fileName={fileName} photoUrl={photoUrl} type={type} runTime={runTime} handleDrop={handleDrop} handleDragOver={handleDragOver} file={file} result={result} isAdmin={isAdmin} previewUrl={previewUrl} setPreviewUrl={setPreviewUrl} setType={setType}/>
               <FormAllDataBody catData={catData} currentData={currentData} handleSelectedCategoryChange={handleSelectedCategoryChange} fileName={fileName} handleFileNameChange={handleFileNameChange} ModalClose={ModalClose} />
               <FormExpiry catData={catData} expiry={expiry} handleExpiryChange={handleExpiryChange} />
               <FormButton catData={catData} identifier={identifier} photoUrl={photoUrl} type={type} runTime={runTime} content={content} handleSubmit={handleSubmit} />

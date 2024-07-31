@@ -652,35 +652,34 @@ const apiService = {
           console.error('Error updating request status:', error);
         }
     },
-    moveItemPlaylistSchedule: async ({itemToMove,direction,currentData,folderViewNum,fetchData}) => {
-        let alterValue;
-        if (currentData === 'Playlist Schedule') {
-          alterValue = 'playlistSchedule';
-        } else if (currentData === 'Ads Schedule') {
-          alterValue = 'adsSchedule';
-        }
+
+    moveItemPlaylistSchedule: async ({ itemToMove, newIndex, folderViewNum, fetchData, currentData }) => {
+      const alterValue = currentData === 'Playlist Schedule' ? 'playlistSchedule' : 'adsSchedule';
+      const url = `${baseURL}/${alterValue}/${folderViewNum}/move`;
     
-        const url = `${baseURL}/${alterValue}/${folderViewNum}/move`;
-    
-        try {
-          const response = await axios.post(url, { item: itemToMove, direction }, {
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`
-            }
-          });
-          if (response.status === 200) {
-            console.log('Item moved successfully');
-            fetchData();
-            const logChangeMessage = `${username} has moved ${itemToMove.FileName} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum} ${direction}.`;
-            await apiService.logChange(logChangeMessage);
-          } else {
-            throw new Error('Failed to move the item');
+      try {
+        const response = await axios.post(url, { item: itemToMove, newIndex }, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
           }
-        } catch (error) {
-          console.error('Error moving item:', error.response ? error.response.data : error);
+        });
+    
+        if (response.status === 200) {
+          console.log('Item moved successfully');
+          fetchData();
+          const logChangeMessage = `${username} has moved ${itemToMove.FileName} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum} to position ${newIndex}.`;
+          await apiService.logChange(logChangeMessage);
+        } else {
+          throw new Error('Failed to move the item');
         }
+      } catch (error) {
+        console.error('Error moving item:', error.response ? error.response.data : error);
+      }
     },
+    
+    
+    
     handleDeleteNote: async ({noteIndex,identifier,notes,currentData,setNotes,fetchData}) => {
         let data;
         if(currentData === 'Playlist Schedule'){

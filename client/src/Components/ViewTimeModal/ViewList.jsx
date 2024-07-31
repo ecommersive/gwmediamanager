@@ -39,8 +39,14 @@ const ViewList = ({
   editedTimes,
   itemSetToMove,
   setItemSetToMove,
-  moveItem
+  
 }) => {
+  const moveItem = (fromIndex, toIndex) => {
+    const updatedItems = [...data.items];
+    const [movedItem] = updatedItems.splice(fromIndex, 1);
+    updatedItems.splice(toIndex, 0, movedItem);
+    data.items = updatedItems;
+  };
   return (
     <>
       {((currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') && (catData === 'viewTimes' || catData === 'alterTable')) && (
@@ -100,31 +106,27 @@ const ViewList = ({
               )}
 
               {data.items && (
-                <div>
-                  <h2 style={{ textAlign: 'center' }}>Ordered Schedule</h2>
-                  <ul style={{ listStyleType: 'none', padding: 0, margin: '0 auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1.1rem' }}>
-                    {data.items.map((item, index) => (
-                      <li key={index} style={{ position: 'relative', flex: '0 0 calc(25% - 1rem)', textAlign: 'center', border: modalState === 'Move' ? '2px solid' : 'none', borderColor: itemSetToMove.FileName === item.FileName ? 'blue' : 'gray', borderRadius: '5px', padding: modalState === 'Move' ? '10px' : '0' }}>
-                        <div style={{ height: '100px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                          <img src={item.PhotoUrl} style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }} alt={item.FileName} />
-                          <p style={{ margin: '5px 0', height: '20px', lineHeight: '20px', fontWeight: itemSetToMove.FileName === item.FileName ? 'bold' : 'normal' }}>
-                            {index + 1}. <span>{item.FileName}</span>
-                          </p>
-                        </div>
-                        {modalState === '' && (
-                          <>
-                            <button className='action-button' onClick={() => { deleteItemFromSchedule(item); fetchData() }}>Delete</button>
-                            <button className='action-button' onClick={() => { setItemSetToMove(item); setModalState('Move') }}>Move</button>
-                          </>
-                        )}
-                        {index % 4 !== 3 && <div style={{ position: 'absolute', top: 0, right: '-10px', bottom: 0, width: '2px', backgroundColor: modalState === 'Move' ? 'red' : '' }}></div>}
-                      </li>
-                    ))}
-                  </ul>
-
-
-
-                </div>
+                <DndProvider backend={HTML5Backend}>
+                  <div>
+                    <h2 style={{ textAlign: 'center' }}>Ordered Schedule</h2>
+                    <ul style={{ listStyleType: 'none', padding: 0, margin: '0 auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1.1rem' }}>
+                      {data.items.map((item, index) => (
+                        <DraggableItem
+                          key={index}
+                          item={item}
+                          index={index}
+                          moveItem={moveItem}
+                          setItemSetToMove={setItemSetToMove}
+                          itemSetToMove={itemSetToMove}
+                          modalState={modalState}
+                          deleteItemFromSchedule={deleteItemFromSchedule}
+                          fetchData={fetchData}
+                          setModalState={setModalState}
+                        />
+                      ))}
+                    </ul>
+                  </div>
+                </DndProvider>
               )}
 
               {modalState === 'Move' && (

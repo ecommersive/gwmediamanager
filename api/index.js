@@ -775,12 +775,59 @@ app.delete('/:scheduleType/:folder/:item', verifyToken, async (req, res) => {
 
 });
 
+// app.post('/:scheduleType/:folder/move', verifyToken, async (req, res) => {
+//   const { scheduleType, folder } = req.params;
+//   const { item, direction } = req.body;
+
+//   if (!item || !direction) {
+//     return res.status(400).json({ message: 'Item and direction are required' });
+//   }
+
+//   const Model = getModel(scheduleType);
+//   if (!Model) {
+//     return res.status(400).json({ message: 'Invalid schedule type' });
+//   }
+
+//   try {
+//     const schedule = await Model.findOne({ folder });
+//     if (!schedule) {
+//       return res.status(404).json({ message: 'Schedule not found' });
+//     }
+
+//     const index = schedule.items.findIndex(i => i.FileID.toString() === item.FileID.toString());
+//     if (index === -1) {
+//       return res.status(404).json({ message: 'Item not found in the schedule' });
+//     }
+
+//     if (direction === 'up' && index > 0) {
+//       const temp = schedule.items[index - 1];
+//       schedule.items[index - 1] = schedule.items[index];
+//       schedule.items[index] = temp;
+//     } else if (direction === 'down' && index < schedule.items.length - 1) {
+//       const temp = schedule.items[index + 1];
+//       schedule.items[index + 1] = schedule.items[index];
+//       schedule.items[index] = temp;
+//     } else {
+//       return res.status(400).json({ message: 'Invalid move operation' });
+//     }
+
+//     await schedule.save();
+
+//     res.json(schedule);
+//   } catch (error) {
+//     console.error(`Error moving item in ${scheduleType} schedule:`, error);
+//     res.status(500).json({ message: 'Internal server error' });
+//   }
+// });
 app.post('/:scheduleType/:folder/move', verifyToken, async (req, res) => {
   const { scheduleType, folder } = req.params;
-  const { item, direction } = req.body;
+  const { item, newIndex } = req.body;
 
-  if (!item || !direction) {
-    return res.status(400).json({ message: 'Item and direction are required' });
+  console.log('Request Params:', req.params);
+  console.log('Request Body:', req.body);
+
+  if (!item || typeof newIndex === 'undefined') {
+    return res.status(400).json({ message: 'Item and newIndex are required' });
   }
 
   const Model = getModel(scheduleType);
@@ -799,17 +846,13 @@ app.post('/:scheduleType/:folder/move', verifyToken, async (req, res) => {
       return res.status(404).json({ message: 'Item not found in the schedule' });
     }
 
-    if (direction === 'up' && index > 0) {
-      const temp = schedule.items[index - 1];
-      schedule.items[index - 1] = schedule.items[index];
-      schedule.items[index] = temp;
-    } else if (direction === 'down' && index < schedule.items.length - 1) {
-      const temp = schedule.items[index + 1];
-      schedule.items[index + 1] = schedule.items[index];
-      schedule.items[index] = temp;
-    } else {
-      return res.status(400).json({ message: 'Invalid move operation' });
-    }
+    console.log('Item Index:', index);
+    console.log('Schedule Before:', schedule.items);
+
+    const [movedItem] = schedule.items.splice(index, 1);
+    schedule.items.splice(newIndex, 0, movedItem);
+
+    console.log('Schedule After:', schedule.items);
 
     await schedule.save();
 

@@ -384,7 +384,7 @@ const apiService = {
         const requestData = {
           startDate: startDate.toISOString(),
           endDate: endDate.toISOString(),
-          items: item.map(item => ({ FileName: item.FileName, FileID: item.FileID })),
+          items: [],
           startTime: startTime.startTime, // Ensure it's a string
           endTime: endTime.endTime,         // Ensure it's a string
         };
@@ -422,7 +422,7 @@ const apiService = {
         setEndTime('') 
         setError('')
     },
-    addItemToSchedule: async ({itemToAdd,id,currentData,folderViewNum,fetchData,}) => {
+    addItemToSchedule: async ({itemToAdd,id,currentData,folderViewNum,fetchData}) => {
         let alterValue;
         if (currentData === 'Playlist Schedule') {
           alterValue = 'playlistSchedule';
@@ -435,6 +435,7 @@ const apiService = {
           FileID: id, // Replace generateUniqueId with your method of generating IDs if needed
           startTime: '',  // Default start time
           endTime: ''     // Default end time
+
         };
         const url = `${baseURL}/${alterValue}/${folderViewNum}/add`;
     

@@ -10,6 +10,7 @@ const playlistScheduleSchema = new mongoose.Schema({
         FileID: { type: mongoose.Schema.Types.ObjectId, ref: 'Playlist' },
         startTime: {type: String},
         endTime: {type: String},
+        PhotoUrl: {type: String}
     }],
     startDate: {
         type: Date,

@@ -182,10 +182,6 @@ app.get('/playlistSchedule', async (req, res) => {
 app.post('/createPlaylistSchedule', verifyToken, async (req, res) => {
   const { items, startDate, endDate, startTime, endTime, notes } = req.body;
 
-  // Ensure items is defined and not empty
-  if (!items || items.length === 0) {
-    return res.status(400).send('items array is required and must not be empty.');
-  }
 
   // Validate no overlapping time slots
   if (startTime >= endTime) {

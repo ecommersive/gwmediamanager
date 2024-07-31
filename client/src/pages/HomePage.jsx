@@ -21,9 +21,12 @@ const HomePage = () => {
 
         if (response.ok) {
           const data = await response.json();
+          console.log('data =========', data);
           localStorage.setItem('token', data.token);  
           localStorage.setItem('isAdmin', data.isAdmin);
           localStorage.setItem('username', username);
+          localStorage.setItem('company', data.userCompany);
+          
           window.location.href = '/home';
         } else {
           const errorText = await response.text(); 

@@ -232,10 +232,6 @@ app.get('/playlistSchedule/:folder', verifyToken, async (req, res) => {
 app.post('/createAdsSchedule', verifyToken, async (req, res) => {
   const { items, startDate, endDate, startTime, endTime, notes } = req.body;
 
-  // Ensure items is defined and not empty
-  if (!items || items.length === 0) {
-    return res.status(400).send('items array is required and must not be empty.');
-  }
 
   if (startTime >= endTime) {
     return res.status(400).json({ message: 'Start time must be earlier than end time.' });

@@ -4,49 +4,8 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import DraggableItem from '../DraggableItem';
 import SearchInput from '../SearchInput';
 
-const ViewList = ({
-  currentData,
-  catData,
-  handleAddItem,
-  data,
-  modalSearchTerm,
-  setModalSearchTerm,
-  modalFilteredData,
-  itemExists,
-  modalState,
-  setModalState,
-  deleteItemFromSchedule,
-  moveItemPlaylistSchedule,
-  fetchData,
-  formatDate,
-  formatTime,
-  isEditingDuration,
-  isEditingTime,
-  setNewStartDate,
-  setNewEndDate,
-  setNewStartTime,
-  setNewEndTime,
-  handleSave,
-  newStartDate,
-  newEndDate,
-  setIsEditingDuration,
-  newStartTime,
-  newEndTime,
-  setIsEditingTime,
-  isAdmin,
-  saveEditedTimes,
-  handleTimeChange,
-  editedTimes,
-  itemSetToMove,
-  setItemSetToMove,
-  
-}) => {
-  const moveItem = (fromIndex, toIndex) => {
-    const updatedItems = [...data.items];
-    const [movedItem] = updatedItems.splice(fromIndex, 1);
-    updatedItems.splice(toIndex, 0, movedItem);
-    data.items = updatedItems;
-  };
+const ViewList = ({ currentData, catData, handleAddItem, data, modalSearchTerm, setModalSearchTerm, modalFilteredData, itemExists, modalState, setModalState, deleteItemFromSchedule, moveItemPlaylistSchedule, fetchData, formatDate, formatTime, isEditingDuration, isEditingTime, setNewStartDate, setNewEndDate, setNewStartTime, setNewEndTime, handleSave, newStartDate, newEndDate, setIsEditingDuration, newStartTime, newEndTime, setIsEditingTime, isAdmin, saveEditedTimes, handleTimeChange, editedTimes}) => {
+
   return (
     <>
       {((currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') && (catData === 'viewTimes' || catData === 'alterTable')) && (

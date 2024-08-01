@@ -24,6 +24,7 @@ const HomePage = () => {
           localStorage.setItem('token', data.token);  
           localStorage.setItem('isAdmin', data.isAdmin);
           localStorage.setItem('username', username);
+          localStorage.setItem('company', data.userCompany)
           window.location.href = '/home';
         } else {
           const errorText = await response.text(); 
@@ -67,5 +68,7 @@ const HomePage = () => {
         </div>
     );
 }
+
+
 
 export default HomePage

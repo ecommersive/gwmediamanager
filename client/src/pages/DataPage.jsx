@@ -19,6 +19,7 @@ import RequestDetails from '../Components/RequestModal/RequestDetails';
 import { mediaInfoFactory } from 'mediainfo.js';
 import FormViewFile from '../Components/FormMainComponents/FormViewFile';
 import apiService from '../api';
+import Users from '../Components/UserModal/Users';
 
 const DataPage = () => {
   const [folderViewNum, setfolderViewNum] = useState(0)
@@ -77,7 +78,7 @@ const DataPage = () => {
   const [confirmMove, setConfirmMove] = useState(false);
   const [moveIndex, setMoveIndex] = useState(null);
   const [secondaryModal, setSecondaryModal] = useState(false);
-
+  const [adminUserState, setAdminUserState] = useState('')
 
 
   //api calls
@@ -192,6 +193,7 @@ const DataPage = () => {
     setType('')
     setVideoURL('')
     setItemSetToMove('')
+    setAdminUserState('')
   }
   const handleFileNameChange = (event) => {
     setFileName(event.target.value);
@@ -329,7 +331,8 @@ const DataPage = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('isAdmin');
-    localStorage.removeItem('username')
+    localStorage.removeItem('username');
+    localStorage.removeItem('company');
     window.location.href = '/';
   }
   const handleEditNote = (noteId, text) => {
@@ -483,6 +486,7 @@ const DataPage = () => {
             <SetCreation catData={catData} setShowModal={setShowModal} handleSubmitSetModal={handleSubmitSetModal} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} handleAddItem={handleAddItem} item={item} startDate={startDate} setStartDate={setStartDate} endDate={endDate} setEndDate={setEndDate} startTime={startTime} setStartTime={setStartTime}  endTime={endTime} setEndTime={setEndTime} error={error} setError={setError} fetchData={fetchData}/>
             <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} modalState={modalState} setModalState={setModalState} deleteItemFromSchedule={deleteItemFromSchedule} addItemToSchedule={addItemToSchedule} moveItemPlaylistSchedule={moveItemPlaylistSchedule} handleAddItem={handleAddItem}fetchData={fetchData} formatDate={formatDate} formatTime={formatTime} isEditingDuration={isEditingDuration} isEditingTime={isEditingTime} setNewStartDate={setNewStartDate} setNewEndDate={setNewEndDate} setNewStartTime={setNewStartTime} setNewEndTime={setNewEndTime} handleSave={handleSave} newStartDate={newStartDate} newEndDate={newEndDate} setIsEditingDuration={setIsEditingDuration} newStartTime={newStartTime} newEndTime={newEndTime} setIsEditingTime={setIsEditingTime} isAdmin={isAdmin} itemSetToMove={itemSetToMove} setItemSetToMove={setItemSetToMove} confirmMove={confirmMove} setConfirmMove={setConfirmMove}  setSecondaryModal={setSecondaryModal} secondaryModal={secondaryModal} setMoveIndex={setMoveIndex} moveIndex={moveIndex}/>
             <RequestDetails catData={catData} state={state} setState={setState} handleAddRequest={handleAddRequest} newRequestDescription={newRequestDescription} setNewRequestDescription={setNewRequestDescription} error={requestError} requests={requests} handleToggleStatus={handleToggleStatus} handleSaveSection={handleSaveSection} isAdmin={isAdmin} username={username} />
+            <Users catData={catData} adminUserState={adminUserState} setAdminUserState={setAdminUserState}/>
           </>
         }
       </Modal>

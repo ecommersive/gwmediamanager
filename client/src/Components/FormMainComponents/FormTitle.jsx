@@ -12,7 +12,8 @@ const FormTitle = ({ catData, currentData }) => {
     DeleteNote: 'Delete Note',
     playlistSchedule: 'Create Content Set',
     adsSchedule: 'Create Ads Set',
-    deleteScheduleData: 'Delete Schedule Set'
+    deleteScheduleData: 'Delete Schedule Set',
+    userData: 'User Data'
   };
   const formTitle = catToFormTitle[catData] || '';
   return <h2>{formTitle}</h2>;

@@ -8,7 +8,9 @@ const HeaderButtons = ({ currentData, isAdmin, handleModal, setMode, setCatData,
         <> 
          {isAdmin && <> <button className="action-button" onClick={() => { handleModal(true); setMode('configureData'); setCatData('addData'); }}>Add Data</button>
           <button className="action-button" onClick={() => { handleModal(true); setMode('configureData'); setCatData('ExtendExpiry'); }}>Extend Expiry Data</button>
-          <button className="action-button" onClick={() => { handleModal(true); setMode('configureData'); setCatData('DeleteData'); }}>Delete Data</button></>}
+          <button className="action-button" onClick={() => { handleModal(true); setMode('configureData'); setCatData('DeleteData'); }}>Delete Data</button>
+          <button className="action-button" onClick={() => { handleModal(true); setMode('configureData'); setCatData('userData'); }}>Users</button>
+          </>}
         </>
       ) : (
         (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') && (

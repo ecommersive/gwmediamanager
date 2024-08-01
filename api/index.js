@@ -394,6 +394,49 @@ app.post('/register', async (req, res) => {
   }
 });
 
+app.get('/users', async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ message: 'Error fetching users', error: error.message });
+  }
+});
+
+app.delete('/users/:id', async (req, res) => {
+  try {
+    const userId = req.params.id;
+    await User.findByIdAndDelete(userId);
+    res.status(200).json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ message: 'Error deleting user', error: error.message });
+  }
+});
+
+app.put('/users/:id', async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { username, password, isAdmin, userCompany } = req.body;
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    await User.findByIdAndUpdate(userId, {
+      username,
+      password: hashedPassword,
+      isAdmin,
+      userCompany,
+    });
+
+    res.status(200).json({ message: 'User updated successfully' });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ message: 'Error updating user', error: error.message });
+  }
+});
+
 
 const escapeRegExp = (string) => {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
@@ -503,6 +546,8 @@ app.post('/login', async (req, res) => {
           return res.status(401).send('Username does not exist, please try again!');
       }
 
+      
+
       const validPassword = await bcrypt.compare(password, user.password);
       if (!validPassword) {
           return res.status(401).send('Incorrect password, please try again!');
@@ -513,8 +558,7 @@ app.post('/login', async (req, res) => {
           process.env.JWT_SECRET,
           { expiresIn: '1h' }  
       );
-
-      res.json({ token, message: 'Login successful', isAdmin: user.isAdmin });
+      res.json({ token, message: 'Login successful', isAdmin: user.isAdmin, userCompany: user.userCompany });
   } catch (err) {
       console.error('Login error:', err);
       res.status(500).send('Internal Server Error');

@@ -384,7 +384,7 @@ const apiService = {
         const requestData = {
           startDate: startDate.toISOString(),
           endDate: endDate.toISOString(),
-          items: item.map(item => ({ FileName: item.FileName, FileID: item.FileID })),
+          items: [],
           startTime: startTime.startTime, // Ensure it's a string
           endTime: endTime.endTime,         // Ensure it's a string
         };
@@ -429,12 +429,14 @@ const apiService = {
         } else if (currentData === 'Ads Schedule') {
           alterValue = 'adsSchedule';
         }
+        console.log('item to add =', itemToAdd);
     
         const itemWithId = {
           ...itemToAdd,
           FileID: id, // Replace generateUniqueId with your method of generating IDs if needed
           startTime: '',  // Default start time
-          endTime: ''     // Default end time
+          endTime: '',     // Default end time
+          PhotoUrl: itemToAdd.PhotoUrl
         };
         const url = `${baseURL}/${alterValue}/${folderViewNum}/add`;
     
@@ -667,7 +669,7 @@ const apiService = {
         if (response.status === 200) {
           console.log('Item moved successfully');
           fetchData();
-          const logChangeMessage = `${username} has moved ${itemToMove.FileName} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum} to position ${newIndex}.`;
+          const logChangeMessage = `${username} has moved ${itemToMove.FileName} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum} to position ${newIndex + 1}.`;
           await apiService.logChange(logChangeMessage);
         } else {
           throw new Error('Failed to move the item');
@@ -676,6 +678,7 @@ const apiService = {
         console.error('Error moving item:', error.response ? error.response.data : error);
       }
     },
+    
     
     
     

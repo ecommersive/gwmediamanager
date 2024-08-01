@@ -8,7 +8,6 @@ const SetCreation = ({
   setModalSearchTerm,
   modalFilteredData,
   itemExists,
-  handleAddToSet,
   item,
   startDate, 
   setStartDate,
@@ -79,32 +78,7 @@ const SetCreation = ({
   return (
     (catData === 'playlistSchedule' || catData === 'adsSchedule') && (
       <>
-        <SearchInput searchTerm={modalSearchTerm} setSearchTerm={setModalSearchTerm} />
-
-        <br />
-        {modalSearchTerm.length > 0 ? (
-          modalFilteredData.length > 0 ? (
-            modalFilteredData.filter(modalItem => !itemExists(modalItem.FileName)).map((modalItem, index) => (
-              <div key={index}>
-                <span>{modalItem.FileName}</span>
-                <button onClick={(event) => handleAddToSet(event, modalItem.FileName,  modalItem._id)}>Add</button>
-              </div>
-            ))
-          ) : (
-            <p>No data found. Please search for data.</p>
-          )
-        ) : (
-          <p>No data found. Please search for data.</p>
-        )}
-        <br />
-        {item.map((item, index) => (
-          <div key={index}>
-            <span>{item.FileName}</span>
-            <br />
-          </div>
-        ))}
-        <br />
-        <div className="date-inputs">
+          <div className="date-inputs">
           <label>
             Start Date:
             <input type="date" name="startDate" value={startDate ? startDate.toISOString().split('T')[0] : ''} onChange={handleStartDateChange} />

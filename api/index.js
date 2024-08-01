@@ -182,10 +182,7 @@ app.get('/playlistSchedule', async (req, res) => {
 app.post('/createPlaylistSchedule', verifyToken, async (req, res) => {
   const { items, startDate, endDate, startTime, endTime, notes } = req.body;
 
-  // Ensure items is defined and not empty
-  if (!items || items.length === 0) {
-    return res.status(400).send('items array is required and must not be empty.');
-  }
+
 
   // Validate no overlapping time slots
   if (startTime >= endTime) {
@@ -779,59 +776,12 @@ app.delete('/:scheduleType/:folder/:item', verifyToken, async (req, res) => {
 
 });
 
-// app.post('/:scheduleType/:folder/move', verifyToken, async (req, res) => {
-//   const { scheduleType, folder } = req.params;
-//   const { item, direction } = req.body;
-
-//   if (!item || !direction) {
-//     return res.status(400).json({ message: 'Item and direction are required' });
-//   }
-
-//   const Model = getModel(scheduleType);
-//   if (!Model) {
-//     return res.status(400).json({ message: 'Invalid schedule type' });
-//   }
-
-//   try {
-//     const schedule = await Model.findOne({ folder });
-//     if (!schedule) {
-//       return res.status(404).json({ message: 'Schedule not found' });
-//     }
-
-//     const index = schedule.items.findIndex(i => i.FileID.toString() === item.FileID.toString());
-//     if (index === -1) {
-//       return res.status(404).json({ message: 'Item not found in the schedule' });
-//     }
-
-//     if (direction === 'up' && index > 0) {
-//       const temp = schedule.items[index - 1];
-//       schedule.items[index - 1] = schedule.items[index];
-//       schedule.items[index] = temp;
-//     } else if (direction === 'down' && index < schedule.items.length - 1) {
-//       const temp = schedule.items[index + 1];
-//       schedule.items[index + 1] = schedule.items[index];
-//       schedule.items[index] = temp;
-//     } else {
-//       return res.status(400).json({ message: 'Invalid move operation' });
-//     }
-
-//     await schedule.save();
-
-//     res.json(schedule);
-//   } catch (error) {
-//     console.error(`Error moving item in ${scheduleType} schedule:`, error);
-//     res.status(500).json({ message: 'Internal server error' });
-//   }
-// });
 app.post('/:scheduleType/:folder/move', verifyToken, async (req, res) => {
   const { scheduleType, folder } = req.params;
   const { item, newIndex } = req.body;
 
-  console.log('Request Params:', req.params);
-  console.log('Request Body:', req.body);
-
-  if (!item || typeof newIndex === 'undefined') {
-    return res.status(400).json({ message: 'Item and newIndex are required' });
+  if (!item || newIndex === undefined) {
+    return res.status(400).json({ message: 'Item and new index are required' });
   }
 
   const Model = getModel(scheduleType);
@@ -850,13 +800,8 @@ app.post('/:scheduleType/:folder/move', verifyToken, async (req, res) => {
       return res.status(404).json({ message: 'Item not found in the schedule' });
     }
 
-    console.log('Item Index:', index);
-    console.log('Schedule Before:', schedule.items);
-
-    const [movedItem] = schedule.items.splice(index, 1);
-    schedule.items.splice(newIndex, 0, movedItem);
-
-    console.log('Schedule After:', schedule.items);
+    const [movedItem] = schedule.items.splice(index, 1); // Remove the item from its current position
+    schedule.items.splice(newIndex, 0, movedItem); // Insert the item at the new position
 
     await schedule.save();
 
@@ -866,6 +811,7 @@ app.post('/:scheduleType/:folder/move', verifyToken, async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
 
 app.delete('/set/schedules/:scheduleType/:folder', verifyToken, async (req, res) => {
   const { scheduleType, folder } = req.params;

@@ -66,7 +66,6 @@ const DataPage = () => {
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [error, setError] = useState('');
-  const [editedTimes, setEditedTimes] = useState([]);
   const [scheduleEditMode, setScheduleEditMode] = useState();
   const [scheduledData, setScheduledData] = useState([]);
   const [compareData, setCompareData] = useState([])
@@ -74,7 +73,10 @@ const DataPage = () => {
   const [currentViewUrl, setCurrentViewUrl] = useState('');
   const [videoKey, setVideoKey] = useState(uuidv4());
   const [previewUrl, setPreviewUrl] = useState(null);
-  const [itemSetToMove, setItemSetToMove] = useState('')
+  const [itemSetToMove, setItemSetToMove] = useState('');
+  const [confirmMove, setConfirmMove] = useState(false);
+  const [moveIndex, setMoveIndex] = useState(null);
+  const [secondaryModal, setSecondaryModal] = useState(false);
 
 
 
@@ -142,50 +144,6 @@ const DataPage = () => {
   const addItemToSchedule = async (itemToAdd, id) => {
     await apiService.addItemToSchedule({ itemToAdd, id, currentData, folderViewNum, fetchData });
   };
-  const saveEditedTimes = async (index) => {
-    console.log('Current editedTimes:', editedTimes);
-    console.log('folder selected =====', folderViewNum);
-
-    // Ensure data exists and is an array
-    if (Array.isArray(data)) {
-      // Log the items within the selected folder
-      const selectedFolderData = data.find(folder => folder.folder === folderViewNum);
-      if (selectedFolderData) {
-        // ensures items exist within the selected folder
-        const items = selectedFolderData.items;
-        if (Array.isArray(items) && items[index]) {
-          console.log('Specific item data ============', items[index]);
-
-          const updatedItem = editedTimes[index];
-          const scheduleId = selectedFolderData._id; // The ID of the current schedule
-          const itemId = items[index]._id; // The ID of the item being edited
-
-          if (!updatedItem) {
-            console.error('Item is missing:', itemId);
-            return;
-          }
-
-          try {
-            const response = await apiService.updateItemTimes({
-              currentData,
-              scheduleId,
-              itemId,
-              startTime: updatedItem.startTime,
-              endTime: updatedItem.endTime
-            });
-            console.log('Response from API:', response); // Log the response data
-            fetchData(); // Refresh data after update
-          } catch (error) {
-            console.error('There was an error checking the item!', error);
-          }
-        }
-      } else {
-        console.error('Selected folder not found in data');
-      }
-    } else {
-      console.error('Data is not an array or not properly set');
-    }
-  };
   const handleAddRequest = async () => {
     await apiService.handleAddRequest({ newRequestDescription, fetchRequests, setNewRequestDescription, setRequestError });
   };
@@ -201,8 +159,8 @@ const DataPage = () => {
   const handleToggleStatus = async (request) => {
     await apiService.handleToggleStatus({ request, fetchRequests });
   };
-  const moveItemPlaylistSchedule = async (itemToMove, direction) => {
-    await apiService.moveItemPlaylistSchedule({ itemToMove, direction, currentData, folderViewNum, fetchData });
+  const moveItemPlaylistSchedule = async (itemToMove, newIndex) => {
+    await apiService.moveItemPlaylistSchedule({ itemToMove, newIndex, currentData, folderViewNum, fetchData });
     await fetchItemsByFolder();
   };
   const handleDeleteNote = async (noteIndex, identifier) => {
@@ -395,17 +353,6 @@ const DataPage = () => {
   const itemExists = (fileName) => {
     return item.some(item => item.FileName === fileName);
   };
-
-  const handleTimeChange = (index, field, value) => {
-    setEditedTimes(prevTimes => {
-      const updatedTimes = Array.isArray(prevTimes) ? [...prevTimes] : [];
-      if (!updatedTimes[index]) {
-        updatedTimes[index] = { startTime: '', endTime: '' };
-      }
-      updatedTimes[index][field] = value;
-      return updatedTimes;
-    });
-  };
   const matchAndOrderScheduledData = useCallback(() => {
     if (!compareData || !compareData.items) return [];
     const compareIDs = compareData.items.map(item => item._id);
@@ -473,7 +420,7 @@ const DataPage = () => {
   };
   const isVideo = /\.(mp4|webm|ogg)$/i.test(currentViewUrl);
 
-  // Use effects
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
@@ -505,14 +452,7 @@ const DataPage = () => {
       setIdentifier(folderViewNum); // Assuming `folder` is another state or prop
     }
   }, [currentData, fileName, folderViewNum]);
-  useEffect(() => {
-    if (data && Array.isArray(data.items)) {
-      setEditedTimes(data.items.map(item => ({
-        startTime: item.startTime || '',
-        endTime: item.endTime || '',
-      })));
-    }
-  }, [data]);
+
 
   return (
     <main className="table">
@@ -541,7 +481,7 @@ const DataPage = () => {
             </form>
             <NotesForm catData={catData} data={data.find(d => d.folder === folderViewNum)} identifier={identifier} notes={notes} editingNoteId={editingNoteId} editingNoteText={editingNoteText} handleUpdateNoteText={handleUpdateNoteText} handleDoneEditNote={handleDoneEditNote} handleEditNote={handleEditNote} handleDeleteNote={handleDeleteNote} handleAddNoteSubmit={handleAddNoteSubmit} newNote={newNote} setNewNote={setNewNote} username={username} setCatData={setCatData} isAdmin={isAdmin} currentData={currentData} />
             <SetCreation catData={catData} setShowModal={setShowModal} handleSubmitSetModal={handleSubmitSetModal} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} handleAddItem={handleAddItem} item={item} startDate={startDate} setStartDate={setStartDate} endDate={endDate} setEndDate={setEndDate} startTime={startTime} setStartTime={setStartTime}  endTime={endTime} setEndTime={setEndTime} error={error} setError={setError} fetchData={fetchData}/>
-            <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} modalState={modalState} setModalState={setModalState} deleteItemFromSchedule={deleteItemFromSchedule} addItemToSchedule={addItemToSchedule} moveItemPlaylistSchedule={moveItemPlaylistSchedule} handleAddItem={handleAddItem}fetchData={fetchData} formatDate={formatDate} formatTime={formatTime} isEditingDuration={isEditingDuration} isEditingTime={isEditingTime} setNewStartDate={setNewStartDate} setNewEndDate={setNewEndDate} setNewStartTime={setNewStartTime} setNewEndTime={setNewEndTime} handleSave={handleSave} newStartDate={newStartDate} newEndDate={newEndDate} setIsEditingDuration={setIsEditingDuration} newStartTime={newStartTime} newEndTime={newEndTime} setIsEditingTime={setIsEditingTime} isAdmin={isAdmin} saveEditedTimes={saveEditedTimes} handleTimeChange={handleTimeChange} editedTimes={editedTimes} itemSetToMove={itemSetToMove} setItemSetToMove={setItemSetToMove}/>
+            <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} modalState={modalState} setModalState={setModalState} deleteItemFromSchedule={deleteItemFromSchedule} addItemToSchedule={addItemToSchedule} moveItemPlaylistSchedule={moveItemPlaylistSchedule} handleAddItem={handleAddItem}fetchData={fetchData} formatDate={formatDate} formatTime={formatTime} isEditingDuration={isEditingDuration} isEditingTime={isEditingTime} setNewStartDate={setNewStartDate} setNewEndDate={setNewEndDate} setNewStartTime={setNewStartTime} setNewEndTime={setNewEndTime} handleSave={handleSave} newStartDate={newStartDate} newEndDate={newEndDate} setIsEditingDuration={setIsEditingDuration} newStartTime={newStartTime} newEndTime={newEndTime} setIsEditingTime={setIsEditingTime} isAdmin={isAdmin} itemSetToMove={itemSetToMove} setItemSetToMove={setItemSetToMove} confirmMove={confirmMove} setConfirmMove={setConfirmMove}  setSecondaryModal={setSecondaryModal} secondaryModal={secondaryModal} setMoveIndex={setMoveIndex} moveIndex={moveIndex}/>
             <RequestDetails catData={catData} state={state} setState={setState} handleAddRequest={handleAddRequest} newRequestDescription={newRequestDescription} setNewRequestDescription={setNewRequestDescription} error={requestError} requests={requests} handleToggleStatus={handleToggleStatus} handleSaveSection={handleSaveSection} isAdmin={isAdmin} username={username} />
           </>
         }

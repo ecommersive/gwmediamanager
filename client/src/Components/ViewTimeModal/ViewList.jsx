@@ -1,7 +1,8 @@
 import React from 'react';
 import SearchInput from '../SearchInput';
+import Modal from '../Modal';
 
-const ViewList = ({ currentData, catData, handleAddItem, data, modalSearchTerm, setModalSearchTerm, modalFilteredData, itemExists, modalState, setModalState, deleteItemFromSchedule, moveItemPlaylistSchedule, fetchData, formatDate, formatTime, isEditingDuration, isEditingTime, setNewStartDate, setNewEndDate, setNewStartTime, setNewEndTime, handleSave, newStartDate, newEndDate, setIsEditingDuration, newStartTime, newEndTime, setIsEditingTime, isAdmin, saveEditedTimes, handleTimeChange, editedTimes, itemSetToMove, setItemSetToMove }) => {
+const ViewList = ({ currentData, catData, handleAddItem, data, modalSearchTerm, setModalSearchTerm, modalFilteredData, itemExists, modalState, setModalState, deleteItemFromSchedule, moveItemPlaylistSchedule, fetchData, formatDate, formatTime, isEditingDuration, isEditingTime, setNewStartDate, setNewEndDate, setNewStartTime, setNewEndTime, handleSave, newStartDate, newEndDate, setIsEditingDuration, newStartTime, newEndTime, setIsEditingTime, isAdmin, itemSetToMove, setItemSetToMove, secondaryModal, setSecondaryModal, setMoveIndex, moveIndex }) => {
 
   return (
     <>
@@ -117,7 +118,7 @@ const ViewList = ({ currentData, catData, handleAddItem, data, modalSearchTerm, 
                             fontSize: '24px',
                             fontWeight: 'bold'
                           }}>
-                            <button className='action-button'>Switch to position {index + 1}</button>
+                            <button className='action-button' onClick={() => {setSecondaryModal(true); setItemSetToMove(itemSetToMove); setMoveIndex(index)}}>Switch to position {index + 1}</button>
                           </div>
                         )}
                       </li>
@@ -126,12 +127,9 @@ const ViewList = ({ currentData, catData, handleAddItem, data, modalSearchTerm, 
                 </div>
               )}
 
-
-
-
-              {modalState === 'Move' && (
+              {modalState === 'Move' || modalState ==='Add' && (
                 <>
-                  {modalState === 'Move' && (
+                  {modalState === 'Move'  && (
                     <>
                       <b>{itemSetToMove.FileName} can now be moved</b>
                       <br />
@@ -143,6 +141,16 @@ const ViewList = ({ currentData, catData, handleAddItem, data, modalSearchTerm, 
             </div>
           )}
         </>
+      )}
+
+      {secondaryModal && (
+        <Modal isOpen={secondaryModal} onClose={() => setSecondaryModal(false)} maxWidth="400px">
+          <div style={{ textAlign: 'center' }}>
+            <p>Are you sure you want to move {itemSetToMove.FileName} to position {moveIndex + 1}</p>
+            <button className='action-button' onClick={() => { moveItemPlaylistSchedule(itemSetToMove, moveIndex); setSecondaryModal(false); }}>Yes</button>
+            <button className='action-button' onClick={() => setSecondaryModal(false)}>No</button>
+          </div>
+        </Modal>
       )}
     </>
   );

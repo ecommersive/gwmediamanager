@@ -233,6 +233,7 @@ const DataPage = () => {
     setPreviewUrl(null)
     setType('')
     setVideoURL('')
+    setItemSetToMove('')
   }
   const handleFileNameChange = (event) => {
     setFileName(event.target.value);
@@ -391,11 +392,6 @@ const DataPage = () => {
     const adjustedHours = hours % 12 || 12;
     return `${adjustedHours}:${minutes} ${period}`;
   };
-  function handleAddToSet(event, fileName, _id) {
-    event.preventDefault();
-    setItem(prevItem => [...prevItem, { FileName: fileName, FileID: _id }]);
-    console.log('item', item);
-  }
   const itemExists = (fileName) => {
     return item.some(item => item.FileName === fileName);
   };

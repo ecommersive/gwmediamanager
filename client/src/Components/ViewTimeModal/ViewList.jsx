@@ -1,10 +1,7 @@
 import React from 'react';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
-import DraggableItem from '../DraggableItem';
 import SearchInput from '../SearchInput';
 
-const ViewList = ({ currentData, catData, handleAddItem, data, modalSearchTerm, setModalSearchTerm, modalFilteredData, itemExists, modalState, setModalState, deleteItemFromSchedule, moveItemPlaylistSchedule, fetchData, formatDate, formatTime, isEditingDuration, isEditingTime, setNewStartDate, setNewEndDate, setNewStartTime, setNewEndTime, handleSave, newStartDate, newEndDate, setIsEditingDuration, newStartTime, newEndTime, setIsEditingTime, isAdmin, saveEditedTimes, handleTimeChange, editedTimes}) => {
+const ViewList = ({ currentData, catData, handleAddItem, data, modalSearchTerm, setModalSearchTerm, modalFilteredData, itemExists, modalState, setModalState, deleteItemFromSchedule, moveItemPlaylistSchedule, fetchData, formatDate, formatTime, isEditingDuration, isEditingTime, setNewStartDate, setNewEndDate, setNewStartTime, setNewEndTime, handleSave, newStartDate, newEndDate, setIsEditingDuration, newStartTime, newEndTime, setIsEditingTime, isAdmin, saveEditedTimes, handleTimeChange, editedTimes, itemSetToMove, setItemSetToMove }) => {
 
   return (
     <>
@@ -65,28 +62,72 @@ const ViewList = ({ currentData, catData, handleAddItem, data, modalSearchTerm, 
               )}
 
               {data.items && (
-                <DndProvider backend={HTML5Backend}>
-                  <div>
-                    <h2 style={{ textAlign: 'center' }}>Ordered Schedule</h2>
-                    <ul style={{ listStyleType: 'none', padding: 0, margin: '0 auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1.1rem' }}>
-                      {data.items.map((item, index) => (
-                        <DraggableItem
-                          key={index}
-                          item={item}
-                          index={index}
-                          moveItem={moveItem}
-                          setItemSetToMove={setItemSetToMove}
-                          itemSetToMove={itemSetToMove}
-                          modalState={modalState}
-                          deleteItemFromSchedule={deleteItemFromSchedule}
-                          fetchData={fetchData}
-                          setModalState={setModalState}
-                        />
-                      ))}
-                    </ul>
-                  </div>
-                </DndProvider>
+                <div>
+                  <h2 style={{ textAlign: 'center' }}>Ordered Schedule</h2>
+                  <ul style={{ listStyleType: 'none', padding: 0, margin: '0 auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '0.5rem' }}>
+                    {data.items.map((item, index) => (
+                      <li
+                        key={index}
+                        style={{
+                          position: 'relative',
+                          flex: '0 0 calc(25% - 1rem)',
+                          textAlign: 'center',
+                          borderStyle: modalState === 'Move' ? 'solid' : 'none',
+                          borderWidth: modalState === 'Move' ? '2px' : '0',
+                          borderColor: itemSetToMove.FileName === item.FileName ? 'blue' : 'gray',
+                          borderRadius: '5px',
+                          padding: modalState === 'Move' ? '10px' : '0',
+                          overflow: 'hidden' // To ensure the hover effect stays within the boundaries
+                        }}
+                        onMouseEnter={(e) => {
+                          if (modalState === 'Move' && itemSetToMove.FileName !== item.FileName) {
+                            e.currentTarget.querySelector('.hover-overlay').style.display = 'flex';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (modalState === 'Move') {
+                            e.currentTarget.querySelector('.hover-overlay').style.display = 'none';
+                          }
+                        }}
+                      >
+                        <div style={{ height: '100px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                          <img src={item.PhotoUrl} style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }} alt={item.FileName} />
+                          <p style={{ margin: '5px 0', height: '20px', lineHeight: '20px', fontWeight: itemSetToMove.FileName === item.FileName ? 'bold' : 'normal' }}>
+                            {index + 1}. <span>{item.FileName}</span>
+                          </p>
+                        </div>
+                        {modalState === '' && (
+                          <>
+                            <button className='action-button' onClick={() => { deleteItemFromSchedule(item); fetchData() }}>Delete</button>
+                            <button className='action-button' onClick={() => { setItemSetToMove(item); setModalState('Move') }}>Move</button>
+                          </>
+                        )}
+                        {modalState === 'Move' && (
+                          <div className="hover-overlay" style={{
+                            display: 'none',
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                            backdropFilter: 'blur(5px)',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '24px',
+                            fontWeight: 'bold'
+                          }}>
+                            <button className='action-button'>Switch to position {index + 1}</button>
+                          </div>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
+
+
+
 
               {modalState === 'Move' && (
                 <>

@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import SearchInput from '../SearchInput';
 
 const SetCreation = ({

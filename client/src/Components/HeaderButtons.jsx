@@ -1,5 +1,6 @@
 import React from 'react';
 import '../styles/headerbuttons.css'
+
 const HeaderButtons = ({ currentData, isAdmin, handleModal, setMode, setCatData, handleLogout, data, setShowModal, setfolderViewNum, setScheduleEditMode, scheduleEditMode}) => {
   
   return (
@@ -30,12 +31,12 @@ const HeaderButtons = ({ currentData, isAdmin, handleModal, setMode, setCatData,
               </>
               )
             }
-            {(scheduleEditMode === 'off' || scheduleEditMode === '') && <button className="action-button" onClick={() => { handleModal(true); setMode('configureData'); setCatData('requests'); }}>Requests</button>}
             {scheduleEditMode === 'on' && <button onClick={() => {setScheduleEditMode('off')}} className="action-button">Go Back</button>}
           </>
         )
         
       )}
+      {(scheduleEditMode === 'off' || scheduleEditMode === '') && <button className="action-button" onClick={() => { handleModal(true); setMode('configureData'); setCatData('requests'); }}>Requests</button>}
       <button className="action-button" onClick={handleLogout}>Logout</button>
     </div>
   );

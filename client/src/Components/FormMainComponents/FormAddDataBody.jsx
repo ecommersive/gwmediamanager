@@ -5,9 +5,7 @@ const FormAddDataBody = ({ catData, currentData, tag, handleTagChange, content, 
   useEffect(() => {
     if (file) {
       const objectUrl = URL.createObjectURL(file);
-      console.log('preview url =', previewUrl);
       setPreviewUrl(objectUrl);
-      console.log('preview url =', previewUrl);
       return () => URL.revokeObjectURL(objectUrl);
     }
     

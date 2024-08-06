@@ -1,5 +1,3 @@
-import SearchInput from '../SearchInput';
-
 const SetCreation = ({
   catData,
   setShowModal,

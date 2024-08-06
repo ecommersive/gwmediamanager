@@ -79,7 +79,8 @@ const DataPage = () => {
   const [moveIndex, setMoveIndex] = useState(null);
   const [secondaryModal, setSecondaryModal] = useState(false);
   const [adminUserState, setAdminUserState] = useState('')
-
+  const [users, setUsers] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   //api calls
   const fetchData = useCallback(async () => {
@@ -170,7 +171,9 @@ const DataPage = () => {
   const deleteItemFromSchedule = async (itemToDelete) => {
     await apiService.deleteItemFromSchedule({ itemToDelete, currentData, folderViewNum, fetchData });
     await fetchItemsByFolder();
-
+  };
+  const getUsers = async (setUsers) => {
+    await apiService.getUsers({ setUsers });
   };
   // functions
   const handleModal = () => {
@@ -221,14 +224,12 @@ const DataPage = () => {
   };
   const handleDrop = async (event) => {
     event.preventDefault();
-    console.log('preview url =', previewUrl);
     setPreviewUrl(null)
     const file = event.dataTransfer.files[0];
     setFile(file);
 
     try {
       const mediaInfoInstance = await mediaInfoFactory({ locateFile: () => '/MediaInfoModule.wasm' });
-      console.log('LOCATE', mediaInfoInstance);
       setMediaInfo(mediaInfoInstance);
 
       const fileSize = file.size;
@@ -239,7 +240,6 @@ const DataPage = () => {
 
       const result = await mediaInfoInstance.analyzeData(fileSize, readChunk);
       setResult(result);
-      console.log('result:', result);
 
       handleFileNameChange({ target: { value: file.name } });
       handleSelectedCategoryChange({ target: { value: currentData } });
@@ -422,8 +422,14 @@ const DataPage = () => {
     });
   };
   const isVideo = /\.(mp4|webm|ogg)$/i.test(currentViewUrl);
+  const filteredUsers = users.filter(user => user.username !== username);
+  const handleUserSelect = (event) => {
+    const userId = event.target.value;
+    const user = filteredUsers.find(user => user.id === userId);
+    setSelectedUser(user);
+  };
 
-
+  
   useEffect(() => {
     fetchData();
   }, [fetchData]);
@@ -443,11 +449,7 @@ const DataPage = () => {
       fetchRequests();
     }
   }, [catData]); // Only run the effect when catData changes
-  useEffect(() => {
-    if (item.length > 0) {
-      console.log('item updated:', item);
-    }
-  }, [item]);
+
   useEffect(() => {
     if (['Playlist', 'Ads'].includes(currentData)) {
       setIdentifier(fileName);
@@ -456,7 +458,10 @@ const DataPage = () => {
     }
   }, [currentData, fileName, folderViewNum]);
 
-
+  useEffect(() => {
+    getUsers(setUsers);
+  }, []);
+  
   return (
     <main className="table">
       <section className="table_header">
@@ -485,8 +490,8 @@ const DataPage = () => {
             <NotesForm catData={catData} data={data.find(d => d.folder === folderViewNum)} identifier={identifier} notes={notes} editingNoteId={editingNoteId} editingNoteText={editingNoteText} handleUpdateNoteText={handleUpdateNoteText} handleDoneEditNote={handleDoneEditNote} handleEditNote={handleEditNote} handleDeleteNote={handleDeleteNote} handleAddNoteSubmit={handleAddNoteSubmit} newNote={newNote} setNewNote={setNewNote} username={username} setCatData={setCatData} isAdmin={isAdmin} currentData={currentData} />
             <SetCreation catData={catData} setShowModal={setShowModal} handleSubmitSetModal={handleSubmitSetModal} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} handleAddItem={handleAddItem} item={item} startDate={startDate} setStartDate={setStartDate} endDate={endDate} setEndDate={setEndDate} startTime={startTime} setStartTime={setStartTime}  endTime={endTime} setEndTime={setEndTime} error={error} setError={setError} fetchData={fetchData}/>
             <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} modalState={modalState} setModalState={setModalState} deleteItemFromSchedule={deleteItemFromSchedule} addItemToSchedule={addItemToSchedule} moveItemPlaylistSchedule={moveItemPlaylistSchedule} handleAddItem={handleAddItem}fetchData={fetchData} formatDate={formatDate} formatTime={formatTime} isEditingDuration={isEditingDuration} isEditingTime={isEditingTime} setNewStartDate={setNewStartDate} setNewEndDate={setNewEndDate} setNewStartTime={setNewStartTime} setNewEndTime={setNewEndTime} handleSave={handleSave} newStartDate={newStartDate} newEndDate={newEndDate} setIsEditingDuration={setIsEditingDuration} newStartTime={newStartTime} newEndTime={newEndTime} setIsEditingTime={setIsEditingTime} isAdmin={isAdmin} itemSetToMove={itemSetToMove} setItemSetToMove={setItemSetToMove} confirmMove={confirmMove} setConfirmMove={setConfirmMove}  setSecondaryModal={setSecondaryModal} secondaryModal={secondaryModal} setMoveIndex={setMoveIndex} moveIndex={moveIndex}/>
-            <RequestDetails catData={catData} state={state} setState={setState} handleAddRequest={handleAddRequest} newRequestDescription={newRequestDescription} setNewRequestDescription={setNewRequestDescription} error={requestError} requests={requests} handleToggleStatus={handleToggleStatus} handleSaveSection={handleSaveSection} isAdmin={isAdmin} username={username} />
-            <Users catData={catData} adminUserState={adminUserState} setAdminUserState={setAdminUserState}/>
+            <RequestDetails catData={catData} state={state} setState={setState} handleAddRequest={handleAddRequest} newRequestDescription={newRequestDescription} setNewRequestDescription={setNewRequestDescription} error={requestError} requests={requests} handleToggleStatus={handleToggleStatus} handleSaveSection={handleSaveSection} isAdmin={isAdmin} username={username} users={users}/>
+            <Users catData={catData} adminUserState={adminUserState} setAdminUserState={setAdminUserState} selectedUser={selectedUser} handleUserSelect={handleUserSelect} filteredUsers={filteredUsers}/>
           </>
         }
       </Modal>

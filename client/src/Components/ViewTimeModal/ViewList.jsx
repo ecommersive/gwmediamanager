@@ -4,6 +4,7 @@ import Modal from '../Modal';
 
 const ViewList = ({ currentData, catData, handleAddItem, data, modalSearchTerm, setModalSearchTerm, modalFilteredData, itemExists, modalState, setModalState, deleteItemFromSchedule, moveItemPlaylistSchedule, fetchData, formatDate, formatTime, isEditingDuration, isEditingTime, setNewStartDate, setNewEndDate, setNewStartTime, setNewEndTime, handleSave, newStartDate, newEndDate, setIsEditingDuration, newStartTime, newEndTime, setIsEditingTime, isAdmin, itemSetToMove, setItemSetToMove, secondaryModal, setSecondaryModal, setMoveIndex, moveIndex }) => {
 
+
   return (
     <>
       {((currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') && (catData === 'viewTimes' || catData === 'alterTable')) && (
@@ -58,7 +59,6 @@ const ViewList = ({ currentData, catData, handleAddItem, data, modalSearchTerm, 
               {catData === 'alterTable' && modalState === '' && (
                 <div style={{ display: 'flex', justifyContent: 'center', margin: '10px 0' }}>
                   <button className='action-button' style={{ margin: '0 10px' }} onClick={() => setModalState('Add')}>Add to {currentData === 'Playlist Schedule' ? 'Content ' : 'Ad '}Schedule</button>
-                  {/* <button className='action-button' style={{ margin: '0 10px' }} onClick={() => setModalState('Move')}>Move</button> */}
                 </div>
               )}
 
@@ -78,7 +78,7 @@ const ViewList = ({ currentData, catData, handleAddItem, data, modalSearchTerm, 
                           borderColor: itemSetToMove.FileName === item.FileName ? 'blue' : 'gray',
                           borderRadius: '5px',
                           padding: modalState === 'Move' ? '10px' : '0',
-                          overflow: 'hidden' // To ensure the hover effect stays within the boundaries
+                          overflow: 'hidden' 
                         }}
                         onMouseEnter={(e) => {
                           if (modalState === 'Move' && itemSetToMove.FileName !== item.FileName) {
@@ -92,7 +92,7 @@ const ViewList = ({ currentData, catData, handleAddItem, data, modalSearchTerm, 
                         }}
                       >
                         <div style={{ height: '100px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                          <img src={item.PhotoUrl} style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }} alt={item.FileName} />
+                          {/* <img src={item.PhotoUrl} style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }} alt={item.FileName} /> */}
                           <p style={{ margin: '5px 0', height: '20px', lineHeight: '20px', fontWeight: itemSetToMove.FileName === item.FileName ? 'bold' : 'normal' }}>
                             {index + 1}. <span>{item.FileName}</span>
                           </p>
@@ -118,7 +118,7 @@ const ViewList = ({ currentData, catData, handleAddItem, data, modalSearchTerm, 
                             fontSize: '24px',
                             fontWeight: 'bold'
                           }}>
-                            <button className='action-button' onClick={() => {setSecondaryModal(true); setItemSetToMove(itemSetToMove); setMoveIndex(index)}}>Switch to position {index + 1}</button>
+                            <button className='action-button' onClick={() => { setSecondaryModal(true); setItemSetToMove(itemSetToMove); setMoveIndex(index) }}>Switch to position {index + 1}</button>
                           </div>
                         )}
                       </li>
@@ -126,18 +126,36 @@ const ViewList = ({ currentData, catData, handleAddItem, data, modalSearchTerm, 
                   </ul>
                 </div>
               )}
-
-              {modalState === 'Move' || modalState ==='Add' && (
-                <>
-                  {modalState === 'Move'  && (
-                    <>
-                      <b>{itemSetToMove.FileName} can now be moved</b>
-                      <br />
-                    </>
-                  )}
-                  <button className='action-button' onClick={() => { setModalState(''); setModalSearchTerm(''); setItemSetToMove('') }}>Exit</button>
-                </>
+              {modalState === 'Move' && !secondaryModal && (
+                <div style={{
+                  position: 'sticky',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  width: '100%',
+                  textAlign: 'center',
+                  zIndex: 1500
+                }}>
+                  <div style={{
+                    display: 'inline-block',
+                    backgroundColor: '#fff',
+                    padding: '10px 20px',
+                    boxShadow: '0 -2px 6px rgba(0,0,0,0.1)'
+                  }}>
+                    <b>{itemSetToMove.FileName} can now be moved</b>
+                    <br />
+                    <button
+                      className='action-button'
+                      onClick={() => { setModalState(''); setModalSearchTerm(''); setItemSetToMove('') }}>
+                      Exit
+                    </button>
+                  </div>
+                </div>
               )}
+
+
+
+
             </div>
           )}
         </>

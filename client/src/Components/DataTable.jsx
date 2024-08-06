@@ -13,7 +13,7 @@ const DataTable = ({ currentData, isAdmin, handleUrlClick, filteredData, setShow
                 scheduleEditMode === 'on' ? (
                   <>
                     <th>Order</th>
-                    <th>Image</th>
+                    {/* <th>Image</th> */}
                     <th>File Name</th>
                     <th>File Type</th>
                     <th>Video/Photo</th>
@@ -33,7 +33,7 @@ const DataTable = ({ currentData, isAdmin, handleUrlClick, filteredData, setShow
                 )
               ) : (
                 <>
-                  <th>Image</th>
+                  {/* <th>Image</th> */}
                   <th>File Name</th>
                   <th>File Type</th>
                   <th>Video/Photo</th>
@@ -52,7 +52,7 @@ const DataTable = ({ currentData, isAdmin, handleUrlClick, filteredData, setShow
               if (currentData === 'Playlist' || currentData === 'Ads') {
                 return (
                   <tr key={index} style={{ backgroundColor: index % 2 === 0 ? 'transparent' : '#f0f0f0' }}>
-                    <td><img src={item.PhotoUrl} style={{ width: '50px', height: 'auto' }} /></td>                    
+                    {/* <td><img src={item.PhotoUrl} style={{ width: '50px', height: 'auto' }} /></td>                     */}
                     <td>{item.FileName}</td>
                     <td>{item.Type}</td>
                     <td><button className='action-button' onClick={() => { handleUrlClick(item.PhotoUrl, item.videoUrl); setMode('viewvideo')}}>View</button></td>
@@ -92,7 +92,7 @@ const DataTable = ({ currentData, isAdmin, handleUrlClick, filteredData, setShow
             {scheduleEditMode === 'on' && orderedScheduledData.map((scheduledItem, idx) => (
               <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? 'transparent' : '#f0f0f0' }}>
                 <td>{idx+1}</td>
-                <td><img src={scheduledItem.PhotoUrl} style={{ width: '50px', height: 'auto' }} /></td>
+                {/* <td><img src={scheduledItem.PhotoUrl} style={{ width: '50px', height: 'auto' }} /></td> */}
                 <td>{scheduledItem.FileName}</td>
                 <td>{scheduledItem.Type}</td>
                 <td><button className='action-button' onClick={() => { handleUrlClick(scheduledItem.PhotoUrl, scheduledItem.videoUrl); setMode('viewvideo')}}>View</button></td>

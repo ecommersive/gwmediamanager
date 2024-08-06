@@ -19,6 +19,21 @@ const apiService = {
           console.log('Failed to log change:', error);
         }
     },
+
+    getUsers: async ({ setUsers }) => {
+      try {
+        let url = `${baseURL}/users`;
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setUsers(data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setUsers([]); // Set an empty array in case of error
+      }
+    },
     fetchForSchedule: async (currentData) => {
       let url = `${baseURL}/mediaAll?type=`;
       

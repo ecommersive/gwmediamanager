@@ -1,14 +1,15 @@
 @host = http://localhost:8080
 
 ### Register test
-# POST {{host}}/register HTTP/1.1
-# Content-Type: application/json
+POST {{host}}/register HTTP/1.1
+Content-Type: application/json
 
-# {
-#     "username": "GWUser",
-#     "password": "GWPassword",
-#     "isAdmin": false
-# }
+{
+  "username": "BullPen",
+  "password": "BullPenPassword",
+  "isAdmin": false,
+  "userCompany": "BullPen"
+}
 
 
 ### Login test

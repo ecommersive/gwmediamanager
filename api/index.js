@@ -361,11 +361,11 @@ app.get('/fileDetails/:fileName', verifyToken, async (req, res) => {
 
 
 app.post('/register', async (req, res) => {
-  const { username, password, isAdmin } = req.body;
+  const { username, password, isAdmin, userCompany } = req.body;
 
   // Validate input
-  if (!username || !password) {
-      return res.status(400).json({ message: 'Username and password are required' });
+  if (!username || !password || !userCompany) {
+      return res.status(400).json({ message: 'Username, password, and company are required' });
   }
   if (typeof isAdmin !== 'boolean') {
       return res.status(400).json({ message: 'Invalid user role specified' });
@@ -383,7 +383,8 @@ app.post('/register', async (req, res) => {
       const newUser = new User({
           username,
           password: hashedPassword,
-          isAdmin: isAdmin  // isAdmin is a boolean that should be passed in the request
+          isAdmin,
+          userCompany
       });
 
       await newUser.save();

@@ -1,8 +1,7 @@
 import React from 'react';
 import '../styles/datatable.css';
 
-const DataTable = ({ currentData, isAdmin, handleUrlClick, filteredData, setShowModal, setFileName, setMode, setNotes, setCatData, setfolderViewNum, formatDate, formatTime, scheduleEditMode, setScheduleEditMode, setCompareData, orderedScheduledData  }) => {
-
+const DataTable = ({ currentData, isAdmin, handleUrlClick, filteredData, setShowModal, setFileName, setMode, setNotes, setCatData, setfolderViewNum, formatDate, formatTime, scheduleEditMode, setScheduleEditMode, setCompareData, orderedScheduledData, generateIntervals, formatTimeSchedule  }) => {
   return (
     <section className="table_body">
       {filteredData && filteredData.length > 0 ? (
@@ -65,6 +64,7 @@ const DataTable = ({ currentData, isAdmin, handleUrlClick, filteredData, setShow
                   </tr>
                 );
               } else if (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') {
+                const intervals = generateIntervals(item.startTime);
                 return (
                   <tr key={index} style={{ backgroundColor: index % 2 === 0 ? 'transparent' : '#f0f0f0' }}>
                     {scheduleEditMode !== 'on' && (
@@ -80,7 +80,7 @@ const DataTable = ({ currentData, isAdmin, handleUrlClick, filteredData, setShow
                             {(currentData === 'Playlist Schedule' ? 'Eternal' : `Ads ${item.folder}`)}
                           </button>
                         </td>
-                        {currentData === 'Ads Schedule' && <td>{formatTime(item.startTime)} - {formatTime(item.endTime)}</td>}
+                        {currentData === 'Ads Schedule' && <td>{intervals.join(', ')}</td>}
                         <td>{formatDate(item.startDate)} - {formatDate(item.endDate)}</td>
                       </>
                     )}

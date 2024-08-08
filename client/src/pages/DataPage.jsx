@@ -429,6 +429,27 @@ const DataPage = () => {
     setSelectedUser(user);
   };
 
+  const generateIntervals = (startTimeString) => {
+    if (!startTimeString) return [];
+    
+    const intervals = [];
+    let [startHours, startMinutes] = startTimeString.split(':').map(Number);
+
+    for (let i = 0; i < 24; i += 6) {
+        intervals.push(formatTimeSchedule(startHours, startMinutes));
+        startHours = (startHours + 6) % 24;
+    }
+
+    return intervals;
+};
+
+  const formatTimeSchedule = (hours, minutes = 0) => {
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const adjustedHours = hours % 12 || 12;
+    return `${adjustedHours}:${minutes < 10 ? '0' : ''}${minutes} ${period}`;
+  };
+
+
   
   useEffect(() => {
     fetchData();
@@ -473,7 +494,7 @@ const DataPage = () => {
           <HeaderButtons currentData={currentData} isAdmin={isAdmin} handleModal={handleModal} setMode={setMode} setCatData={setCatData} handleLogout={handleLogout} catData={catData} data={data.find(d => d.folder === folderViewNum)} setShowModal={setShowModal} setfolderViewNum={setfolderViewNum} setScheduleEditMode={setScheduleEditMode} scheduleEditMode={scheduleEditMode}/>
         </div>
       </section>
-      <DataTable currentData={currentData} isAdmin={isAdmin} setMode={setMode} handleUrlClick={handleUrlClick} filteredData={filteredData} setShowModal={setShowModal} setFileName={setFileName} setNotes={setNotes} setCatData={setCatData} setfolderViewNum={setfolderViewNum} formatDate={formatDate} formatTime={formatTime} catData={catData} setScheduleEditMode={setScheduleEditMode} scheduleEditMode={scheduleEditMode} scheduledData={scheduledData} setCompareData={setCompareData} orderedScheduledData={orderedScheduledData}/>
+      <DataTable currentData={currentData} isAdmin={isAdmin} setMode={setMode} handleUrlClick={handleUrlClick} filteredData={filteredData} setShowModal={setShowModal} setFileName={setFileName} setNotes={setNotes} setCatData={setCatData} setfolderViewNum={setfolderViewNum} formatDate={formatDate} formatTime={formatTime} catData={catData} setScheduleEditMode={setScheduleEditMode} scheduleEditMode={scheduleEditMode} scheduledData={scheduledData} setCompareData={setCompareData} orderedScheduledData={orderedScheduledData} generateIntervals={generateIntervals} formatTimeSchedule={formatTimeSchedule}/>
       <Modal style={mode === 'viewvideo' ? { height: '100%' } : {}} isOpen={showModal} onClose={() => { ModalClose(); if (currentData === 'Playlist Schedule' || currentData === 'Ads Schedule') { setModalSearchTerm(''); } }} maxWidth={catData === 'alterTable' ? '1000px' : '600px'}>
         {mode === 'viewvideo' && <VideoViewer key={videoKey} currentViewUrl={currentViewUrl} isVideo={isVideo}/>}
         {mode === 'configureData' &&

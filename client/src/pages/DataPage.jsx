@@ -81,12 +81,14 @@ const DataPage = () => {
   const [adminUserState, setAdminUserState] = useState('')
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
-
+  const [objectCount, setObjectCount] = useState(0);
+  
   //api calls
   const fetchData = useCallback(async () => {
     try {
       const data = await apiService.fetchData(currentData);
       setData(data);
+      setObjectCount(data.length);
       const adminStatus = localStorage.getItem('isAdmin') === 'true';
       setIsAdmin(adminStatus);
     } catch (error) {
@@ -435,7 +437,7 @@ const DataPage = () => {
     const intervals = [];
     let [startHours, startMinutes] = startTimeString.split(':').map(Number);
 
-    for (let i = 0; i < 24; i += 6) {
+    for (let i = 0; i < 24; i += objectCount) {
         intervals.push(formatTimeSchedule(startHours, startMinutes));
         startHours = (startHours + 6) % 24;
     }

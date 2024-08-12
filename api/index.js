@@ -113,8 +113,7 @@ app.get('/playlists', async (req, res) => {
 });
 app.post('/upload', upload.single('file'), async (req, res) => {
   try {
-    const { fileType } = req.body; // 'photo' or 'video'
-    const folder = fileType === 'Photo' ? 'gwfolder/gwphotos' : 'gwfolder/gwvideos';
+    const folder = 'gwfolder/gwvideos';
     const fileUrl = await uploadFile(req.file, folder);
     res.status(200).send({ fileUrl });
   } catch (error) {

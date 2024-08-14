@@ -1051,13 +1051,24 @@ app.post('/changelog', async (req, res) => {
 
 const sendChangeLogEmail = async () => {
   try {
-    // Get the current date at midnight to use as a filter
-    const startOfDay = moment.tz('America/New_York').startOf('day').toDate();
-    const endOfDay = moment.tz('America/New_York').endOf('day').toDate();
+    // Get the current time to calculate the start and end times for the 30-minute interval
+    const now = moment.tz('America/New_York');
+    const minutes = now.minutes();
 
-    // Fetch change logs for the current day
+    // Determine the start and end of the current 30-minute interval
+    let startOfInterval, endOfInterval;
+
+    if (minutes < 30) {
+      startOfInterval = now.clone().startOf('hour').toDate(); // Start of the hour
+      endOfInterval = now.clone().startOf('hour').add(30, 'minutes').toDate(); // 30 minutes past the hour
+    } else {
+      startOfInterval = now.clone().startOf('hour').add(30, 'minutes').toDate(); // 30 minutes past the hour
+      endOfInterval = now.clone().endOf('hour').toDate(); // End of the hour
+    }
+
+    // Fetch change logs for the current 30-minute interval
     const logs = await ChangeLog.find({
-      timestamp: { $gte: startOfDay, $lt: endOfDay }
+      timestamp: { $gte: startOfInterval, $lt: endOfInterval }
     });
 
     if (logs.length === 0) {
@@ -1066,7 +1077,7 @@ const sendChangeLogEmail = async () => {
     }
 
     // Get current date for the email subject
-    const currentDate = moment.tz('America/New_York').format('YYYY-MM-DD');
+    const currentDate = now.format('YYYY-MM-DD');
 
     // Helper function to format date
     const formatDate = (date) => {
@@ -1144,7 +1155,7 @@ const sendChangeLogEmail = async () => {
     const msg = {
       to: recipients,
       from: process.env.EMAIL_USERNAME,
-      subject: `Change Log - ${currentDate}`,
+      subject: `Change Log - ${currentDate} (${formatTime(startOfInterval)} - ${formatTime(endOfInterval)})`,
       text: logs.map(log => `User: ${log.user}\nDate: ${formatDate(log.timestamp)}\nMessage: ${log.message}\nTime: ${formatTime(log.timestamp)}`).join('\n\n'),
       html: emailBody,
       attachments: attachments
@@ -1157,6 +1168,16 @@ const sendChangeLogEmail = async () => {
     console.error('Error sending change log email:', error);
   }
 };
+
+// Schedule the cron job to run every 30 minutes between 9:00 AM and 5:30 PM
+cron.schedule('0,30 9-17 * * *', () => {
+  console.log('Running change log email task...');
+  sendChangeLogEmail().catch(error => console.error('Error in scheduled email task:', error));
+}, {
+  scheduled: true,
+  timezone: "America/New_York"
+});
+
 
 
 // Deletes all logs, will schedule this every Sunday

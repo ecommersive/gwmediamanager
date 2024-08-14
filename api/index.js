@@ -1220,14 +1220,6 @@ const updateSchedules = async () => {
   }
 };
 
-cron.schedule('0 22 * * *', () => {
-  console.log('Running change log email task...');
-  sendChangeLogEmail().catch(error => console.error('Error in scheduled email task:', error));
-}, {
-  scheduled: true,
-  timezone: "America/New_York"
-});
-
 // Schedule the cleanup task to run every Sunday at midnight Eastern Time
 cron.schedule('0 0 * * 0', () => {
   console.log('Running delete all logs task...');

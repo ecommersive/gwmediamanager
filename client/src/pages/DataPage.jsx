@@ -83,7 +83,6 @@ const DataPage = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [objectCount, setObjectCount] = useState(0);
   
-  //api calls
   const fetchData = useCallback(async () => {
     try {
       const data = await apiService.fetchData(currentData);
@@ -308,6 +307,8 @@ const DataPage = () => {
   }, [searchTerm, data, currentData]);
   const handleAddItem = async (modalItem, id) => {
     await addItemToSchedule(modalItem, id);
+    console.log('modalitem ===', modalItem);
+    
     setAddedItems(prevItems => [...prevItems, id]);  // Update the added items state
     await fetchItemsByFolder();
   };

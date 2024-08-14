@@ -782,6 +782,8 @@ app.post('/:scheduleType/:folder/add', verifyToken, async (req, res) => {
     return res.status(400).json({ message: 'Item is required' });
   }
 
+  
+  
   const Model = getModel(scheduleType);
 
   try {
@@ -792,7 +794,6 @@ app.post('/:scheduleType/:folder/add', verifyToken, async (req, res) => {
 
     schedule.items.push(item);
     await schedule.save();
-
     res.json(schedule);
   } catch (error) {
     console.error(`Error adding item to ${scheduleType} schedule:`, error);

@@ -385,6 +385,7 @@ const apiService = {
           startDate: startDate.toISOString(),
           endDate: endDate.toISOString(),
           items: [],
+          
           startTime: startTime.startTime, // Ensure it's a string
           endTime: endTime.endTime,         // Ensure it's a string
         };
@@ -429,7 +430,6 @@ const apiService = {
         } else if (currentData === 'Ads Schedule') {
           alterValue = 'adsSchedule';
         }
-        console.log('item to add =', itemToAdd);
     
         const itemWithId = {
           ...itemToAdd,

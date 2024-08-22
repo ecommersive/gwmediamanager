@@ -1374,14 +1374,14 @@ const sendDailySummaryEmail = async () => {
 
 
 // Schedule the cron job to run every 30 minutes between 9:00 AM and 5:30 PM
-// cron.schedule('0,30 9-17 * * *', () => {
-//   console.log('Running change log email task...');
-//   sendChangeLogEmail().catch(error => console.error('Error in scheduled email task:', error));
-//   sendDeletionLogEmail().catch(error => console.error('Error in scheduled email task:', error));
-// }, {
-//   scheduled: true,
-//   timezone: "America/New_York"
-// });
+cron.schedule('0,30 9-17 * * *', () => {
+  console.log('Running change log email task...');
+  sendChangeLogEmail().catch(error => console.error('Error in scheduled email task:', error));
+}, {
+  scheduled: true,
+  timezone: "America/New_York"
+});
+cron.schedule('0 18 * * 1-5', sendDeletionLogEmailDaily); // Runs every weekday at 6 PM
 
 //daily summary every night
 cron.schedule('0 22 * * *', () => {
@@ -1393,14 +1393,14 @@ cron.schedule('0 22 * * *', () => {
 });
 
 // testing purposes
-cron.schedule('* * * * *', () => {
-  console.log('Running test cron job...');
-  // sendChangeLogEmail().catch(error => console.error('Error in scheduled email task:', error));
-  sendDeletionLogEmail().catch(error => console.error('Error in scheduled email task:', error));
-}, {
-  scheduled: true,
-  timezone: "America/New_York"
-});
+// cron.schedule('* * * * *', () => {
+//   console.log('Running test cron job...');
+//   sendChangeLogEmail().catch(error => console.error('Error in scheduled email task:', error));
+//   sendDeletionLogEmailDaily().catch(error => console.error('Error in scheduled email task:', error));
+// }, {
+//   scheduled: true,
+//   timezone: "America/New_York"
+// });
 
 
 // Deletes all logs, will schedule this every Sunday

@@ -4,7 +4,8 @@ const userSchema = new mongoose.Schema({
   username: String,
   password: String,
   isAdmin: Boolean,
-  userCompany:String
+  userCompany:String,
+  Email: [String]
 }, {
   collection: 'User' 
 });

@@ -1,10 +1,23 @@
 import React from 'react';
 
-const RequestDetails = ({ catData, state, setState, handleAddRequest, newRequestDescription, setNewRequestDescription, error, requests, handleToggleStatus, handleSaveSection, isAdmin, username }) => {
+const RequestDetails = ({
+    catData,
+    state,
+    setState,
+    handleAddRequest,
+    newRequestDescription,
+    setNewRequestDescription,
+    error, requests,
+    handleToggleStatus,
+    handleSaveSection,
+    isAdmin,
+    username
+}) => {
     const section = (
         <>
             {state === 'makerequest' && <button className='action-button' onClick={() => { handleAddRequest(); setState('') }} disabled={!newRequestDescription}>Submit Request</button>}
-            {state === 'viewrequest' && <button className='action-button' onClick={() => { handleSaveSection();  setState('')}}>Save Section</button>}            
+            {state === 'viewrequest' && <button className='action-button' onClick={() => { handleSaveSection(); setState('') }}>Save Section</button>}
+
             <button className='action-button' onClick={() => { setState('') }}>Exit Section</button>
         </>
     );
@@ -17,6 +30,7 @@ const RequestDetails = ({ catData, state, setState, handleAddRequest, newRequest
                     <>
                         <button className='action-button' onClick={() => { setState('viewrequest') }}>View Requests</button>
                         {!isAdmin && <button className='action-button' onClick={() => { setState('makerequest') }}>Make Requests</button>}
+
                     </>
                 )}
                 {state === 'viewrequest' &&
@@ -35,7 +49,9 @@ const RequestDetails = ({ catData, state, setState, handleAddRequest, newRequest
                                                 {request.status === 'unfinished' ? 'Complete' : 'Unfinished'}
                                             </button>
                                         </p>
-                                    )}                                    <hr />
+                                    )}
+                                   
+                                    <hr />
                                 </li>
                             ))}
                         </ul>

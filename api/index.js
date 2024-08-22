@@ -10,13 +10,14 @@ const Request = require('./models/Request');
 const AdsSchedule = require('./models/AdsSchedule');
 const PlaylistSchedule = require('./models/PlaylistSchedule');
 const ChangeLog = require('./models/Changelog');
+const DeletedRequest = require('./models/DeletedRequest');
 const sgMail = require('@sendgrid/mail')
 const cron = require('node-cron');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const xlsx = require('xlsx');
-const { S3Client, PutObjectCommand, DeleteObjectCommand  } = require('@aws-sdk/client-s3');
+const { S3Client, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const { v4: uuidv4 } = require('uuid');
 const multer = require('multer');
 
@@ -26,7 +27,7 @@ const ObjectId = mongoose.Types.ObjectId;
 
 const moment = require('moment-timezone');
 
-const {verifyToken} = require('./middleware/authmiddleware');
+const { verifyToken } = require('./middleware/authmiddleware');
 
 app.use(express.json());
 app.use(cors());
@@ -92,19 +93,19 @@ const uploadFile = async (file, folder) => {
 app.get('/playlists', async (req, res) => {
   try {
     const playlists = await Playlist.find({});
-    
+
     const playlistSchedules = await PlaylistSchedule.find({});
-    
+
     const scheduledItems = new Set(
-      playlistSchedules.flatMap(schedule => 
+      playlistSchedules.flatMap(schedule =>
         schedule.items
           .filter(item => item.FileID)  // Ensure FileID is defined
           .map(item => item.FileID.toString())
       )
     );
-    
+
     const filteredPlaylists = playlists.filter(playlist => playlist._id && !scheduledItems.has(playlist._id.toString()));
-    
+
     res.json(filteredPlaylists);
   } catch (err) {
     console.error('Error fetching playlists:', err);
@@ -126,7 +127,7 @@ app.get('/ads', async (req, res) => {
     const ads = await Ads.find({});
     const adsSchedules = await AdsSchedule.find({})
     const scheduledItems = new Set(
-      adsSchedules.flatMap(schedule => 
+      adsSchedules.flatMap(schedule =>
         schedule.items
           .filter(item => item.FileID)  // Ensure FileID is defined
           .map(item => item.FileID.toString())
@@ -217,7 +218,7 @@ app.post('/createPlaylistSchedule', verifyToken, async (req, res) => {
     });
 
     const savedSchedule = await newPlaylistSchedule.save();
-     
+
     res.status(201).json(savedSchedule);
   } catch (err) {
     console.error('Error saving new playlist schedule:', err);
@@ -249,7 +250,7 @@ app.post('/createAdsSchedule', verifyToken, async (req, res) => {
   }
 
   const itemsFileNamesAndIDs = items.map(item => ({ FileName: item.FileName, FileID: item.FileID }));
-  
+
   try {
     const latestSchedule = await AdsSchedule.findOne().sort({ folder: -1 }).exec();
     const folderNumber = latestSchedule ? latestSchedule.folder + 1 : 1;
@@ -322,7 +323,7 @@ app.post('/uploadPlaylist', verifyToken, async (req, res) => {
 
 
 app.post('/uploadAds', verifyToken, async (req, res) => {
-  const { FileName, PhotoUrl, Type, Tag, Run_Time, Content,  Expiry, notes, generalData, videoData, audioData  } = req.body;
+  const { FileName, PhotoUrl, Type, Tag, Run_Time, Content, Expiry, notes, generalData, videoData, audioData } = req.body;
 
   const foundIn = await checkFileExistence(FileName);
   if (foundIn.length > 0) {
@@ -371,39 +372,44 @@ app.get('/fileDetails/:fileName', verifyToken, async (req, res) => {
 
 
 app.post('/register', async (req, res) => {
-  const { username, password, isAdmin, userCompany } = req.body;
+  const { username, password, isAdmin, userCompany, Email } = req.body;
 
   // Validate input
   if (!username || !password || !userCompany) {
-      return res.status(400).json({ message: 'Username, password, and company are required' });
+    return res.status(400).json({ message: 'Username, password, and company are required' });
   }
   if (typeof isAdmin !== 'boolean') {
-      return res.status(400).json({ message: 'Invalid user role specified' });
+    return res.status(400).json({ message: 'Invalid user role specified' });
+  }
+  if (!Email || !Array.isArray(Email) || Email.some(email => typeof email !== 'string')) {
+    return res.status(400).json({ message: 'Invalid or missing email list' });
   }
 
   try {
-      const existingUser = await User.findOne({ username });
-      if (existingUser) {
-          return res.status(400).json({ message: 'Username already exists' });
-      }
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Username already exists' });
+    }
 
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-      const newUser = new User({
-          username,
-          password: hashedPassword,
-          isAdmin,
-          userCompany
-      });
+    const newUser = new User({
+      username,
+      password: hashedPassword,
+      isAdmin,
+      userCompany,
+      Email  // Make sure your User model in Mongoose supports this field
+    });
 
-      await newUser.save();
-      res.status(201).json({ message: 'User registered successfully', userId: newUser._id, role: isAdmin ? 'Admin' : 'User' });
+    await newUser.save();
+    res.status(201).json({ message: 'User registered successfully', userId: newUser._id, role: isAdmin ? 'Admin' : 'User' });
   } catch (error) {
-      console.error('Error registering user:', error);
-      res.status(500).json({ message: 'Error registering user', error: error.message });
+    console.error('Error registering user:', error);
+    res.status(500).json({ message: 'Error registering user', error: error.message });
   }
 });
+
 
 app.get('/users', async (req, res) => {
   try {
@@ -470,7 +476,7 @@ app.delete('/deleteData/:category/:fileName', verifyToken, async (req, res) => {
   try {
     const escapedFileName = escapeRegExp(fileName);
     const regex = new RegExp(`^${escapedFileName}$`, 'i');
-    
+
     const document = await Model.findOne({ FileName: regex });
     if (!document) {
       return res.status(404).send({ error: 'File not found' });
@@ -548,31 +554,31 @@ app.post('/setExpiry/:category/:fileName', verifyToken, async (req, res) => {
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {
-      return res.status(400).send('Username and password are required');
+    return res.status(400).send('Username and password are required');
   }
 
   try {
-      const user = await User.findOne({ username });
-      if (!user) {
-          return res.status(401).send('Username does not exist, please try again!');
-      }
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(401).send('Username does not exist, please try again!');
+    }
 
-      
 
-      const validPassword = await bcrypt.compare(password, user.password);
-      if (!validPassword) {
-          return res.status(401).send('Incorrect password, please try again!');
-      }
 
-      const token = jwt.sign(
-          { userId: user._id, isAdmin: user.isAdmin },
-          process.env.JWT_SECRET,
-          { expiresIn: '1h' }  
-      );
-      res.json({ token, message: 'Login successful', isAdmin: user.isAdmin, userCompany: user.userCompany });
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) {
+      return res.status(401).send('Incorrect password, please try again!');
+    }
+
+    const token = jwt.sign(
+      { userId: user._id, isAdmin: user.isAdmin },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+    res.json({ token, message: 'Login successful', isAdmin: user.isAdmin, userCompany: user.userCompany });
   } catch (err) {
-      console.error('Login error:', err);
-      res.status(500).send('Internal Server Error');
+    console.error('Login error:', err);
+    res.status(500).send('Internal Server Error');
   }
 });
 
@@ -589,7 +595,7 @@ app.listen(PORT, () => {
 //notes for files
 app.post('/notes/add/:category/:identifier', verifyToken, async (req, res) => {
   const { category, identifier } = req.params;
-  const { text, addedOn, user  } = req.body;
+  const { text, addedOn, user } = req.body;
 
   const categoryModelMap = {
     playlist: Playlist,
@@ -600,7 +606,7 @@ app.post('/notes/add/:category/:identifier', verifyToken, async (req, res) => {
 
   const queryField = ['playlistschedule', 'adsschedule'].includes(category.toLowerCase()) ? 'folder' : 'FileName';
   const Model = categoryModelMap[category.toLowerCase()];
-  
+
   if (!Model) {
     return res.status(404).json({ error: 'Category not found' });
   }
@@ -636,7 +642,7 @@ app.post('/notes/add/:category/:identifier', verifyToken, async (req, res) => {
 
 app.put('/notes/update/:category/:identifier', verifyToken, async (req, res) => {
   const { category, identifier } = req.params;
-  const { noteIndex, updatedText } = req.body; 
+  const { noteIndex, updatedText } = req.body;
 
   const categoryModelMap = {
     playlist: Playlist,
@@ -678,7 +684,7 @@ app.put('/notes/update/:category/:identifier', verifyToken, async (req, res) => 
 
     // Update the text and the added on date of the specific note
     document.notes[noteIndex].text = updatedText;
-    document.notes[noteIndex].addedOn = new Date(); 
+    document.notes[noteIndex].addedOn = new Date();
 
     await document.save();
 
@@ -741,7 +747,7 @@ app.get('/notes/:category/:identifier', verifyToken, async (req, res) => {
   const Model = { 'playlist': Playlist, 'ads': Ads }[category.toLowerCase()];
   const queryField = ['playlist', 'ads'].includes(category.toLowerCase()) ? 'FileName' : 'folder';
 
-  
+
   if (!Model) {
     return res.status(404).json({ error: 'Category not found' });
   }
@@ -793,8 +799,8 @@ app.post('/:scheduleType/:folder/add', verifyToken, async (req, res) => {
     return res.status(400).json({ message: 'Item is required' });
   }
 
-  
-  
+
+
   const Model = getModel(scheduleType);
 
   try {
@@ -892,7 +898,7 @@ app.delete('/set/schedules/:scheduleType/:folder', verifyToken, async (req, res)
 app.put('/:scheduleType/:folder/update', verifyToken, async (req, res) => {
   const { scheduleType, folder } = req.params;
   const { startDate, endDate, startTime, endTime } = req.body;
-  
+
   const Model = getModel(scheduleType); // Utility function to get the model based on scheduleType
   if (!Model) {
     return res.status(400).json({ message: 'Invalid schedule type' });
@@ -997,19 +1003,19 @@ app.put('/requests/:id/status', verifyToken, async (req, res) => {
   const { status } = req.body;
 
   if (!status) {
-      return res.status(400).json({ message: 'Status is required' });
+    return res.status(400).json({ message: 'Status is required' });
   }
 
   try {
-      const updatedRequest = await Request.findByIdAndUpdate(id, { status }, { new: true });
-      if (!updatedRequest) {
-          return res.status(404).json({ message: 'Request not found' });
-      }
+    const updatedRequest = await Request.findByIdAndUpdate(id, { status }, { new: true });
+    if (!updatedRequest) {
+      return res.status(404).json({ message: 'Request not found' });
+    }
 
-      res.status(200).json(updatedRequest);
+    res.status(200).json(updatedRequest);
   } catch (error) {
-      console.error('Error updating request status:', error);
-      res.status(500).json({ message: 'Internal server error' });
+    console.error('Error updating request status:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 
@@ -1019,20 +1025,30 @@ app.delete('/requests/:id', verifyToken, async (req, res) => {
 
   try {
 
-      // Convert the ID to ObjectId
-      if (!ObjectId.isValid(id)) {
-          return res.status(400).json({ message: 'Invalid request ID' });
-      }
+    // Convert the ID to ObjectId
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid request ID' });
+    }
 
-      const objectId = new ObjectId(id);
-      const deletedRequest = await Request.findByIdAndDelete(objectId);
-      if (!deletedRequest) {
-          return res.status(404).json({ message: 'Request not found' });
-      }
+    const objectId = new ObjectId(id);
+    const deletedRequest = await Request.findByIdAndDelete(objectId);
+    if (!deletedRequest) {
+      return res.status(404).json({ message: 'Request not found' });
+    }
 
-      res.status(200).json({ message: 'Request deleted successfully' });
+    // Log the deletion in the DeletedRequest model
+    const logDeletion = new DeletedRequest({
+      originalRequestId: objectId,
+      description: deletedRequest.description,
+      user: deletedRequest.user,
+      deletedAt: new Date() // Explicitly set to today's date
+    });
+    await logDeletion.save();
+
+
+    res.status(200).json({ message: 'Request deleted successfully' });
   } catch (error) {
-      res.status(500).json({ message: 'Internal server error', error: error.message });
+    res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 });
 
@@ -1041,13 +1057,13 @@ app.delete('/requests/:id', verifyToken, async (req, res) => {
 //changelog
 app.post('/changelog', async (req, res) => {
   try {
-    const { user,message } = req.body;
+    const { user, message } = req.body;
 
     if (!message) {
       return res.status(400).send('Message is required');
     }
 
-    if(!message){
+    if (!message) {
       return res.status(400).send('User is required')
     }
 
@@ -1066,7 +1082,7 @@ const sendChangeLogEmail = async () => {
     const now = moment.tz('America/New_York');
 
     // Calculate the start of the interval as 45 minutes ago from now
-    const startOfInterval = now.clone().subtract(30, 'minutes').toDate(); 
+    const startOfInterval = now.clone().subtract(30, 'minutes').toDate();
     const endOfInterval = now.toDate(); // Current time
 
     // Fetch change logs for the past 45 minutes
@@ -1172,13 +1188,85 @@ const sendChangeLogEmail = async () => {
   }
 };
 
+const sendDeletionLogEmailDaily = async () => {
+  try {
+    // Get the current date in the 'America/New_York' timezone
+    const now = moment.tz('America/New_York');
+
+    // Set start and end of the day
+    const startOfDay = now.clone().startOf('day').toDate();
+    const endOfDay = now.clone().endOf('day').toDate();
+
+    // Fetch deleted requests for the current day
+    const deletedRequests = await DeletedRequest.find({
+      deletedAt: { $gte: startOfDay, $lt: endOfDay }
+    });
+
+    if (deletedRequests.length === 0) {
+      console.log('No deleted requests to send.');
+      return;
+    }
+
+    // Group deleted requests by user string
+    const groupedRequests = deletedRequests.reduce((acc, request) => {
+      const user = request.user; // 'user' is a string here
+      acc[user] = acc[user] || [];
+      acc[user].push(request);
+      return acc;
+    }, {});
+
+    // Send an email for each user
+    for (let user in groupedRequests) {
+      const userRequests = groupedRequests[user];
+
+      // Assume we have some method to resolve email from username
+      const userEmail = await getEmailFromUsername(user); // Implement this function based on your application's logic
+
+      const emailBody = `
+      <p>Dear ${user},</p>
+      <p>The following requests have been completed:</p>
+      <ul>
+        ${userRequests.map(req => `<li>${req.description} - Completed on ${moment(req.deletedAt).tz('America/New_York').format('YYYY-MM-DD hh:mm A')}</li>`).join('')}
+      </ul>
+      <br>
+      <br>
+      <img src="https://samqr.s3.ca-central-1.amazonaws.com/Commersive+Logo+2023+LIGHT.png" alt="Commersive Solutions Logo" style="width: 400px; height: auto;">
+      <br>
+    `;
+
+      const msg = {
+        to: userEmail, // Assuming getEmailFromUsername resolves to the correct email
+        from: process.env.EMAIL_USERNAME, // Your email registered with SendGrid
+        subject: `Deleted Request Notification - ${moment().format('YYYY-MM-DD')}`,
+        html: emailBody
+      };
+
+      await sgMail.send(msg);
+      console.log(`Deletion log email sent to ${user} successfully.`);
+    }
+  } catch (error) {
+    console.error('Error sending deletion log email:', error);
+  }
+};
+
+async function getEmailFromUsername(username) {
+  // Mock-up function: Fetch the user's email by username from your database or configuration
+  const user = await User.findOne({ username: username });
+  return user?.Email || []; // Return an array of emails or an empty array
+}
+
+
+// Cron job to send the deletion log email every day at 6 PM except weekends
+cron.schedule('0 18 * * 1-5', sendDeletionLogEmailDaily); // Runs every weekday at 6 PM
+
+
 const sendDailySummaryEmail = async () => {
   try {
     // Get the current time in the 'America/New_York' timezone
     const now = moment.tz('America/New_York');
 
     // Calculate the start and end of the current day
-    const startOfDay = now.clone().startOf('day').toDate(); 
+    const startOfDay = now.clone().startOf('day').toDate();
     const endOfDay = now.toDate(); // Current time
 
     // Fetch change logs for the entire day
@@ -1266,7 +1354,7 @@ const sendDailySummaryEmail = async () => {
       };
     });
 
-    const recipients = [/*'tom@commersive.ca', 'remi@commersive.ca',*/ 'richard@commersive.ca'];
+    const recipients = ['tom@commersive.ca', 'remi@commersive.ca', 'richard@commersive.ca'];
     const msg = {
       to: recipients,
       from: process.env.EMAIL_USERNAME,
@@ -1286,13 +1374,14 @@ const sendDailySummaryEmail = async () => {
 
 
 // Schedule the cron job to run every 30 minutes between 9:00 AM and 5:30 PM
-cron.schedule('0,30 9-17 * * *', () => {
-  console.log('Running change log email task...');
-  sendChangeLogEmail().catch(error => console.error('Error in scheduled email task:', error));
-}, {
-  scheduled: true,
-  timezone: "America/New_York"
-});
+// cron.schedule('0,30 9-17 * * *', () => {
+//   console.log('Running change log email task...');
+//   sendChangeLogEmail().catch(error => console.error('Error in scheduled email task:', error));
+//   sendDeletionLogEmail().catch(error => console.error('Error in scheduled email task:', error));
+// }, {
+//   scheduled: true,
+//   timezone: "America/New_York"
+// });
 
 //daily summary every night
 cron.schedule('0 22 * * *', () => {
@@ -1303,14 +1392,15 @@ cron.schedule('0 22 * * *', () => {
   timezone: "America/New_York"
 });
 
-//testing purposes
-// cron.schedule('* * * * *', () => {
-//   console.log('Running test cron job...');
-//   sendChangeLogEmail().catch(error => console.error('Error in scheduled email task:', error));
-// }, {
-//   scheduled: true,
-//   timezone: "America/New_York"
-// });
+// testing purposes
+cron.schedule('* * * * *', () => {
+  console.log('Running test cron job...');
+  // sendChangeLogEmail().catch(error => console.error('Error in scheduled email task:', error));
+  sendDeletionLogEmail().catch(error => console.error('Error in scheduled email task:', error));
+}, {
+  scheduled: true,
+  timezone: "America/New_York"
+});
 
 
 // Deletes all logs, will schedule this every Sunday
@@ -1318,7 +1408,8 @@ const deleteAllLogs = async () => {
   try {
     // Delete all logs
     const result = await ChangeLog.deleteMany({});
-    console.log(`Deleted ${result.deletedCount} logs.`);
+    const deletedReq = await DeletedRequest.deleteMany({});
+    console.log(`Deleted ${result.deletedCount} + ${deletedReq.deletedCount} logs.`);
   } catch (error) {
     console.error('Error deleting logs:', error);
   }

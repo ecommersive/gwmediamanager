@@ -1381,7 +1381,12 @@ cron.schedule('0,30 9-17 * * *', () => {
   scheduled: true,
   timezone: "America/New_York"
 });
-cron.schedule('0 18 * * 1-5', sendDeletionLogEmailDaily); // Runs every weekday at 6 PM
+cron.schedule('0 18 * * 1-5', ()=>{
+  sendDeletionLogEmailDaily().catch(error => console.error('Error in scheduled email task:', error))
+}, {
+  scheduled: true,
+  timezone: "America/New_York"
+}); // Runs every weekday at 6 PM
 
 //daily summary every night
 cron.schedule('0 22 * * *', () => {

@@ -17,7 +17,7 @@ const adsSchema = new mongoose.Schema({
   Type: {
     type: String,
     required: true,
-    enum: ['JPG', 'Video', 'PNG', 'JPEG'],
+    enum: ['JPG', 'Video', 'PNG', 'JPEG', 'Photo'],
   },  
   Tag: String,
   Run_Time: {

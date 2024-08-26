@@ -122,34 +122,34 @@ app.post('/upload', upload.single('file'), async (req, res) => {
     res.status(500).send({ error: 'Error uploading file' });
   }
 });
-app.get('/ads', async (req, res) => {
-  try {
-    const ads = await Ads.find({});
-    const adsSchedules = await AdsSchedule.find({})
-    const scheduledItems = new Set(
-      adsSchedules.flatMap(schedule =>
-        schedule.items
-          .filter(item => item.FileID)  // Ensure FileID is defined
-          .map(item => item.FileID.toString())
-      )
-    )
-    const filteredAds = ads.filter(ads => ads._id && !scheduledItems.has(ads._id.toString()))
-    res.json(filteredAds);
-  } catch (err) {
-    console.error('Error fetching playlists:', err);
-    res.status(500).send('Internal Server Error');
-  }
-});
-
 // app.get('/ads', async (req, res) => {
 //   try {
 //     const ads = await Ads.find({});
-//     res.json(ads);
+//     const adsSchedules = await AdsSchedule.find({})
+//     const scheduledItems = new Set(
+//       adsSchedules.flatMap(schedule =>
+//         schedule.items
+//           .filter(item => item.FileID)  // Ensure FileID is defined
+//           .map(item => item.FileID.toString())
+//       )
+//     )
+//     const filteredAds = ads.filter(ads => ads._id && !scheduledItems.has(ads._id.toString()))
+//     res.json(filteredAds);
 //   } catch (err) {
-//     console.error('Error fetching ads:', err);
+//     console.error('Error fetching playlists:', err);
 //     res.status(500).send('Internal Server Error');
 //   }
 // });
+
+app.get('/ads', async (req, res) => {
+  try {
+    const ads = await Ads.find({});
+    res.json(ads);
+  } catch (err) {
+    console.error('Error fetching ads:', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
 
 
 app.get('/mediaAll', async (req, res) => {
@@ -323,7 +323,7 @@ app.post('/uploadPlaylist', verifyToken, async (req, res) => {
 
 
 app.post('/uploadAds', verifyToken, async (req, res) => {
-  const { FileName, PhotoUrl, Type, Tag, Run_Time, Content, Expiry, notes, generalData, videoData, audioData } = req.body;
+  const { FileName, PhotoUrl,videoUrl, Type, Tag, Run_Time, Content, Expiry, notes, generalData, videoData, audioData } = req.body;
 
   const foundIn = await checkFileExistence(FileName);
   if (foundIn.length > 0) {
@@ -332,6 +332,7 @@ app.post('/uploadAds', verifyToken, async (req, res) => {
 
   const newAdsItem = new Ads({
     FileName,
+    videoUrl,
     PhotoUrl,
     Type,
     Tag,
@@ -1215,6 +1216,9 @@ const sendDeletionLogEmailDaily = async () => {
       return acc;
     }, {});
 
+    // Array of emails to be CC'd (extracted from the image)
+    const ccEmails = ['richard@commersive.ca', 'tom@commersive.ca', 'remi@commersive.ca'];
+
     // Send an email for each user
     for (let user in groupedRequests) {
       const userRequests = groupedRequests[user];
@@ -1236,6 +1240,7 @@ const sendDeletionLogEmailDaily = async () => {
 
       const msg = {
         to: userEmail, // Assuming getEmailFromUsername resolves to the correct email
+        cc: ccEmails, // Adding the CC emails here
         from: process.env.EMAIL_USERNAME, // Your email registered with SendGrid
         subject: `Deleted Request Notification - ${moment().format('YYYY-MM-DD')}`,
         html: emailBody
@@ -1256,8 +1261,6 @@ async function getEmailFromUsername(username) {
 }
 
 
-// Cron job to send the deletion log email every day at 6 PM except weekends
-cron.schedule('0 18 * * 1-5', sendDeletionLogEmailDaily); // Runs every weekday at 6 PM
 
 
 const sendDailySummaryEmail = async () => {
@@ -1406,6 +1409,7 @@ cron.schedule('0 22 * * *', () => {
 //   scheduled: true,
 //   timezone: "America/New_York"
 // });
+
 
 
 // Deletes all logs, will schedule this every Sunday

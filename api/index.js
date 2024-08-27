@@ -1304,33 +1304,40 @@ const sendDailySummaryEmail = async () => {
       return acc;
     }, {});
 
-    // Generate a separate table for each user
-    const logTables = Object.keys(groupedLogs).map(user => {
+    // Prepare attachments array
+    const attachments = [];
+
+    // Generate a separate workbook for each user's logs
+    Object.keys(groupedLogs).forEach(user => {
       const userLogs = groupedLogs[user];
-      return `
-        <h3>Logs for ${user}</h3>
-        <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
-          <thead>
-            <tr>
-              <th>User</th>
-              <th>Date</th>
-              <th>Message</th>
-              <th>Time</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${userLogs.map(log => `
-              <tr>
-                <td>${log.user}</td>
-                <td>${formatDate(log.timestamp)}</td>
-                <td>${log.message}</td>
-                <td>${formatTime(log.timestamp)}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      `;
-    }).join('<br>');  // Separate each table with a line break for clarity in the email
+
+      // Create Excel sheet for user logs
+      const wsData = [
+        ["User", "Date", "Message", "Time"],
+        ...userLogs.map(log => [
+          log.user,
+          formatDate(log.timestamp),
+          log.message,
+          formatTime(log.timestamp)
+        ])
+      ];
+
+      const wb = xlsx.utils.book_new();
+      const ws = xlsx.utils.aoa_to_sheet(wsData);
+      xlsx.utils.book_append_sheet(wb, ws, `Logs_${user}`);
+
+      // Generate the Excel file in memory and convert to base64
+      const wbOpts = { bookType: 'xlsx', type: 'base64' };
+      const base64Excel = xlsx.write(wb, wbOpts);
+
+      // Add to attachments
+      attachments.push({
+        content: base64Excel,
+        filename: `Logs_${user}_${currentDate}.xlsx`,
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        disposition: 'attachment'
+      });
+    });
 
     // Generate expiry date details, excluding those with no expiry date
     const expiryDetails = [];
@@ -1365,12 +1372,63 @@ const sendDailySummaryEmail = async () => {
       });
     });
 
-    if (expiryDetails.length === 0) {
-      console.log('No valid expiry dates found.');
-      return;
+    if (expiryDetails.length > 0) {
+      const wsExpiryData = [
+        ["Type", "Folder", "Position", "File Name", "Expiry Date"],
+        ...expiryDetails.map(detail => [
+          detail.Type,
+          detail.Folder,
+          detail.Position,
+          detail.FileName,
+          detail.Expiry
+        ])
+      ];
+
+      const wbExpiry = xlsx.utils.book_new();
+      const wsExpiry = xlsx.utils.aoa_to_sheet(wsExpiryData);
+      xlsx.utils.book_append_sheet(wbExpiry, wsExpiry, "ExpiryDates");
+
+      // Generate the Excel file in memory and convert to base64
+      const base64ExcelExpiry = xlsx.write(wbExpiry, { bookType: 'xlsx', type: 'base64' });
+
+      // Add to attachments
+      attachments.push({
+        content: base64ExcelExpiry,
+        filename: `ExpiryDates_${currentDate}.xlsx`,
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        disposition: 'attachment'
+      });
     }
 
-    const expiryTable = `
+    // Create the email content with log tables and expiry table
+    const logTables = Object.keys(groupedLogs).map(user => {
+      const userLogs = groupedLogs[user];
+      return `
+        <h3>Logs for ${user}</h3>
+        <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Date</th>
+              <th>Message</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${userLogs.map(log => `
+              <tr>
+                <td>${log.user}</td>
+                <td>${formatDate(log.timestamp)}</td>
+                <td>${log.message}</td>
+                <td>${formatTime(log.timestamp)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }).join('<br>');  // Separate each table with a line break for clarity in the email
+
+    const expiryTable = expiryDetails.length > 0 ? `
       <h3>Expiry Dates</h3>
       <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
         <thead>
@@ -1394,37 +1452,10 @@ const sendDailySummaryEmail = async () => {
           `).join('')}
         </tbody>
       </table>
-    `;
+    ` : '';
 
-    // Create an Excel sheet for the expiry dates
-    const wb = xlsx.utils.book_new();
-    const wsData = [
-      ["Type", "Folder", "Position", "File Name", "Expiry Date"],
-      ...expiryDetails.map(detail => [
-        detail.Type,
-        detail.Folder,
-        detail.Position,
-        detail.FileName,
-        detail.Expiry
-      ])
-    ];
-    const ws = xlsx.utils.aoa_to_sheet(wsData);
-    xlsx.utils.book_append_sheet(wb, ws, "ExpiryDates");
-
-    // Generate the Excel file in memory and convert to base64
-    const wbOpts = { bookType: 'xlsx', type: 'base64' };
-    const base64Excel = xlsx.write(wb, wbOpts);
-
-    const attachments = [
-      {
-        content: base64Excel,
-        filename: `ExpiryDates_${currentDate}.xlsx`,
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        disposition: 'attachment'
-      }
-    ];
-
-    const recipients = ['richard@commersive.ca','remi@commersive.ca', 'tom@commersive.ca'];
+    // Create the email message
+    const recipients = ['richard@commersive.ca'];
     const msg = {
       to: recipients,
       from: process.env.EMAIL_USERNAME,
@@ -1440,6 +1471,8 @@ const sendDailySummaryEmail = async () => {
     console.error('Error sending daily summary email:', error);
   }
 };
+
+
 // Schedule the cron job to run every 30 minutes between 9:00 AM and 5:30 PM
 cron.schedule('0,30 9-17 * * *', () => {
   console.log('Running change log email task...');

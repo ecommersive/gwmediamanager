@@ -1259,10 +1259,6 @@ async function getEmailFromUsername(username) {
   const user = await User.findOne({ username: username });
   return user?.Email || []; // Return an array of emails or an empty array
 }
-
-
-
-
 const sendDailySummaryEmail = async () => {
   try {
     // Get the current time in the 'America/New_York' timezone
@@ -1277,17 +1273,23 @@ const sendDailySummaryEmail = async () => {
       timestamp: { $gte: startOfDay, $lt: endOfDay }
     });
 
-    if (logs.length === 0) {
-      console.log('No change logs to send.');
+    // Fetch expiry dates from AdsSchedule and PlaylistSchedule
+    const adsSchedules = await AdsSchedule.find({});
+    const playlistSchedules = await PlaylistSchedule.find({});
+
+    if (logs.length === 0 && adsSchedules.length === 0 && playlistSchedules.length === 0) {
+      console.log('No logs or expiry dates to send.');
       return;
     }
 
     // Get current date for the email subject
     const currentDate = now.format('YYYY-MM-DD');
 
-    // Helper function to format date
+    // Helper function to format date and handle missing or invalid dates
     const formatDate = (date) => {
-      return moment(date).tz('America/New_York').format('YYYY-MM-DD');
+      if (!date) return null;
+      const momentDate = moment(date);
+      return momentDate.isValid() ? momentDate.tz('America/New_York').format('YYYY-MM-DD') : null;
     };
 
     // Helper function to format time
@@ -1303,7 +1305,7 @@ const sendDailySummaryEmail = async () => {
     }, {});
 
     // Generate a separate table for each user
-    const emailBody = Object.keys(groupedLogs).map(user => {
+    const logTables = Object.keys(groupedLogs).map(user => {
       const userLogs = groupedLogs[user];
       return `
         <h3>Logs for ${user}</h3>
@@ -1330,40 +1332,104 @@ const sendDailySummaryEmail = async () => {
       `;
     }).join('<br>');  // Separate each table with a line break for clarity in the email
 
-    const wbOpts = { bookType: 'xlsx', type: 'base64' };
-    const attachments = Object.keys(groupedLogs).map(user => {
-      const userLogs = groupedLogs[user];
-      const wb = xlsx.utils.book_new();
-      const wsData = [
-        ["User", "Date", "Message", "Time"],
-        ...userLogs.map(log => [
-          log.user,
-          formatDate(log.timestamp),
-          log.message,
-          formatTime(log.timestamp)
-        ])
-      ];
-      const ws = xlsx.utils.aoa_to_sheet(wsData);
-      xlsx.utils.book_append_sheet(wb, ws, user);
+    // Generate expiry date details, excluding those with no expiry date
+    const expiryDetails = [];
 
-      // Generate the Excel file in memory and convert to base64
-      const base64Excel = xlsx.write(wb, wbOpts);
-
-      return {
-        content: base64Excel,
-        filename: `${user}.xlsx`,
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        disposition: 'attachment'
-      };
+    adsSchedules.forEach((schedule, index) => {
+      schedule.items.forEach((item, itemIndex) => {
+        const formattedDate = formatDate(item.Expiry);
+        if (formattedDate) {
+          expiryDetails.push({
+            Type: 'AdsSchedule',
+            Folder: schedule.folder,
+            Position: itemIndex + 1,
+            FileName: item.FileName,
+            Expiry: formattedDate
+          });
+        }
+      });
     });
 
-    const recipients = ['tom@commersive.ca', 'remi@commersive.ca', 'richard@commersive.ca'];
+    playlistSchedules.forEach((schedule, index) => {
+      schedule.items.forEach((item, itemIndex) => {
+        const formattedDate = formatDate(item.Expiry);
+        if (formattedDate) {
+          expiryDetails.push({
+            Type: 'PlaylistSchedule',
+            Folder: schedule.folder,
+            Position: itemIndex + 1,
+            FileName: item.FileName,
+            Expiry: formattedDate
+          });
+        }
+      });
+    });
+
+    if (expiryDetails.length === 0) {
+      console.log('No valid expiry dates found.');
+      return;
+    }
+
+    const expiryTable = `
+      <h3>Expiry Dates</h3>
+      <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Folder</th>
+            <th>Position</th>
+            <th>File Name</th>
+            <th>Expiry Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${expiryDetails.map(detail => `
+            <tr>
+              <td>${detail.Type}</td>
+              <td>${detail.Folder}</td>
+              <td>${detail.Position}</td>
+              <td>${detail.FileName}</td>
+              <td>${detail.Expiry}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+
+    // Create an Excel sheet for the expiry dates
+    const wb = xlsx.utils.book_new();
+    const wsData = [
+      ["Type", "Folder", "Position", "File Name", "Expiry Date"],
+      ...expiryDetails.map(detail => [
+        detail.Type,
+        detail.Folder,
+        detail.Position,
+        detail.FileName,
+        detail.Expiry
+      ])
+    ];
+    const ws = xlsx.utils.aoa_to_sheet(wsData);
+    xlsx.utils.book_append_sheet(wb, ws, "ExpiryDates");
+
+    // Generate the Excel file in memory and convert to base64
+    const wbOpts = { bookType: 'xlsx', type: 'base64' };
+    const base64Excel = xlsx.write(wb, wbOpts);
+
+    const attachments = [
+      {
+        content: base64Excel,
+        filename: `ExpiryDates_${currentDate}.xlsx`,
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        disposition: 'attachment'
+      }
+    ];
+
+    const recipients = ['richard@commersive.ca','remi@commersive.ca', 'tom@commersive.ca'];
     const msg = {
       to: recipients,
       from: process.env.EMAIL_USERNAME,
       subject: `Daily Change Log Summary - ${currentDate}`,
-      text: logs.map(log => `User: ${log.user}\nDate: ${formatDate(log.timestamp)}\nMessage: ${log.message}\nTime: ${formatTime(log.timestamp)}`).join('\n\n'),
-      html: emailBody,
+      html: logTables + '<br>' + expiryTable,
       attachments: attachments
     };
 
@@ -1374,8 +1440,6 @@ const sendDailySummaryEmail = async () => {
     console.error('Error sending daily summary email:', error);
   }
 };
-
-
 // Schedule the cron job to run every 30 minutes between 9:00 AM and 5:30 PM
 cron.schedule('0,30 9-17 * * *', () => {
   console.log('Running change log email task...');
@@ -1403,6 +1467,8 @@ cron.schedule('0 22 * * *', () => {
 // testing purposes
 // cron.schedule('* * * * *', () => {
 //   console.log('Running test cron job...');
+//   sendDailySummaryEmail().catch(error => console.error('Error in scheduled daily summary email task:', error));
+
 //   sendChangeLogEmail().catch(error => console.error('Error in scheduled email task:', error));
 //   sendDeletionLogEmailDaily().catch(error => console.error('Error in scheduled email task:', error));
 // }, {

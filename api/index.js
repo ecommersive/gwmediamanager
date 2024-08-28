@@ -1477,7 +1477,7 @@ const sendDailySummaryEmail = async () => {
 cron.schedule('0,30 9-17 * * *', () => {
   console.log('Running change log email task...');
   sendChangeLogEmail().catch(error => console.error('Error in scheduled email task:', error));
-  sendDeletionLogEmailDaily().catch(error => console.error('Error in scheduled email task:', error))
+  // sendDeletionLogEmailDaily().catch(error => console.error('Error in scheduled email task:', error))
 }, {
   scheduled: true,
   timezone: "America/New_York"

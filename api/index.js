@@ -1477,7 +1477,9 @@ const sendDailySummaryEmail = async () => {
 cron.schedule('0,30 9-17 * * *', () => {
   console.log('Running change log email task...');
   sendChangeLogEmail().catch(error => console.error('Error in scheduled email task:', error));
-  // sendDeletionLogEmailDaily().catch(error => console.error('Error in scheduled email task:', error))
+  sendDeletionLogEmailDaily().catch(error => console.error('Error in scheduled email task:', error))
+  deleteReqLogs().catch(error => console.error('Error in scheduled delete logs task:', error));;
+  
 }, {
   scheduled: true,
   timezone: "America/New_York"
@@ -1510,12 +1512,20 @@ const deleteAllLogs = async () => {
   try {
     // Delete all logs
     const result = await ChangeLog.deleteMany({});
-    const deletedReq = await DeletedRequest.deleteMany({});
-    console.log(`Deleted ${result.deletedCount} + ${deletedReq.deletedCount} logs.`);
+    console.log(`Deleted ${result.deletedCount} logs.`);
   } catch (error) {
     console.error('Error deleting logs:', error);
   }
 };
+
+const deleteReqLogs = async()=>{
+  try {
+    const deletedReq = await DeletedRequest.deleteMany({});
+    console.log(`Deleted ${deletedReq.deletedCount} logs.`);
+  } catch (error) {
+    console.error('Error deleting logs:', error);
+  }
+}
 
 // Function to update schedules
 const updateSchedules = async () => {

@@ -1493,15 +1493,15 @@ cron.schedule('0 22 * * *', () => {
 });
 
 // testing purposes
-cron.schedule('* * * * *', () => {
-  console.log('Running test cron job...');
-  sendDailySummaryEmail().catch(error => console.error('Error in scheduled daily summary email task:', error));
-  sendChangeLogEmail().catch(error => console.error('Error in scheduled email task:', error));
-  sendDeletionLogEmailDaily().catch(error => console.error('Error in scheduled email task:', error));
-}, {
-  scheduled: true,
-  timezone: "America/New_York"
-});
+// cron.schedule('* * * * *', () => {
+//   console.log('Running test cron job...');
+//   sendDailySummaryEmail().catch(error => console.error('Error in scheduled daily summary email task:', error));
+//   sendChangeLogEmail().catch(error => console.error('Error in scheduled email task:', error));
+//   sendDeletionLogEmailDaily().catch(error => console.error('Error in scheduled email task:', error));
+// }, {
+//   scheduled: true,
+//   timezone: "America/New_York"
+// });
 
 
 

@@ -1242,7 +1242,7 @@ const sendDeletionLogEmailDaily = async () => {
         to: userEmail, // Assuming getEmailFromUsername resolves to the correct email
         cc: ccEmails, // Adding the CC emails here
         from: process.env.EMAIL_USERNAME, // Your email registered with SendGrid
-        subject: `Deleted Request Notification - ${moment().format('YYYY-MM-DD')}`,
+        subject: `Completed Requests Notification - ${moment().format('YYYY-MM-DD')}`,
         html: emailBody
       };
 

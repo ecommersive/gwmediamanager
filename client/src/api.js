@@ -632,7 +632,7 @@ const apiService = {
             }
           }));
           await fetchRequests();
-          const logChangeMessage = `Following requests finished:\n${completedRequests.map(req => req.description).join('\n')}\nFollowing requests unfinished:\n${unfinishedRequests.map(req => req.description).join('\n')}`;
+          const logChangeMessage = `Following requests finished:<br>${completedRequests.length > 0 ? completedRequests.map(req => req.description).join('<br>') : 'No Requests need to be completed'}<br><br>Following requests unfinished:<br>${unfinishedRequests.length > 0 ? unfinishedRequests.map(req => req.description).join('<br>') : 'No Requests are unfinished'}`;
           await apiService.logChange(logChangeMessage);
         } catch (error) {
           console.error('Error deleting completed requests:', error);

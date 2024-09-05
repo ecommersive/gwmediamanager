@@ -1455,7 +1455,7 @@ const sendDailySummaryEmail = async () => {
     ` : '';
 
     // Create the email message
-    const recipients = ['richard@commersive.ca'];
+    const recipients = ['tom@commersive.ca', 'remi@commersive.ca', 'richard@commersive.ca'];
     const msg = {
       to: recipients,
       from: process.env.EMAIL_USERNAME,

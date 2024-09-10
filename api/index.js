@@ -1547,7 +1547,7 @@ const sendPlaylistsAndAdsSchedulesDaily = async () => {
       to: recipients,
       from: process.env.EMAIL_USERNAME,
       subject: `Daily Playlist and Ads Schedules - ${currentDate}`,
-      html: `<p>Dear Team, <br/><br/>Please find the attached daily Playlist and Ads Schedules for ${currentDate}.<br/><br/>GWAutomation<br/><br/><img src="https://samqr.s3.ca-central-1.amazonaws.com/Commersive+Logo+2023+LIGHT.png" alt="Commersive Solutions Logo" style="width: 400px; height: auto;"></p>`,
+      html: `<p>Dear Team, <br/><br/>Please find the attached daily Playlist and Ads Schedules for ${currentDate}.<br/><br/><img src="https://samqr.s3.ca-central-1.amazonaws.com/Commersive+Logo+2023+LIGHT.png" alt="Commersive Solutions Logo" style="width: 400px; height: auto;"></p>`,
       attachments: [
         {
           content: base64ExcelPlaylist,

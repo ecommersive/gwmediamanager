@@ -1472,12 +1472,112 @@ const sendDailySummaryEmail = async () => {
   }
 };
 
+const sendPlaylistsAndAdsSchedulesDaily = async () => {
+  try {
+    // Get the current date in the 'America/New_York' timezone
+    const now = moment.tz('America/New_York');
+    const currentDate = now.format('YYYY-MM-DD');
+
+    // Fetch PlaylistSchedule and AdsSchedule
+    const playlistSchedules = await PlaylistSchedule.find({});
+    const adsSchedules = await AdsSchedule.find({});
+    // Helper function to format date and handle invalid dates
+    const formatDate = (date) => {
+      if (!date) return ''; // Return blank if date is null or doesn't exist
+      const momentDate = moment(date);
+      return momentDate.isValid() ? momentDate.tz('America/New_York').format('YYYY-MM-DD') : ''; // Return blank if date is invalid
+    };
+    // Prepare data for PlaylistSchedule Excel sheet
+    const playlistData = [
+      ["Folder", "FileName", "FileID", "StartTime", "EndTime", "PhotoUrl", "VideoUrl", "Type", "Tag", "Run_Time", "Content", "Expiry", "Notes"],
+      ...playlistSchedules.map(schedule => schedule.items.map(item => [
+        schedule.folder,
+        item.FileName,
+        item.FileID,
+        item.startTime,
+        item.endTime,
+        item.PhotoUrl,
+        item.videoUrl,
+        item.Type,
+        item.Tag,
+        item.Run_Time,
+        item.Content,
+        formatDate(item.Expiry),
+        item.notes ? item.notes.join(', ') : ''
+      ])).flat()
+    ];
+
+    const wbPlaylist = xlsx.utils.book_new();
+    const wsPlaylist = xlsx.utils.aoa_to_sheet(playlistData);
+    xlsx.utils.book_append_sheet(wbPlaylist, wsPlaylist, `Eternal Playlist - ${currentDate}`);
+
+    // Prepare data for AdsSchedule Excel sheet
+    const wbAds = xlsx.utils.book_new();
+    
+    adsSchedules.forEach(schedule => {
+      const adsData = [
+        ["FileName", "FileID", "StartTime", "EndTime", "PhotoUrl", "VideoUrl", "Type", "Tag", "Run_Time", "Content", "Expiry", "Notes"],
+        ...schedule.items.map(item => [
+          item.FileName,
+          item.FileID,
+          item.startTime,
+          item.endTime,
+          item.PhotoUrl,
+          item.videoUrl,
+          item.Type,
+          item.Tag,
+          item.Run_Time,
+          item.Content,
+          formatDate(item.Expiry),
+          item.notes ? item.notes.join(', ') : ''
+        ])
+      ];
+
+      const wsAds = xlsx.utils.aoa_to_sheet(adsData);
+      xlsx.utils.book_append_sheet(wbAds, wsAds, `ads ${schedule.folder}`);
+    });
+
+    // Convert the workbooks to base64 strings for email attachment
+    const base64ExcelPlaylist = xlsx.write(wbPlaylist, { bookType: 'xlsx', type: 'base64' });
+    const base64ExcelAds = xlsx.write(wbAds, { bookType: 'xlsx', type: 'base64' });
+
+    // Prepare email content and attachments
+    const recipients = ['tom@commersive.ca', 'remi@commersive.ca', 'richard@commersive.ca'];
+    const msg = {
+      to: recipients,
+      from: process.env.EMAIL_USERNAME,
+      subject: `Daily Playlist and Ads Schedules - ${currentDate}`,
+      html: `<p>Dear Team, <br/><br/>Please find the attached daily Playlist and Ads Schedules for ${currentDate}.<br/>Best Regards,<br/>GWAutomation<br/><br/><img src="https://samqr.s3.ca-central-1.amazonaws.com/Commersive+Logo+2023+LIGHT.png" alt="Commersive Solutions Logo" style="width: 400px; height: auto;"></p>`,
+      attachments: [
+        {
+          content: base64ExcelPlaylist,
+          filename: `Eternal Playlist - ${currentDate}.xlsx`,
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          disposition: 'attachment'
+        },
+        {
+          content: base64ExcelAds,
+          filename: `Ads Schedules - ${currentDate}.xlsx`,
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          disposition: 'attachment'
+        }
+      ]
+    };
+
+    // Send email
+    await sgMail.send(msg);
+    console.log('Playlist and Ads Schedules email sent successfully.');
+  } catch (error) {
+    console.error('Error sending Playlist and Ads Schedules email:', error);
+  }
+};
 
 // Schedule the cron job to run every 30 minutes between 9:00 AM and 5:30 PM
 cron.schedule('0,30 9-17 * * *', () => {
   console.log('Running change log email task...');
   sendChangeLogEmail().catch(error => console.error('Error in scheduled email task:', error));
   sendDeletionLogEmailDaily().catch(error => console.error('Error in scheduled email task:', error))
+  sendPlaylistsAndAdsSchedulesDaily().catch(error => console.error('Error in scheduled daily summary email schedules:', error));
   deleteReqLogs().catch(error => console.error('Error in scheduled delete logs task:', error));;
   
 }, {
@@ -1500,6 +1600,7 @@ cron.schedule('0 22 * * *', () => {
 //   sendDailySummaryEmail().catch(error => console.error('Error in scheduled daily summary email task:', error));
 //   sendChangeLogEmail().catch(error => console.error('Error in scheduled email task:', error));
 //   sendDeletionLogEmailDaily().catch(error => console.error('Error in scheduled email task:', error));
+//   sendPlaylistsAndAdsSchedulesDaily().catch(error => console.error('Error in scheduled daily summary email schedules:', error));
 // }, {
 //   scheduled: true,
 //   timezone: "America/New_York"

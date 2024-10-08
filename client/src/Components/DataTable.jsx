@@ -2,6 +2,8 @@ import React from 'react';
 import '../styles/datatable.css';
 
 const DataTable = ({ currentData, isAdmin, handleUrlClick, filteredData, setShowModal, setFileName, setMode, setNotes, setCatData, setfolderViewNum, formatDate, formatTime, scheduleEditMode, setScheduleEditMode, setCompareData, orderedScheduledData, generateIntervals, formatTimeSchedule  }) => {
+  console.log('filtered data =====', filteredData);
+  
   return (
     <section className="table_body">
       {filteredData && filteredData.length > 0 ? (
@@ -103,7 +105,7 @@ const DataTable = ({ currentData, isAdmin, handleUrlClick, filteredData, setShow
           </tbody>
         </table>
       ) : (
-        <p className="no-data-message">No data found. Please add data to {currentData === 'Playlist' ? 'Content Files' : 'Ad Files'}</p>
+        <p className="no-data-message">No data found.</p>
       )}
     </section>
   );

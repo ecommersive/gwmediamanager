@@ -1,7 +1,8 @@
-// SearchInput.js
 import React from 'react';
 import '../styles/searchinput.css';
 const SearchInput = ({ searchTerm, setSearchTerm }) => {
+  console.log("searchTerm ====", searchTerm);
+  
   return (
     <div className="input-group">
     <input

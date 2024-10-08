@@ -432,6 +432,9 @@ const DataPage = () => {
     }
   }, [currentData, fileName, folderViewNum]);
 
+  console.log("scheduleEditMode =====", scheduleEditMode);
+  
+  
   useEffect(() => {
     getUsers(setUsers);
   }, []);

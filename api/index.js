@@ -1339,10 +1339,10 @@ const sendDailySummaryEmail = async () => {
       });
     });
 
-    // Generate expiry date details, excluding those with no expiry date
+    // Generate expiry date details, excluding those with no expiry date, and consolidate duplicates
     const expiryDetails = [];
 
-    adsSchedules.forEach((schedule, index) => {
+    adsSchedules.forEach(schedule => {
       schedule.items.forEach((item, itemIndex) => {
         const formattedDate = formatDate(item.Expiry);
         if (formattedDate) {
@@ -1357,7 +1357,7 @@ const sendDailySummaryEmail = async () => {
       });
     });
 
-    playlistSchedules.forEach((schedule, index) => {
+    playlistSchedules.forEach(schedule => {
       schedule.items.forEach((item, itemIndex) => {
         const formattedDate = formatDate(item.Expiry);
         if (formattedDate) {
@@ -1372,15 +1372,39 @@ const sendDailySummaryEmail = async () => {
       });
     });
 
-    if (expiryDetails.length > 0) {
+    // Consolidate duplicate entries by FileName
+    const consolidatedExpiryDetails = expiryDetails.reduce((acc, detail) => {
+      if (!acc[detail.FileName]) {
+        acc[detail.FileName] = {
+          Type: detail.Type,
+          FileName: detail.FileName,
+          Expiry: detail.Expiry,
+          Folders: [],
+          Positions: []
+        };
+      }
+      acc[detail.FileName].Folders.push(`Folder ${detail.Folder}`);
+      acc[detail.FileName].Positions.push(`Folder ${detail.Folder} - position ${detail.Position}`);
+      return acc;
+    }, {});
+
+    const finalExpiryDetails = Object.values(consolidatedExpiryDetails).map(detail => ({
+      Type: detail.Type,
+      FileName: detail.FileName,
+      Expiry: detail.Expiry,
+      Folders: detail.Folders.join(', '),
+      Positions: detail.Positions.join(', ')
+    }));
+
+    if (finalExpiryDetails.length > 0) {
       const wsExpiryData = [
-        ["Type", "Folder", "Position", "File Name", "Expiry Date"],
-        ...expiryDetails.map(detail => [
+        ["Type", "File Name", "Expiry Date", "Folders", "Positions"],
+        ...finalExpiryDetails.map(detail => [
           detail.Type,
-          detail.Folder,
-          detail.Position,
           detail.FileName,
-          detail.Expiry
+          detail.Expiry,
+          detail.Folders,
+          detail.Positions
         ])
       ];
 
@@ -1428,26 +1452,26 @@ const sendDailySummaryEmail = async () => {
       `;
     }).join('<br>');  // Separate each table with a line break for clarity in the email
 
-    const expiryTable = expiryDetails.length > 0 ? `
+    const expiryTable = finalExpiryDetails.length > 0 ? `
       <h3>Expiry Dates</h3>
       <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
         <thead>
           <tr>
             <th>Type</th>
-            <th>Folder</th>
-            <th>Position</th>
             <th>File Name</th>
             <th>Expiry Date</th>
+            <th>Folders</th>
+            <th>Positions</th>
           </tr>
         </thead>
         <tbody>
-          ${expiryDetails.map(detail => `
+          ${finalExpiryDetails.map(detail => `
             <tr>
               <td>${detail.Type}</td>
-              <td>${detail.Folder}</td>
-              <td>${detail.Position}</td>
               <td>${detail.FileName}</td>
               <td>${detail.Expiry}</td>
+              <td>${detail.Folders}</td>
+              <td>${detail.Positions}</td>
             </tr>
           `).join('')}
         </tbody>
@@ -1471,6 +1495,7 @@ const sendDailySummaryEmail = async () => {
     console.error('Error sending daily summary email:', error);
   }
 };
+
 
 const sendPlaylistsAndAdsSchedulesDaily = async () => {
   try {

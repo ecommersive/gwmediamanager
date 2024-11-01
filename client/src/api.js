@@ -654,12 +654,43 @@ const apiService = {
         }
     },
 
-    moveItemPlaylistSchedule: async ({ itemToMove, newIndex, folderViewNum, fetchData, currentData }) => {
+    // moveItemPlaylistSchedule: async ({ itemToMove, newIndex, folderViewNum, fetchData, currentData }) => {
+    //   const alterValue = currentData === 'Playlist Schedule' ? 'playlistSchedule' : 'adsSchedule';
+    //   const url = `${baseURL}/${alterValue}/${folderViewNum}/move`;
+    //   console.log('url======', url);
+    //   console.log('itemToMove======', itemToMove);
+    //   console.log('newIndex======', newIndex);
+    //   console.log('folderViewNum======', folderViewNum);
+      
+      
+      
+    //   try {
+    //     const response = await axios.post(url, { item: itemToMove, newIndex }, {
+    //       headers: {
+    //         'Content-Type': 'application/json',
+    //         Authorization: `Bearer ${token}`
+    //       }
+    //     });
+    
+    //     if (response.status === 200) {
+    //       console.log('Item moved successfully');
+    //       fetchData();
+    //       const logChangeMessage = `${username} has moved ${itemToMove.FileName} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum} to position ${newIndex + 1}.`;
+    //       await apiService.logChange(logChangeMessage);
+    //     } else {
+    //       throw new Error('Failed to move the item');
+    //     }
+    //   } catch (error) {
+    //     console.error('Error moving item:', error.response ? error.response.data : error);
+    //   }
+    // },
+    
+    moveItemPlaylistSchedule: async ({ itemToMove, oldIndex, newIndex, folderViewNum, fetchData, currentData }) => {
       const alterValue = currentData === 'Playlist Schedule' ? 'playlistSchedule' : 'adsSchedule';
       const url = `${baseURL}/${alterValue}/${folderViewNum}/move`;
-    
+      
       try {
-        const response = await axios.post(url, { item: itemToMove, newIndex }, {
+        const response = await axios.post(url, { item: { _id: itemToMove._id }, oldIndex, newIndex }, {  // Ensure only _id is passed
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`
@@ -669,7 +700,7 @@ const apiService = {
         if (response.status === 200) {
           console.log('Item moved successfully');
           fetchData();
-          const logChangeMessage = `${username} has moved ${itemToMove.FileName} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum} to position ${newIndex + 1}.`;
+          const logChangeMessage = `${username} has moved ${itemToMove.FileName} from position ${oldIndex + 1} to ${newIndex + 1} in ${currentData === 'Playlist Schedule' ? 'Playlist ' : 'Ads '} ${folderViewNum}.`;
           await apiService.logChange(logChangeMessage);
         } else {
           throw new Error('Failed to move the item');
@@ -678,7 +709,6 @@ const apiService = {
         console.error('Error moving item:', error.response ? error.response.data : error);
       }
     },
-    
     
     
     

@@ -80,6 +80,7 @@ const DataPage = () => {
   const [secondaryModal, setSecondaryModal] = useState(false);
   const [adminUserState, setAdminUserState] = useState('')
   const [users, setUsers] = useState([]);
+  
 
 
   const [selectedUser, setSelectedUser] = useState(null);
@@ -165,8 +166,8 @@ const DataPage = () => {
   const handleToggleStatus = async (request) => {
     await apiService.handleToggleStatus({ request, fetchRequests });
   };
-  const moveItemPlaylistSchedule = async (itemToMove, newIndex) => {
-    await apiService.moveItemPlaylistSchedule({ itemToMove, newIndex, currentData, folderViewNum, fetchData });
+  const moveItemPlaylistSchedule = async (itemToMove, oldIndex, newIndex) => {
+    await apiService.moveItemPlaylistSchedule({ itemToMove, oldIndex, newIndex, currentData, folderViewNum, fetchData });
     await fetchItemsByFolder();
   };
   const handleDeleteNote = async (noteIndex, identifier) => {
@@ -465,7 +466,7 @@ const DataPage = () => {
             </form>
             <NotesForm catData={catData} data={data.find(d => d.folder === folderViewNum)} identifier={identifier} notes={notes} editingNoteId={editingNoteId} editingNoteText={editingNoteText} handleUpdateNoteText={handleUpdateNoteText} handleDoneEditNote={handleDoneEditNote} handleEditNote={handleEditNote} handleDeleteNote={handleDeleteNote} handleAddNoteSubmit={handleAddNoteSubmit} newNote={newNote} setNewNote={setNewNote} username={username} setCatData={setCatData} isAdmin={isAdmin} currentData={currentData} />
             <SetCreation catData={catData} setShowModal={setShowModal} handleSubmitSetModal={handleSubmitSetModal} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} handleAddItem={handleAddItem} item={item} startDate={startDate} setStartDate={setStartDate} endDate={endDate} setEndDate={setEndDate} startTime={startTime} setStartTime={setStartTime}  endTime={endTime} setEndTime={setEndTime} error={error} setError={setError} fetchData={fetchData}/>
-            <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} modalState={modalState} setModalState={setModalState} deleteItemFromSchedule={deleteItemFromSchedule} addItemToSchedule={addItemToSchedule} moveItemPlaylistSchedule={moveItemPlaylistSchedule} handleAddItem={handleAddItem}fetchData={fetchData} formatDate={formatDate} formatTime={formatTime} isEditingDuration={isEditingDuration} isEditingTime={isEditingTime} setNewStartDate={setNewStartDate} setNewEndDate={setNewEndDate} setNewStartTime={setNewStartTime} setNewEndTime={setNewEndTime} handleSave={handleSave} newStartDate={newStartDate} newEndDate={newEndDate} setIsEditingDuration={setIsEditingDuration} newStartTime={newStartTime} newEndTime={newEndTime} setIsEditingTime={setIsEditingTime} isAdmin={isAdmin} itemSetToMove={itemSetToMove} setItemSetToMove={setItemSetToMove} confirmMove={confirmMove} setConfirmMove={setConfirmMove}  setSecondaryModal={setSecondaryModal} secondaryModal={secondaryModal} setMoveIndex={setMoveIndex} moveIndex={moveIndex}/>
+            <ViewList currentData={currentData} catData={catData} data={data.find(d => d.folder === folderViewNum)} modalSearchTerm={modalSearchTerm} setModalSearchTerm={setModalSearchTerm} modalFilteredData={modalFilteredData} itemExists={itemExists} modalState={modalState} setModalState={setModalState} deleteItemFromSchedule={deleteItemFromSchedule} addItemToSchedule={addItemToSchedule}   moveItemPlaylistSchedule={(itemToMove, oldIndex, newIndex) => moveItemPlaylistSchedule(itemToMove, oldIndex, newIndex)} handleAddItem={handleAddItem}fetchData={fetchData} formatDate={formatDate} formatTime={formatTime} isEditingDuration={isEditingDuration} isEditingTime={isEditingTime} setNewStartDate={setNewStartDate} setNewEndDate={setNewEndDate} setNewStartTime={setNewStartTime} setNewEndTime={setNewEndTime} handleSave={handleSave} newStartDate={newStartDate} newEndDate={newEndDate} setIsEditingDuration={setIsEditingDuration} newStartTime={newStartTime} newEndTime={newEndTime} setIsEditingTime={setIsEditingTime} isAdmin={isAdmin} itemSetToMove={itemSetToMove} setItemSetToMove={setItemSetToMove} confirmMove={confirmMove} setConfirmMove={setConfirmMove}  setSecondaryModal={setSecondaryModal} secondaryModal={secondaryModal} setMoveIndex={setMoveIndex} moveIndex={moveIndex}/>
             
             <RequestDetails 
             catData={catData} 

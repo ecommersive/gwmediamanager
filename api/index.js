@@ -90,23 +90,32 @@ const uploadFile = async (file, folder) => {
   return `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
 };
 
+// app.get('/playlists', async (req, res) => {
+//   try {
+//     const playlists = await Playlist.find({});
+
+//     const playlistSchedules = await PlaylistSchedule.find({});
+
+//     const scheduledItems = new Set(
+//       playlistSchedules.flatMap(schedule =>
+//         schedule.items
+//           .filter(item => item.FileID)  // Ensure FileID is defined
+//           .map(item => item.FileID.toString())
+//       )
+//     );
+
+//     const filteredPlaylists = playlists.filter(playlist => playlist._id && !scheduledItems.has(playlist._id.toString()));
+
+//     res.json(filteredPlaylists);
+//   } catch (err) {
+//     console.error('Error fetching playlists:', err);
+//     res.status(500).send('Internal Server Error');
+//   }
+// });
 app.get('/playlists', async (req, res) => {
   try {
     const playlists = await Playlist.find({});
-
-    const playlistSchedules = await PlaylistSchedule.find({});
-
-    const scheduledItems = new Set(
-      playlistSchedules.flatMap(schedule =>
-        schedule.items
-          .filter(item => item.FileID)  // Ensure FileID is defined
-          .map(item => item.FileID.toString())
-      )
-    );
-
-    const filteredPlaylists = playlists.filter(playlist => playlist._id && !scheduledItems.has(playlist._id.toString()));
-
-    res.json(filteredPlaylists);
+    res.json(playlists);
   } catch (err) {
     console.error('Error fetching playlists:', err);
     res.status(500).send('Internal Server Error');
@@ -839,12 +848,48 @@ app.delete('/:scheduleType/:folder/:item', verifyToken, async (req, res) => {
 
 });
 
+// app.post('/:scheduleType/:folder/move', verifyToken, async (req, res) => {
+//   const { scheduleType, folder } = req.params;
+//   const { item, newIndex } = req.body;
+
+//   if (!item || newIndex === undefined) {
+//     return res.status(400).json({ message: 'Item and new index are required' });
+//   }
+
+//   const Model = getModel(scheduleType);
+//   if (!Model) {
+//     return res.status(400).json({ message: 'Invalid schedule type' });
+//   }
+
+//   try {
+//     const schedule = await Model.findOne({ folder });
+//     if (!schedule) {
+//       return res.status(404).json({ message: 'Schedule not found' });
+//     }
+
+//     const index = schedule.items.findIndex(i => i.FileID.toString() === item.FileID.toString());
+//     if (index === -1) {
+//       return res.status(404).json({ message: 'Item not found in the schedule' });
+//     }
+
+//     const [movedItem] = schedule.items.splice(index, 1); // Remove the item from its current position
+//     schedule.items.splice(newIndex, 0, movedItem); // Insert the item at the new position
+
+//     await schedule.save();
+
+//     res.json(schedule);
+//   } catch (error) {
+//     console.error(`Error moving item in ${scheduleType} schedule:`, error);
+//     res.status(500).json({ message: 'Internal server error' });
+//   }
+// });
+
 app.post('/:scheduleType/:folder/move', verifyToken, async (req, res) => {
   const { scheduleType, folder } = req.params;
-  const { item, newIndex } = req.body;
+  const { item, oldIndex, newIndex } = req.body;
 
-  if (!item || newIndex === undefined) {
-    return res.status(400).json({ message: 'Item and new index are required' });
+  if (oldIndex === undefined || newIndex === undefined) {
+    return res.status(400).json({ message: 'Old and new index are required' });
   }
 
   const Model = getModel(scheduleType);
@@ -858,22 +903,22 @@ app.post('/:scheduleType/:folder/move', verifyToken, async (req, res) => {
       return res.status(404).json({ message: 'Schedule not found' });
     }
 
-    const index = schedule.items.findIndex(i => i.FileID.toString() === item.FileID.toString());
-    if (index === -1) {
-      return res.status(404).json({ message: 'Item not found in the schedule' });
+    // Ensure the correct item is at `oldIndex` by checking `FileID`
+    if (!schedule.items[oldIndex] || schedule.items[oldIndex]._id.toString() !== item._id.toString()) {
+      return res.status(404).json({ message: 'Item not found at the specified old index' });
     }
 
-    const [movedItem] = schedule.items.splice(index, 1); // Remove the item from its current position
+    const [movedItem] = schedule.items.splice(oldIndex, 1); // Remove the item from its old position
     schedule.items.splice(newIndex, 0, movedItem); // Insert the item at the new position
 
     await schedule.save();
-
     res.json(schedule);
   } catch (error) {
     console.error(`Error moving item in ${scheduleType} schedule:`, error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
 
 
 app.delete('/set/schedules/:scheduleType/:folder', verifyToken, async (req, res) => {

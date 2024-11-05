@@ -1293,6 +1293,7 @@ const sendDeletionLogEmailDaily = async () => {
 
       await sgMail.send(msg);
       console.log(`Deletion log email sent to ${user} successfully.`);
+      deleteReqLogs().catch(error => console.error('Error in scheduled delete logs task:', error));;
     }
   } catch (error) {
     console.error('Error sending deletion log email:', error);
@@ -1647,8 +1648,6 @@ cron.schedule('0,30 9-17 * * *', () => {
   console.log('Running change log email task...');
   sendChangeLogEmail().catch(error => console.error('Error in scheduled email task:', error));
   sendDeletionLogEmailDaily().catch(error => console.error('Error in scheduled email task:', error))
-  deleteReqLogs().catch(error => console.error('Error in scheduled delete logs task:', error));;
-  
 }, {
   scheduled: true,
   timezone: "America/New_York"
@@ -1659,6 +1658,7 @@ cron.schedule('0 22 * * *', () => {
   console.log('Running daily summary email task...');
   sendDailySummaryEmail().catch(error => console.error('Error in scheduled daily summary email task:', error));
   sendPlaylistsAndAdsSchedulesDaily().catch(error => console.error('Error in scheduled daily summary email schedules:', error));
+
 }, {
   scheduled: true,
   timezone: "America/New_York"
